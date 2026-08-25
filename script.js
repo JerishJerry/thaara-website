@@ -1,71 +1,153 @@
+/* ============================================================
+   THAARA — behaviour
+   Vanilla JS, no dependencies. Three concerns:
+     1. Header scroll state
+     2. Mobile menu (accessible)
+     3. Reveal on scroll
+   ============================================================ */
+
 (function () {
   "use strict";
 
-  // ---- Nav scroll state ----
-  var nav = document.getElementById("nav");
-  var onScroll = function () {
-    if (window.scrollY > 12) {
-      nav.classList.add("scrolled");
-    } else {
-      nav.classList.remove("scrolled");
-    }
-  };
-  onScroll();
-  window.addEventListener("scroll", onScroll, { passive: true });
+  var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  // ---- Mobile menu ----
+  /* ---------- 1. Header scroll state ---------- */
+
+  var nav = document.getElementById("nav");
+
+  if (nav) {
+    var setNavState = function () {
+      if (window.scrollY > 8) {
+        nav.classList.add("is-scrolled");
+      } else {
+        nav.classList.remove("is-scrolled");
+      }
+    };
+    setNavState();
+    window.addEventListener("scroll", setNavState, { passive: true });
+  }
+
+  /* ---------- 2. Mobile menu ----------
+     Closed state is inert + visibility:hidden, so the links leave the
+     tab order completely. Escape closes and returns focus to the
+     toggle; Tab is trapped inside the panel while it is open. */
+
   var toggle = document.getElementById("menuToggle");
   var menu = document.getElementById("mobileMenu");
 
-  function closeMenu() {
-    toggle.setAttribute("aria-expanded", "false");
-    menu.classList.remove("open");
-    menu.setAttribute("aria-hidden", "true");
-  }
-
-  function openMenu() {
-    toggle.setAttribute("aria-expanded", "true");
-    menu.classList.add("open");
-    menu.setAttribute("aria-hidden", "false");
-  }
-
   if (toggle && menu) {
+    var DESKTOP = 900;
+
+    var focusable = function () {
+      return Array.prototype.slice.call(menu.querySelectorAll("a[href]"));
+    };
+
+    var closeMenu = function (returnFocus) {
+      if (!menu.classList.contains("is-open")) { return; }
+      menu.classList.remove("is-open");
+      menu.setAttribute("inert", "");
+      toggle.setAttribute("aria-expanded", "false");
+      toggle.setAttribute("aria-label", "Open menu");
+      document.body.classList.remove("menu-open");
+      if (returnFocus) { toggle.focus(); }
+    };
+
+    var openMenu = function () {
+      menu.classList.add("is-open");
+      menu.removeAttribute("inert");
+      toggle.setAttribute("aria-expanded", "true");
+      toggle.setAttribute("aria-label", "Close menu");
+      document.body.classList.add("menu-open");
+
+      var items = focusable();
+      if (items.length) {
+        // Wait for the panel to become visible before moving focus.
+        window.requestAnimationFrame(function () { items[0].focus(); });
+      }
+    };
+
+    // Start closed and out of the tab order.
+    menu.setAttribute("inert", "");
+
     toggle.addEventListener("click", function () {
-      var expanded = toggle.getAttribute("aria-expanded") === "true";
-      if (expanded) {
-        closeMenu();
+      if (toggle.getAttribute("aria-expanded") === "true") {
+        closeMenu(true);
       } else {
         openMenu();
       }
     });
 
-    menu.querySelectorAll("a").forEach(function (link) {
-      link.addEventListener("click", closeMenu);
+    // Any in-menu link closes the panel before the anchor jump.
+    focusable().forEach(function (link) {
+      link.addEventListener("click", function () { closeMenu(false); });
+    });
+
+    document.addEventListener("keydown", function (e) {
+      if (!menu.classList.contains("is-open")) { return; }
+
+      if (e.key === "Escape") {
+        e.preventDefault();
+        closeMenu(true);
+        return;
+      }
+
+      if (e.key === "Tab") {
+        var items = focusable();
+        if (!items.length) { return; }
+        var first = items[0];
+        var last = items[items.length - 1];
+
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
     });
 
     window.addEventListener("resize", function () {
-      if (window.innerWidth > 760) closeMenu();
+      if (window.innerWidth > DESKTOP) { closeMenu(false); }
     });
   }
 
-  // ---- Scroll reveal ----
-  var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  var revealEls = document.querySelectorAll(".reveal");
+  /* ---------- 3. Reveal on scroll ----------
+     The .reveal hidden state lives behind `.js` in CSS, so if this
+     script never runs the content is visible rather than blank. */
+
+  var revealEls = Array.prototype.slice.call(document.querySelectorAll(".reveal"));
+
+  var showAll = function () {
+    revealEls.forEach(function (el) { el.classList.add("in-view"); });
+  };
 
   if (reduceMotion || !("IntersectionObserver" in window)) {
-    revealEls.forEach(function (el) { el.classList.add("in-view"); });
+    showAll();
   } else {
-    var io = new IntersectionObserver(
-      function (entries) {
-        entries.forEach(function (entry) {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("in-view");
-            io.unobserve(entry.target);
-          }
-        });
-      },
-      { threshold: 0.15, rootMargin: "0px 0px -40px 0px" }
-    );
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("in-view");
+          io.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.12, rootMargin: "0px 0px -60px 0px" });
+
     revealEls.forEach(function (el) { io.observe(el); });
+
+    // Safety net: if anything prevents the observer from firing,
+    // reveal everything rather than leave the page empty.
+    window.setTimeout(function () {
+      revealEls.forEach(function (el) {
+        var box = el.getBoundingClientRect();
+        if (box.top < window.innerHeight) { el.classList.add("in-view"); }
+      });
+    }, 1200);
   }
+
+  /* ---------- Footer year ---------- */
+
+  var year = document.getElementById("year");
+  if (year) { year.textContent = String(new Date().getFullYear()); }
 })();
