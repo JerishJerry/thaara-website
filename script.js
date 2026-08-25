@@ -136,14 +136,26 @@
 
     revealEls.forEach(function (el) { io.observe(el); });
 
-    // Safety net: if anything prevents the observer from firing,
-    // reveal everything rather than leave the page empty.
-    window.setTimeout(function () {
-      revealEls.forEach(function (el) {
-        var box = el.getBoundingClientRect();
-        if (box.top < window.innerHeight) { el.classList.add("in-view"); }
-      });
-    }, 1200);
+    // Safety net. If nothing at all has been revealed after a grace
+    // period, the observer is not doing its job — show everything rather
+    // than risk a blank page. Deliberately does NOT test element
+    // positions: in a tab that has not been laid out yet every rect
+    // reads zero, and a position check would reject the whole page.
+    var netFired = false;
+    var safetyNet = function () {
+      if (netFired) { return; }
+      if (!document.querySelector(".reveal.in-view")) {
+        netFired = true;
+        showAll();
+      }
+    };
+    window.setTimeout(safetyNet, 1500);
+
+    // A tab opened in the background is never laid out, so the observer
+    // has nothing to measure. Re-check once it actually becomes visible.
+    document.addEventListener("visibilitychange", function () {
+      if (!document.hidden) { window.setTimeout(safetyNet, 600); }
+    });
   }
 
   /* ---------- Footer year ---------- */
