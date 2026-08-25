@@ -210,10 +210,10 @@
       },
       {
         id: "f-details",
-        label: "About the project",
+        label: "Message",
         validate: function (v) {
-          if (!v) { return "Tell us a little about the project, even just a sentence."; }
-          if (v.length < 10) { return "A little more detail would help — what is the occasion?"; }
+          if (!v) { return "Add a message, even just a sentence."; }
+          if (v.length < 10) { return "A little more detail would help."; }
           return null;
         }
       }
@@ -300,24 +300,12 @@
       return {
         name: get("f-name"),
         email: get("f-email"),
-        projectType: get("f-type"),
-        details: get("f-details"),
-        timeline: get("f-timeline"),
-        budget: get("f-budget")
+        message: get("f-details")
       };
     };
 
     var asText = function (d) {
-      var lines = [
-        "Name: " + d.name,
-        "Email: " + d.email,
-        d.projectType ? "Project type: " + d.projectType : "",
-        d.timeline ? "Timeline: " + d.timeline : "",
-        d.budget ? "Budget: " + d.budget : "",
-        "",
-        d.details
-      ];
-      return lines.filter(function (l) { return l !== ""; }).join("\n");
+      return ["Name: " + d.name, "Email: " + d.email, "", d.message].join("\n");
     };
 
     var setBusy = function (busy) {
@@ -330,7 +318,7 @@
       } else {
         submitBtn.removeAttribute("aria-busy");
         var l2 = submitBtn.querySelector(".btn-label");
-        if (l2) { l2.textContent = "Start a project"; }
+        if (l2) { l2.textContent = "Send message"; }
       }
     };
 

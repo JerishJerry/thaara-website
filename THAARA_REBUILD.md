@@ -1193,3 +1193,84 @@ on them.
    built in Phase 2.
 5. Full accessibility audit including screen-reader passes and real keyboard traversal.
 6. Deploy: the Netlify site still serves the pre-Phase-2 design.
+
+---
+
+## 36. Post-Phase-3 correction: `[hidden]` was being overridden
+
+Reported from a screenshot of the live site, and worse than it first looked.
+
+On a fresh page load, with nothing submitted, **every form message was rendering** — including the
+success confirmation:
+
+| Element | `hidden` attribute | Actually rendered |
+|---|---|---|
+| `#formErrorSummary` — "Please check the following" | set | **yes**, 82 px |
+| `#formNotConnected` — "This form isn't connected yet" | set | **yes**, 199 px |
+| `#formSuccess` — "Thank you. We've received your message" | set | **yes**, 107 px |
+| `#formFailure` — "That didn't go through" | set | **yes**, 199 px |
+| `#e-name` / `#e-email` / `#e-details` | set | **yes**, bare `!` glyphs |
+
+### Cause
+
+`.form-alert { display: grid }` and `.field-error { display: flex }` are more specific than the user
+agent's `[hidden] { display: none }`. The attribute was set correctly and read back as set — it
+simply had no effect on rendering.
+
+### Why the Phase 3 tests missed it
+
+Every assertion checked the *attribute*:
+
+```js
+successHidden: document.getElementById('formSuccess').hidden === true   // passed, and meaningless
+```
+
+The attribute was genuinely `true` the whole time. The element was on screen anyway. A visual check
+would have caught it in seconds; a property check never could. This is the failure mode that made
+"success is suppressed" pass in testing while the page showed a success message to every visitor
+who scrolled to the contact section.
+
+### Fix
+
+```css
+[hidden]{ display: none !important; }
+```
+
+Placed immediately after the reset so no component rule can outrank it.
+
+### Rules taken from this
+
+1. **Assert on computed display, never on the attribute.** `getComputedStyle(el).display !== 'none'
+   && el.getBoundingClientRect().height > 0` is the only assertion that means anything.
+2. **Any component that sets `display` breaks `[hidden]`** unless a global override exists.
+3. A green test suite is not evidence the page looks right. Phase 3 reported "success suppressed —
+   verified"; it was not. When the tooling cannot render, say so plainly rather than letting
+   property-level checks stand in for having looked.
+
+## 37. Form reduced to a plain contact form
+
+At the user's request the enquiry form was cut back from a project brief to a contact form.
+
+**Removed:** Project type (select, 5 options), Timeline, Budget.
+**Kept:** Name (required), Email (required), Message (required).
+**Relabelled:** submit button "Start a project" → "Send message"; "About the project" → "Message".
+
+Dead CSS removed with it: `.field .opt`, the entire `.field select` group (shared rule, chevron,
+`option`, hover, focus, invalid), and `.field-row`. `script.js` no longer reads `f-type`,
+`f-timeline` or `f-budget`, and `asText()` was reduced to name, email and message.
+
+Instagram remains alongside the form as the only verified contact route. The
+`ENQUIRY_ENDPOINT` behaviour is unchanged — empty still means the form states plainly that nothing
+was sent and never shows success.
+
+### Re-verified on computed display
+
+| Check | Result |
+|---|---|
+| Messages hidden on fresh load | 7 of 7 `display: none`, 0 px |
+| Empty submit | summary + 3 field errors visible **with text** |
+| Valid submit, no backend | success **not** rendered; not-connected rendered; text preserved |
+| Fields | 3, all 52 px+ |
+| Controls under 44 px @ 375 | 0 |
+| Horizontal overflow @ 375 | none |
+| Console errors | 0 |

@@ -111,6 +111,14 @@
 
 *, *::before, *::after{ box-sizing: border-box; }
 
+/* The [hidden] attribute must always win.
+   Any component rule that sets `display` (grid, flex, …) outranks the UA's
+   `[hidden] { display: none }`, which silently un-hides the element while
+   the attribute still reads as set. That shipped once: every form message,
+   including the success confirmation, rendered on page load before anything
+   had been submitted. Never rely on the attribute alone. */
+[hidden]{ display: none !important; }
+
 html{
   scroll-behavior: smooth;
   /* Anchor targets clear the fixed header (Phase 1 bug B1).
@@ -1114,15 +1122,8 @@ body.menu-open{ overflow: hidden; }
   color: var(--ink-dim);
 }
 .field .req{ color: var(--gold); }
-.field .opt{
-  font-weight: 400;
-  letter-spacing: .06em;
-  text-transform: none;
-  color: var(--ink-faint);
-}
 
 .field input,
-.field select,
 .field textarea{
   width: 100%;
   min-height: 52px;
@@ -1139,26 +1140,13 @@ body.menu-open{ overflow: hidden; }
 }
 .field textarea{ min-height: 132px; resize: vertical; line-height: 1.6; }
 
-/* Native select needs its own chevron once appearance is stripped. */
-.field select{
-  padding-right: var(--sp-8);
-  background-image: linear-gradient(45deg, transparent 50%, var(--gold) 50%),
-                    linear-gradient(135deg, var(--gold) 50%, transparent 50%);
-  background-position: calc(100% - 20px) center, calc(100% - 14px) center;
-  background-size: 6px 6px, 6px 6px;
-  background-repeat: no-repeat;
-}
-.field select option{ background: var(--bg-alt); color: var(--ink); }
-
 .field input::placeholder,
 .field textarea::placeholder{ color: var(--ink-faint); }
 
 .field input:hover,
-.field select:hover,
 .field textarea:hover{ border-color: var(--ink-faint); }
 
 .field input:focus-visible,
-.field select:focus-visible,
 .field textarea:focus-visible{
   outline: 2px solid var(--gold);
   outline-offset: 2px;
@@ -1183,18 +1171,8 @@ body.menu-open{ overflow: hidden; }
 .field-error::before{ content: "!"; font-weight: 700; }
 
 .field input[aria-invalid="true"],
-.field select[aria-invalid="true"],
 .field textarea[aria-invalid="true"]{
   border-color: var(--gold-lift);
-}
-
-.field-row{
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: var(--sp-5);
-}
-@media (min-width: 560px){
-  .field-row{ grid-template-columns: 1fr 1fr; }
 }
 
 .btn--block{ width: 100%; }
