@@ -732,8 +732,23 @@ no cursor effects.
 **The hidden state is scoped to `.js`.** An inline one-liner in `<head>` adds the class; if
 JavaScript never runs, `.reveal` has no hiding rule and the page renders fully. This fixes Phase 1
 issue R1, where all main content sat at `opacity: 0` behind JS with no fallback (verified: 0 of 25
-blocks hidden with `.js` removed). A 1200 ms timeout also force-reveals anything above the fold if
-the observer fails to fire.
+blocks hidden with `.js` removed).
+
+A second fallback covers the case where JavaScript *does* run but the observer does not deliver.
+After 1500 ms, if **nothing at all** has been revealed, the observer is treated as broken and
+everything is shown. It also re-checks on `visibilitychange`.
+
+> **This was wrong on first implementation and is worth remembering.** The original net tested each
+> element's position (`box.top < window.innerHeight`) before revealing it. In a tab that has not
+> been laid out — a background tab, a headless renderer, a link-preview crawler — every
+> `getBoundingClientRect()` reads zero, so the position guard rejected the entire page and revealed
+> nothing. It was caught on the deployed site: **0 of 25 blocks revealed.** The net now tests only
+> whether *anything* is in view, never geometry. Re-verified in the same failing conditions:
+> **25 of 25.** In a normal tab it stays dormant, because above-fold content is in view long before
+> the deadline — so the scroll animation is unaffected.
+>
+> General lesson for later phases: a fallback that depends on layout is not a fallback for
+> situations where layout has not happened.
 
 ## 17. Homepage structure as built
 
