@@ -1,0 +1,24 @@
+# Local safety copy of the pre-rebuild site.
+# Its contents are preserved in the first commit of this repository,
+# so the folder itself does not need to be tracked.
+.phase1-backup/
+
+# Local editor / tooling config
+.claude/
+.vscode/
+.idea/
+
+# OS cruft
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.DS_Store
+._*
+.Spotlight-V100
+.Trashes
+
+# Logs and temp
+*.log
+*.tmp
+.tmp/
