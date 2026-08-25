@@ -7,6 +7,7 @@
 - **Audit date:** 2026-08-25
 - **Phase 1 status:** Complete (audit only, no redesign).
 - **Phase 2 status:** Complete (visual system, homepage structure, brand experience).
+- **Phase 3 status:** Complete (conversion, trust, client journey).
 
 ---
 
@@ -951,3 +952,244 @@ once Phase 2 is signed off). `.claude/launch.json` is local tooling and likewise
    JSON-LD, `404.html`.
 6. Additional projects, using the `--split` and `--immersive` layouts already built.
 7. Full accessibility audit including screen-reader passes.
+
+---
+
+# PHASE 3 — Conversion, Trust & Client Journey
+
+Completed 2026-08-25. Phase 2 visual system left intact — no new colours, type scale, or animation
+language. Every size still resolves to a Phase 2 token. Framework unchanged.
+
+## 24. What the page looked like going in
+
+Measured before any edits:
+
+| Symptom | Measurement |
+|---|---|
+| CTAs on the whole page | **3**, across 7951 px |
+| Sections that were dead ends | **5 of 7** — work, services, why, process, about |
+| CTA hierarchy | **Inverted** — "Explore our work" was primary, "Start a project" secondary |
+| Contact form | **None** (`document.forms.length === 0`) |
+| Process section | Placeholder — no real stages |
+
+## 25. Client journey as built
+
+Nine sections, in the order the brief's journey specifies:
+
+| # | Section | Role in the journey | Outbound action |
+|---|---|---|---|
+| 1 | Hero | Discover | **Start a project** (primary) · Explore our work (secondary) |
+| 2 | Work | See the work | Start a project |
+| 3 | Services | Understand the offer | See this work — Nivin × Dhiya |
+| 4 | Why THAARA | Understand the difference | See how we work |
+| 5 | Process | Understand what happens next | Start a project |
+| 6 | About | Build trust | Start a project |
+| 7 | Social Proof | Build trust | — (deliberately unfilled) |
+| 8 | Contact | Start a project | The form itself |
+| 9 | Closing CTA | Last chance | Start a project |
+
+No section is a dead end any more. No section was added merely to lengthen the page.
+
+## 26. CTA hierarchy
+
+Audited and reduced to three phrases, used consistently:
+
+- **Primary — "Start a project"**: hero, work, process, about, closing, and the form's submit button.
+- **Secondary — "Explore our work"**: hero only.
+- **Contextual**: "See this work — Nivin × Dhiya" (services → work), "See how we work" (why →
+  process), "Send via Instagram" (form fallback).
+
+The Phase 2 hero had these inverted. "Start a project" is now the primary action everywhere it
+appears, and no two phrases compete for the same action.
+
+**No fake project CTA.** The brief suggests "View project" / "Experience the invitation". Neither
+was used: there is no live invitation URL in the project, and a CTA whose destination does not exist
+is a dead link. The gap is marked instead.
+
+## 27. Process — "How We Work"
+
+Four stages, from the brief, in THAARA's voice. An editorial ruled timeline using the same
+hairline-list language as the services section — not a corporate diagram, no connector graphics, no
+icons.
+
+| | Stage | Copy |
+|---|---|---|
+| 01 | Discover | We start with the story. Who it's for, what the occasion is, what it needs to do — and what you already have in mind. |
+| 02 | Shape | The creative direction takes form — the visual language, the tone, and the way the experience will unfold. |
+| 03 | Create | Design, build, animate. Then refine it, until the details hold up as well as the whole. |
+| 04 | Launch | Polished, tested and handed over — ready for the moment it was made for. |
+
+Animation is the existing `.reveal` with a per-stage `data-delay` stagger. Nothing new was added.
+
+**Still missing:** typical timeline from enquiry to delivery, and how revisions are handled. Neither
+was invented; the section simply does not claim them.
+
+## 28. Social proof — deliberately unfilled
+
+Nothing in the project verifies a single testimonial, client name, collaboration, logo, rating or
+result. Per the brief, the section exists structurally and carries the exact marker
+`[CLIENT TESTIMONIAL NEEDED]`, plus a plain-language note explaining why it is empty.
+
+It is kept to one narrow block rather than a three-column testimonial grid, so an unfilled section
+reads as honest rather than broken.
+
+**Nothing was fabricated.** Verified absent from the built page: testimonials, awards, years of
+experience, client counts, star ratings, "trusted by" claims.
+
+## 29. Nivin × Dhiya case study
+
+Everything stated traces to the asset or its alt text:
+
+| Field | Value | Source |
+|---|---|---|
+| Name | Nivin × Dhiya | alt text |
+| Type | Invitation Experience | matches service 01 |
+| Format | Save-the-date invitation | filename + alt text |
+| Artwork | Illustrated beach scene | alt text |
+| Lettering | Hand-lettered calligraphy | alt text |
+| Roles | Design · Illustration · Lettering | evidenced by the artwork itself |
+| Year | *needs input* | — |
+
+**Roles deliberately excluded:** Development and Motion. The service description mentions interactive
+websites, but the only asset in the project is a static image — nothing evidences a built or animated
+deliverable, so neither role is claimed.
+
+**Sections deliberately omitted:** Brief and Approach. The brief asks for them "where sufficient real
+information exists." It does not. Rather than write plausible fiction about a real couple's wedding,
+the case study states in one line that the brief, approach, further visuals and live link are all
+absent, and marks them as needed.
+
+## 30. Services connected to real work
+
+Only **Invitation Experiences** links to a project, because it is the only service with evidence in
+the repository. Brand Identity, Digital Design and Motion & Visuals carry no "see this work" link —
+adding one would point at nothing.
+
+## 31. Contact and the enquiry form
+
+### The honest-submission problem
+
+There is no email address and no form backend in the project. The brief is explicit: build the form,
+but do not pretend it sends. The form therefore has three modes, driven by one constant at the top of
+`script.js`:
+
+```js
+var ENQUIRY_ENDPOINT = "";
+```
+
+| `ENQUIRY_ENDPOINT` | Behaviour |
+|---|---|
+| `""` (current) | Validates, then states plainly that nothing was sent, keeps the visitor's text in the field, offers **Copy my message** and **Send via Instagram**. **Never shows success.** |
+| A real URL | POSTs JSON and reports the true outcome — success only on a successful response, failure with the actual reason otherwise. |
+
+Set the constant and the form works. Until then it tells the truth.
+
+### Fields and states
+
+Name (required) · Email (required) · Project type (select, five options) · About the project
+(required) · Timeline (optional) · Budget (optional). Every field has a real `<label>`,
+`aria-describedby`, and `aria-required` where applicable.
+
+| State | Implementation | Verified |
+|---|---|---|
+| Default | Empty, 52 px fields | yes |
+| Focus | 2 px gold outline + background shift | yes |
+| Validation error | Per-field message + `aria-invalid` + focusable error summary with `role="alert"` linking to each field | 3 of 3 errors, specific wording |
+| Submitting | `aria-busy`, disabled, label → "Sending…" | only on the configured path |
+| Success | Only on a real successful response | suppressed with no endpoint |
+| Failure | Names the actual reason, offers Instagram | reason surfaced verbatim |
+
+Error messages say what to fix, not just that something is wrong — for example *"That email address
+looks incomplete — check for a typo."*
+
+### A bug the network log caught
+
+The form initially had no `method`, so it defaulted to **GET**. If the script fails to load, the
+browser performs a native submit — and a GET submit puts every field in the query string. It was
+visible in the dev-server log during testing:
+
+```
+GET /?name=Test+Person&email=not-an-email&details=A+wedding+invitation...
+```
+
+That would put a visitor's name, email and message into browser history, referrer headers and server
+logs. Fixed with `method="post"`, plus a `<noscript>` block that explains the form needs JavaScript
+and points to Instagram.
+
+## 32. Contact methods — what actually exists
+
+**Instagram only.** `@thaara.creates` is the single verified contact route in the project, and it is
+the only one used. No email address, phone number, WhatsApp link or booking URL was invented. The
+contact section says so in plain language rather than leaving the visitor guessing.
+
+## 33. Phase 3 verification
+
+Served from `http://localhost:4173`. No build step, so development and production artefacts are the
+same five files.
+
+| Check | Result |
+|---|---|
+| Console errors | **0** |
+| Failed requests | **0** |
+| Sections in journey order | 9 of 9 |
+| Dead-end sections | **0** (was 5) |
+| Anchor landings clear the fixed nav | 6 of 6, 24 px gap |
+| Form validation | 3 of 3 required fields, specific messages |
+| Success suppressed with no backend | **yes** |
+| Success shown only on real success | verified with a stubbed 200 |
+| Failure path | verified with a stubbed 500 |
+| Form field contrast | 14.51:1 |
+| New components — contrast | 15 sampled, 15 pass |
+| Controls under 44 px @ 320/375/390 | **0** |
+| Horizontal overflow @ 320/375/390/768/1024/1440 | none |
+| Hover-only actions | **0** |
+| Mobile menu | opens, inert when closed, Escape closes + returns focus, scroll locked |
+| Assets byte-identical | logo + invitation unchanged |
+| Favicon | byte-identical |
+| Fabricated trust content | none |
+
+### Two measurement traps worth remembering
+
+Both cost real debugging time and both were environment artifacts, not defects:
+
+1. **Frozen transitions.** Form inputs computed a white background at 1.17:1 contrast. The tab was
+   not compositing, so `transition: background-color` stayed pinned at its pre-stylesheet start
+   value. With transitions neutralised the true value is 14.51:1. Same class of artifact as the
+   Phase 2 reveal investigation.
+2. **Stale subresource cache.** The dev server answers `304`, so an edited `script.js` kept executing
+   the previous build — form validation appeared entirely dead until the loaded file's size was
+   compared against the file on disk. Always confirm the executed bundle size matches disk before
+   concluding a handler is broken.
+
+Also: `requestAnimationFrame` does not fire in a hidden tab, which stalls the mobile menu's
+focus-move in testing only — a real click implies a visible tab.
+
+## 34. Content still required after Phase 3
+
+Eight on-page `.needs-input` markers plus the testimonial placeholder:
+
+1. **Email address** — the single highest-value gap; Instagram is currently the only route
+2. **Enquiry endpoint** — one constant away from a working form
+3. Testimonials and permission to name clients
+4. Nivin × Dhiya — year
+5. Nivin × Dhiya — brief, approach, further visuals, live link
+6. Further projects and assets
+7. About — based in
+8. About — founded
+9. About — who is behind THAARA
+
+Process timeline and revision policy are also still unknown, though the section no longer depends
+on them.
+
+## 35. Phase 4 candidates
+
+1. **Wire the form** — set `ENQUIRY_ENDPOINT` (Netlify Forms, Formspree, or similar) and add a real
+   email address. Until then the strongest CTA on the site cannot complete.
+2. **Performance** — still untouched by design: the 2.2 MB RGBA PNG, the 55 KB base64 favicon,
+   no `srcset`, no `width`/`height`, oversized logo, cache headers.
+3. **SEO** — no Open Graph, social image, Twitter card, canonical, `robots.txt`, sitemap, JSON-LD
+   or `404.html`.
+4. Real testimonials and further projects, using the `--split` and `--immersive` layouts already
+   built in Phase 2.
+5. Full accessibility audit including screen-reader passes and real keyboard traversal.
+6. Deploy: the Netlify site still serves the pre-Phase-2 design.

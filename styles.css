@@ -113,8 +113,10 @@
 
 html{
   scroll-behavior: smooth;
-  /* Anchor targets clear the fixed header (Phase 1 bug B1). */
-  scroll-padding-top: var(--nav-h);
+  /* Anchor targets clear the fixed header (Phase 1 bug B1).
+     +1px for the header's bottom border, plus breathing room so section
+     headings do not sit flush against it. */
+  scroll-padding-top: calc(var(--nav-h) + 1px + var(--sp-5));
   -webkit-text-size-adjust: 100%;
 }
 
@@ -753,6 +755,30 @@ body.menu-open{ overflow: hidden; }
 }
 
 .project-actions{ margin-top: clamp(var(--sp-6), 4vw, var(--sp-7)); }
+.project-gap{
+  font-size: var(--fs-sm);
+  color: var(--ink-faint);
+  max-width: 52ch;
+  margin-bottom: var(--sp-4);
+}
+
+/* Roles actually evidenced by the artwork. */
+.role-list{
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2) var(--sp-3);
+  margin-top: var(--sp-5);
+}
+.role-list li{
+  padding: var(--sp-1) var(--sp-3);
+  border: 1px solid var(--line-firm);
+  border-radius: var(--radius-pill);
+  font-size: var(--fs-3xs);
+  font-weight: 600;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
 
 /* ---- Alternate layouts, ready for real projects ---- */
 .project--split .project-visual{ grid-area: v; }
@@ -826,6 +852,9 @@ body.menu-open{ overflow: hidden; }
 }
 .service-lead h3{ margin-bottom: var(--sp-5); }
 .service-lead .lead{ max-width: 44ch; }
+
+/* Only rendered for a service with a real project to point at. */
+.service-evidence{ margin-top: var(--sp-6); }
 
 /* Capability list with gold ticks. */
 .capability-list{
@@ -944,26 +973,51 @@ body.menu-open{ overflow: hidden; }
    12  PROCESS
    ============================================================ */
 
-/* Structure only. Real steps arrive in Phase 3 — the section must
-   read as deliberately unfinished, not as thin content. */
-.process-pending{
-  display: grid;
-  gap: var(--sp-6);
-  justify-items: start;
-  padding: clamp(var(--sp-7), 5vw, var(--sp-9));
-  border: 1px dashed var(--line-firm);
-  border-radius: var(--radius-lg);
+/* Editorial vertical timeline. A hairline spine with large serif numerals —
+   the same ruled-list language used for services, not a corporate diagram. */
+.stages{
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--line);
 }
-.process-pending p{ max-width: 56ch; color: var(--ink-dim); font-size: var(--fs-sm); }
-.process-pending ul{ display: grid; gap: var(--sp-3); }
-.process-pending li{
+
+.stage{
   display: grid;
   grid-template-columns: auto 1fr;
-  gap: var(--sp-3);
-  font-size: var(--fs-sm);
-  color: var(--ink-faint);
+  gap: var(--sp-5);
+  padding-block: clamp(var(--sp-6), 3.5vw, var(--sp-8));
+  border-bottom: 1px solid var(--line);
 }
-.process-pending li::before{ content: "—"; color: var(--gold-soft); }
+@media (min-width: 800px){
+  .stage{ grid-template-columns: 6rem 1fr; gap: var(--sp-8); align-items: start; }
+}
+
+.stage-num{
+  font-family: var(--serif);
+  font-size: var(--fs-xl);
+  font-weight: 400;
+  line-height: 1;
+  color: var(--gold);
+  font-variant-numeric: tabular-nums;
+  transition: color var(--dur) var(--ease);
+}
+
+.stage-body h3{
+  font-size: var(--fs-lg);
+  font-weight: 500;
+  margin-bottom: var(--sp-3);
+}
+.stage-body p{
+  font-size: var(--fs-sm);
+  color: var(--ink-dim);
+  max-width: 52ch;
+}
+
+/* Shared "next step" affordance closing a section. */
+.section-action{
+  margin-top: clamp(var(--sp-7), 4vw, var(--sp-8));
+}
 
 
 /* ============================================================
@@ -1018,21 +1072,225 @@ body.menu-open{ overflow: hidden; }
    14  CONTACT
    ============================================================ */
 
-.contact-inner{ text-align: center; }
-.contact-inner h2{ margin-inline: auto; max-width: 20ch; margin-bottom: var(--sp-5); }
-.contact-inner .lead{ margin-inline: auto; max-width: 46ch; margin-bottom: clamp(var(--sp-7), 4vw, var(--sp-8)); }
-.contact-inner .btn-row{ justify-content: center; }
+.contact-grid{
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: clamp(var(--sp-8), 6vw, var(--sp-10));
+}
+@media (min-width: 900px){
+  .contact-grid{ grid-template-columns: 0.9fr 1.1fr; gap: var(--sp-10); align-items: start; }
+}
 
-.contact-note{
+.contact-intro h2{ max-width: 20ch; margin-bottom: var(--sp-5); }
+.contact-intro .lead{ max-width: 40ch; }
+
+.contact-direct{
   margin-top: clamp(var(--sp-7), 4vw, var(--sp-8));
   padding-top: var(--sp-6);
   border-top: 1px solid var(--line);
 }
-.contact-note p{
+.contact-direct .meta{ margin-bottom: var(--sp-3); }
+.contact-caveat{
+  margin-top: var(--sp-5);
   font-size: var(--fs-sm);
   color: var(--ink-faint);
-  max-width: 42ch;
-  margin: var(--sp-4) auto 0;
+  max-width: 44ch;
+}
+.contact-caveat .needs-input{ margin-top: var(--sp-3); }
+
+
+/* ---------- Enquiry form ---------- */
+
+.enquiry{ display: grid; gap: var(--sp-5); }
+
+.field{ display: grid; gap: var(--sp-2); }
+
+.field label{
+  font-family: var(--sans);
+  font-size: var(--fs-2xs);
+  font-weight: 600;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+.field .req{ color: var(--gold); }
+.field .opt{
+  font-weight: 400;
+  letter-spacing: .06em;
+  text-transform: none;
+  color: var(--ink-faint);
+}
+
+.field input,
+.field select,
+.field textarea{
+  width: 100%;
+  min-height: 52px;
+  padding: var(--sp-3) var(--sp-4);
+  font-family: var(--sans);
+  font-size: var(--fs-sm);
+  color: var(--ink);
+  background: var(--bg-alt);
+  border: 1px solid var(--line-firm);
+  border-radius: var(--radius);
+  transition: border-color var(--dur) var(--ease), background-color var(--dur) var(--ease);
+  -webkit-appearance: none;
+  appearance: none;
+}
+.field textarea{ min-height: 132px; resize: vertical; line-height: 1.6; }
+
+/* Native select needs its own chevron once appearance is stripped. */
+.field select{
+  padding-right: var(--sp-8);
+  background-image: linear-gradient(45deg, transparent 50%, var(--gold) 50%),
+                    linear-gradient(135deg, var(--gold) 50%, transparent 50%);
+  background-position: calc(100% - 20px) center, calc(100% - 14px) center;
+  background-size: 6px 6px, 6px 6px;
+  background-repeat: no-repeat;
+}
+.field select option{ background: var(--bg-alt); color: var(--ink); }
+
+.field input::placeholder,
+.field textarea::placeholder{ color: var(--ink-faint); }
+
+.field input:hover,
+.field select:hover,
+.field textarea:hover{ border-color: var(--ink-faint); }
+
+.field input:focus-visible,
+.field select:focus-visible,
+.field textarea:focus-visible{
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+  border-color: var(--gold);
+  background: var(--bg-soft);
+}
+
+.field-hint{
+  font-size: var(--fs-2xs);
+  color: var(--ink-faint);
+}
+
+/* Invalid state — border plus an explicit message, never colour alone. */
+.field-error{
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-2);
+  font-size: var(--fs-2xs);
+  font-weight: 500;
+  color: var(--gold-lift);
+}
+.field-error::before{ content: "!"; font-weight: 700; }
+
+.field input[aria-invalid="true"],
+.field select[aria-invalid="true"],
+.field textarea[aria-invalid="true"]{
+  border-color: var(--gold-lift);
+}
+
+.field-row{
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--sp-5);
+}
+@media (min-width: 560px){
+  .field-row{ grid-template-columns: 1fr 1fr; }
+}
+
+.btn--block{ width: 100%; }
+.btn[aria-busy="true"]{ opacity: .75; cursor: progress; }
+
+/* ---------- Form-level messages ---------- */
+
+.form-alert{
+  display: grid;
+  gap: var(--sp-3);
+  padding: var(--sp-5);
+  border: 1px solid var(--line-firm);
+  border-left-width: 2px;
+  border-radius: var(--radius);
+  background: var(--bg-alt);
+  font-size: var(--fs-sm);
+  color: var(--ink-dim);
+}
+.form-alert-title{
+  font-family: var(--sans);
+  font-size: var(--fs-2xs);
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+.form-alert ul{ display: grid; gap: var(--sp-2); }
+.form-alert li{
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--sp-3);
+}
+.form-alert li::before{ content: "—"; color: var(--gold); }
+.form-alert li a{
+  color: var(--ink-dim);
+  border-bottom: 1px solid var(--gold-soft);
+  transition: color var(--dur) var(--ease), border-color var(--dur) var(--ease);
+}
+.form-alert li a:hover{ color: var(--gold); border-color: var(--gold); }
+.form-alert-actions{
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-3);
+  margin-top: var(--sp-2);
+}
+
+.form-alert--error{  border-left-color: var(--gold-lift); }
+.form-alert--notice{ border-left-color: var(--gold); }
+.form-alert--success{
+  border-left-color: var(--gold);
+  background: var(--bg-soft);
+}
+
+
+/* ============================================================
+   14b  SOCIAL PROOF
+   Deliberately spare. Nothing here is invented, so the section
+   must read as unfilled rather than padded.
+   ============================================================ */
+
+.proof{ text-align: center; }
+.proof-quote{
+  margin: 0 0 var(--sp-5);
+  padding: clamp(var(--sp-6), 4vw, var(--sp-8)) var(--sp-5);
+  border: 1px dashed var(--line-firm);
+  border-radius: var(--radius);
+}
+.proof-quote p{
+  font-family: var(--serif);
+  font-size: var(--fs-lg);
+  font-style: italic;
+  color: var(--ink-faint);
+  letter-spacing: .02em;
+}
+.proof-note{
+  font-size: var(--fs-sm);
+  color: var(--ink-faint);
+  max-width: 48ch;
+  margin: 0 auto var(--sp-5);
+}
+
+
+/* ============================================================
+   14c  CLOSING CTA
+   ============================================================ */
+
+.closing{ background: var(--bg-soft); }
+.closing-inner{
+  display: grid;
+  gap: clamp(var(--sp-6), 4vw, var(--sp-7));
+  justify-items: center;
+  text-align: center;
+}
+.closing-inner h2{
+  font-size: var(--fs-2xl);
+  max-width: 22ch;
 }
 
 
@@ -1053,8 +1311,22 @@ body.menu-open{ overflow: hidden; }
   padding-bottom: clamp(var(--sp-7), 4vw, var(--sp-8));
 }
 @media (min-width: 800px){
-  .footer-top{ grid-template-columns: 1fr auto; align-items: start; gap: var(--sp-9); }
+  .footer-top{ grid-template-columns: 1.4fr auto auto; align-items: start; gap: var(--sp-9); }
 }
+
+.footer-reach{ display: grid; gap: var(--sp-3); align-content: start; }
+.footer-ig{
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-height: 44px;
+  font-size: var(--fs-sm);
+  color: var(--gold);
+  transition: color var(--dur) var(--ease);
+}
+.footer-ig i{ font-style: normal; transition: transform var(--dur) var(--ease); }
+.footer-ig:hover{ color: var(--gold-lift); }
+.footer-ig:hover i{ transform: translate(2px,-2px); }
 
 .footer-brand{ display: grid; gap: var(--sp-5); justify-items: start; }
 .footer-logo{
@@ -1113,9 +1385,10 @@ body.menu-open{ overflow: hidden; }
 @media (max-width: 480px){
   /* Boxed blocks lose most of a 320px screen to their own padding.
      Pull it in so the content keeps the width. */
-  .service-lead,
-  .process-pending{ padding: var(--sp-6) var(--sp-5); }
+  .service-lead{ padding: var(--sp-6) var(--sp-5); }
   .slot{ padding: var(--sp-8) var(--sp-5); }
+  .form-alert{ padding: var(--sp-4); }
+  .proof-quote{ padding: var(--sp-6) var(--sp-4); }
 }
 
 @media (max-width: 420px){
@@ -1126,7 +1399,7 @@ body.menu-open{ overflow: hidden; }
   /* Full-width stacked buttons read better than a cramped row. */
   .btn-row{ flex-direction: column; align-items: stretch; }
   .btn{ width: 100%; }
-  .contact-inner .btn-row{ align-items: stretch; }
+  .form-alert-actions{ flex-direction: column; align-items: stretch; }
 
   .section-head h2{ max-width: none; }
   .about-statement{ max-width: none; }
