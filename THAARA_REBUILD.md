@@ -9,6 +9,7 @@
 - **Phase 2 status:** Complete (visual system, homepage structure, brand experience).
 - **Phase 3 status:** Complete (conversion, trust, client journey).
 - **Phase 4 status:** Complete (polish, responsive, accessibility, SEO, performance).
+- **Phase 5 status:** Complete (final QA). Production-ready pending the items in §51.
 
 ---
 
@@ -1489,3 +1490,69 @@ and the footer logo share one left edge.
   is worth checking for AVIF, `inert`, `display: contents` on `<picture>`, and `100svh` on the 404.
 - The canonical points at the GitHub Pages address (see §39).
 - Content gaps remain: email, testimonials, further projects, About's based-in / founded / who.
+
+---
+
+# PHASE 5 — Final QA & Production Readiness
+
+Completed 2026-08-26. No redesign. One defect found and fixed.
+
+## 47. Logo optical misalignment (fixed)
+
+`.brand-logo` capped width at 108 px with `max-height: 68px`. The mark is 1.30:1, so the height
+clamp engaged first and `object-fit: contain` letterboxed it inside a wider box.
+
+| | Before | After |
+|---|---|---|
+| Box left edge | 251 | 251 |
+| **Visible mark left edge** | **260** | **251** |
+| Headline left edge | 251 | 251 |
+
+The visible logo sat 9 px right of the headline — breaking the single left edge every other element
+shares, which is the page's core discipline. Width is now capped so natural height lands on
+`max-height` (88 px header, 94 px footer), removing the letterbox. `object-position: left center`
+keeps it flush if a different-aspect logo ever re-engages the clamp.
+
+The logo PNG itself was checked and is well cropped: only 21 px of symmetric transparent padding on
+a 798 px canvas (2.6%).
+
+## 48. Phase 5 verification
+
+| Area | Result |
+|---|---|
+| Content | No TODO, lorem, dev URL, localhost, console statement or debug code in any shipping file |
+| Links | 32 total · 8 anchors all resolve · 0 broken · 0 dead · external link `_blank` + `noopener noreferrer` |
+| Assets | 4/4 decode · 0 missing · 0 failed · alt on all · `width`/`height` on all · artwork uncropped at true aspect |
+| Responsive | 320/360/375/390/412/1280/1440/1600/1920 — no overflow, no control under 44 px, no clipped text, nothing touching a screen edge |
+| Alignment | 8 anchor points share one left edge at every width |
+| Accessibility | 152 elements contrast-checked (alpha-composited), **0 failures** · 1 H1 · 0 heading skips · landmarks correct · skip link · menu `inert` when closed · form labelled · reduced motion honoured |
+| Performance | **106 KB cold load** · unused-CSS audit over 271 selectors clean |
+| Build | `node --check` passes · CSS braces balanced · JSON-LD parses · `sitemap.xml` valid |
+
+## 49. Judgment calls left alone
+
+- **The closing CTA after the contact form.** Its button scrolls back up to the form. It reads as an
+  editorial sign-off rather than a duplicate ask, and Phase 3 specified a final CTA before the
+  footer. Flagged rather than changed.
+- **The original 2.2 MB PNG stays in the repo** as the lossless master. It is no longer referenced
+  by any page, so it never downloads and page weight is unaffected.
+- **The `<img>` fallback inside each `<picture>` is WebP, not PNG.** A browser supporting neither
+  AVIF nor WebP would get no image. WebP support is ~97% and universal since 2020; serving those
+  users a 2.2 MB PNG was the worse trade.
+- **`h4` is unused** but kept — it is a base type-scale rule, not a component.
+
+## 50. Measurement traps hit during Phase 5
+
+Recorded because each one nearly became a false bug report:
+
+1. **A collapsed browser pane reports `viewport: 0x0`.** Every percentage-based width then resolves
+   to near-zero, images never lay out, and `naturalWidth` reads `0x0` with `complete: true` — which
+   looks exactly like a decode failure. Always check `window.innerWidth` before trusting any
+   geometry.
+2. **A hand-rolled AVIF support probe gave a false negative.** The 1×1 test image was malformed; the
+   real project files decoded fine. Test with the actual assets.
+3. **Lazy images never load in a non-compositing tab.** Flipping `loading` to `eager` proves whether
+   the file and markup are sound.
+4. **`object-fit: contain` makes element-box aspect a meaningless distortion check.** Comparing box
+   aspect to intrinsic aspect flagged the logos as "distorted" when they were letterboxed — a
+   different problem, and the one actually worth fixing.
