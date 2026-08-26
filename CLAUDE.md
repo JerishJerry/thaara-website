@@ -93,9 +93,13 @@ When information is missing, mark it visibly instead:
 <span class="needs-input">Testimonials &amp; client permissions — need user input</span>
 ```
 
-There are currently **6 `needs-input` markers plus one `[CLIENT TESTIMONIAL NEEDED]` block**, all
+There are currently **5 `needs-input` markers plus one `[CLIENT TESTIMONIAL NEEDED]` block**
 publicly visible. That is intentional — honesty over a falsely finished page. Do not quietly fill
 them with plausible copy.
+
+A sixth marker — Work's "More work, once it is supplied" empty state — is **commented out** in
+`index.html`, hidden on request. Note that `grep` still counts its markup, so the source shows six;
+only five render. Uncomment the block to restore it when further projects are supplied.
 
 Everything currently on the page traces to something real: the studio's own words, or the one
 project asset. The wedding date (23 August 2026) and the phrase "an interactive wedding invitation,

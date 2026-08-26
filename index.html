@@ -268,14 +268,21 @@
           </div>
         </article>
 
-        <!-- Honest empty state. No invented projects. -->
+        <!-- Honest empty state, hidden on request (Phase 6, 2026-08-26).
+             Kept in place rather than deleted: it is the marker for the
+             work THAARA has not published yet, and goes straight back by
+             removing this comment wrapper. Commented out rather than
+             [hidden] or display:none so it costs nothing to render and
+             leaves nothing in the accessibility tree.
+
         <div class="project reveal">
           <div class="slot">
             <h3>More work, once it is supplied</h3>
-            <p>THAARA has one project in the repository. Additional projects — including anything currently living only on Instagram — can be added here as feature, split or full-width presentations.</p>
-            <div class="needs-input">Further projects &amp; assets — need user input</div>
+            <p>THAARA has one project in the repository. Additional projects &mdash; including anything currently living only on Instagram &mdash; can be added here as feature, split or full-width presentations.</p>
+            <div class="needs-input">Further projects &amp; assets &mdash; need user input</div>
           </div>
         </div>
+        -->
 
         <!-- No live project destination exists, so the honest next step
              from Work is to start a conversation, not a fake "view project". -->

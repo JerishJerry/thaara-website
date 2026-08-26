@@ -57,6 +57,41 @@ Known-open items carried in, not defects to re-report:
 
 -->
 
+## 2026-08-26 — Work empty state hidden  ·  Important
+
+**Issue**
+"Hide this for now" — the "More work, once it is supplied" placeholder block in Work.
+
+**Change**
+The block is wrapped in an HTML comment in `index.html`, not deleted. Work now ends on the
+Nivin × Dhiya project followed by the "Start a project" link.
+
+Commented out rather than given `[hidden]` or `display: none`: a comment costs nothing to render,
+leaves nothing in the accessibility tree, and cannot be resurrected by a later component rule that
+sets `display` — the failure mode recorded in `THAARA_REBUILD.md` §36.
+
+**Files**
+`index.html` — the `.project > .slot` block commented out, with a note on how to restore it.
+`CLAUDE.md` — publicly visible marker count 6 → 5, plus a warning that `grep` still counts the
+commented markup, so the source reads six while only five render.
+
+**Reason**
+The block was scaffolding announcing absent work. Hiding it removes the announcement without
+claiming anything false — the section simply shows the one project that exists. Keeping the markup
+in place means restoring it is deleting two comment lines, not rewriting it, which matters because
+it is the marker for work not yet supplied.
+
+No other change was needed: `.project + .project` carried the divider and spacing, so with one
+project left there is no orphan rule, and `.section-action` supplies its own margin. The Work
+heading ("A single project, carried all the way through") was already accurate and is untouched.
+
+**Verified**
+Chromium at 320/375/768/1280/1920 with real webfonts. Slot absent from the DOM and from rendered
+text; 1 `.project` in Work; no orphan `.project + .project` divider; 5 rendered `needs-input`
+markers; "Start a project" sits 40–48 px below the project on the section's left edge; no
+horizontal overflow; 0 console errors; 0 failed requests.
+
+
 ## 2026-08-26 — Studio email address supplied and published  ·  Critical
 
 **Issue**
