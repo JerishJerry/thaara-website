@@ -163,14 +163,19 @@
      ENQUIRY_ENDPOINT is the single switch that makes this form send.
 
        ""            -> nothing is sent. The form validates, then says
-                        plainly that it is not connected and hands off to
-                        Instagram. It never shows a success message.
+                        plainly that it is not connected and hands the
+                        visitor to email or Instagram. It never shows a
+                        success message.
        "https://..." -> the form POSTs JSON there and reports the real
                         outcome: success only on a successful response,
                         failure otherwise.
 
-     Leave it empty until a real inbox exists. A form that claims to have
-     sent an enquiry it silently dropped is worse than no form. */
+     The studio now has an inbox (hello.thaaracreates@gmail.com), but that is
+     NOT what goes here — this is a fetch() target and a mailbox cannot accept
+     a POST. Putting an address here breaks every submission. Connecting the
+     form needs a form-to-email service or a small endpoint that forwards to
+     that address; until one exists, leave this empty. A form that claims to
+     have sent an enquiry it silently dropped is worse than no form. */
 
   var ENQUIRY_ENDPOINT = "";
 

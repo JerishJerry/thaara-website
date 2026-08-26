@@ -1483,6 +1483,9 @@ and the footer logo share one left edge.
 
 - **The form cannot send.** `ENQUIRY_ENDPOINT` is empty and no email address exists. The strongest
   CTA on the site still cannot complete. This is the single highest-value remaining item.
+  *(Phase 6, 2026-08-26: the email address was supplied — `hello.thaaracreates@gmail.com` — and is
+  now published. The form itself still cannot send; a mailbox is not a POST endpoint. See
+  `THAARA_CHANGELOG.md`.)*
 - **Rendered visual QA has not been done.** The browser pane never composited during this phase, so
   every finding above is from measurement — geometry, computed styles, resource timings — not from
   looking at the page. §20's "does it feel like THAARA" test needs human eyes.
@@ -1490,6 +1493,7 @@ and the footer logo share one left edge.
   is worth checking for AVIF, `inert`, `display: contents` on `<picture>`, and `100svh` on the 404.
 - The canonical points at the GitHub Pages address (see §39).
 - Content gaps remain: email, testimonials, further projects, About's based-in / founded / who.
+  *(Phase 6: email supplied and published. The rest remain open.)*
 
 ---
 

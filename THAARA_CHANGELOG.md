@@ -56,3 +56,49 @@ Known-open items carried in, not defects to re-report:
 <why this was the smallest effective correction>
 
 -->
+
+## 2026-08-26 — Studio email address supplied and published  ·  Critical
+
+**Issue**
+`hello.thaaracreates@gmail.com` — "need to add this email id".
+
+**Change**
+The address is now a published contact route everywhere the site previously had none.
+
+- Contact section: the two direct routes (email, Instagram) sit in a `.contact-routes` stack on the
+  page's single left edge. The `needs-input` marker and the sentence "Instagram is the only contact
+  route verified in this project" are gone — the latter was no longer true. The caveat now says why
+  the direct routes matter: the form still isn't wired to an inbox.
+- Footer "Get in touch": the address sits above the Instagram handle.
+- Form fallbacks: the not-connected and failure states, and the `<noscript>` message, now offer
+  email alongside Instagram. Previously Instagram was the only handoff they could name.
+- `JSON-LD`: `email` added to the Organization node — a verified fact, so it belongs in structured
+  data.
+
+`ENQUIRY_ENDPOINT` is deliberately still empty. A mailbox cannot accept a POST, so the address is
+not a valid value for it; the form still does not claim to send.
+
+**Files**
+`index.html` — email in six places: JSON-LD, contact routes, `<noscript>`, not-connected actions,
+failure actions, footer.
+`styles.css` — `.contact-routes` grid; `.link-rule--mail` (keeps the address in its own case rather
+than the component's tracked uppercase, since an address is a literal string people retype);
+`.footer-mail` sharing the footer reach-link treatment. `overflow-wrap: anywhere` on both mail links
+— the address is one unbreakable word and browsers do not break at `.` or `@`.
+`script.js` — comment only. Records that the studio mailbox is **not** what goes in
+`ENQUIRY_ENDPOINT`, so a future reader does not paste it there and break every submission.
+`CLAUDE.md`, `README.md`, `THAARA_REBUILD.md` — current-state claims that said no email exists.
+Marker count 7 → 6. The Phase 4 snapshot in §46 is annotated, not rewritten.
+
+**Reason**
+Adding the address to the contact block alone would have left four places still telling visitors
+Instagram was the only way to reach the studio — including the fallback the form shows every time
+someone tries to send. The gap was never one marker; it was that the page had no email anywhere.
+No layout, palette, type or section change was needed: both new links reuse existing components.
+
+**Verified**
+Rendered in Chromium at 320/360/375/414/768/1024/1280/1920 with the real webfonts served locally
+(cold cache, fresh port). No horizontal overflow at any width; both contact routes share the page's
+single left edge at every width; 0 console errors; 0 failed requests; all mail links ≥ 44 px.
+Form submitted with valid input at each width: the not-connected state opens (asserted on computed
+display, not `el.hidden`), the success box stays `display: none`, and the visitor's text is kept.

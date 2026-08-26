@@ -75,5 +75,6 @@ design system, every decision and its reasoning, and what still needs input befo
 ## Status
 
 Some content is genuinely still missing and is marked on the page itself rather than filled with
-placeholder text — the studio email address, project year and live link, the working process, and
-location. See §20 of `THAARA_REBUILD.md` for the complete list.
+placeholder text — testimonials, further projects, the case study's brief and live link, and the
+studio's location, founding year and the people behind it. See §46 of `THAARA_REBUILD.md` for the
+complete list.

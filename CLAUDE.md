@@ -90,10 +90,10 @@ awards, statistics, project results, founder details, years of experience, locat
 When information is missing, mark it visibly instead:
 
 ```html
-<span class="needs-input">Email address — need user input</span>
+<span class="needs-input">Testimonials &amp; client permissions — need user input</span>
 ```
 
-There are currently **7 `needs-input` markers plus one `[CLIENT TESTIMONIAL NEEDED]` block**, all
+There are currently **6 `needs-input` markers plus one `[CLIENT TESTIMONIAL NEEDED]` block**, all
 publicly visible. That is intentional — honesty over a falsely finished page. Do not quietly fill
 them with plausible copy.
 
@@ -152,12 +152,16 @@ var ENQUIRY_ENDPOINT = "";
 ```
 
 - **Empty (current):** the form validates, then states plainly that nothing was sent, keeps the
-  visitor's text, and offers Instagram. **It never shows a success message.**
+  visitor's text, and offers email and Instagram. **It never shows a success message.**
 - **Set to a URL:** it POSTs JSON and reports the real outcome — success only on a real success.
 
 **Do not make the form claim to have sent anything it didn't.** That guarantee is the whole point of
-how it's built. Instagram (`@thaara.creates`) is the only verified contact route in the project;
-there is no email address.
+how it's built.
+
+Two verified contact routes exist: **`hello.thaaracreates@gmail.com`** and Instagram
+(**`@thaara.creates`**). The mailbox is *not* an endpoint — `ENQUIRY_ENDPOINT` is a `fetch()` target
+and a mailbox cannot accept a POST, so putting the address there breaks every submission. Connecting
+the form needs a form-to-email service or a small forwarding endpoint.
 
 ---
 
@@ -191,7 +195,8 @@ artefact.
 
 ## Still open
 
-1. The form cannot send — no endpoint, no email address.
+1. The form cannot send — no endpoint. (The studio mailbox now exists, but it is not one; see
+   "The contact form" above.)
 2. Testimonials, further projects, and About's location / founded / who-is-behind-THAARA.
 3. The canonical points at the GitHub Pages URL. Moving to a custom domain means updating it in
    `index.html` (canonical, `og:url`, `og:image`, `twitter:image`, JSON-LD), `sitemap.xml`,
