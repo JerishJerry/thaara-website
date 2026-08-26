@@ -450,11 +450,18 @@ h1 em, h2 em, h3 em{
 }
 
 .brand{ display: flex; align-items: center; flex: 0 0 auto; }
+/* Width is capped so the natural height lands exactly on max-height
+   (88px ÷ 1.30 aspect ≈ 68px). At the old 108px cap the height clamp kicked
+   in, object-fit letterboxed the mark inside a wider box, and the visible
+   logo sat 9px right of the headline — breaking the one left edge every
+   other element on the page shares. object-position keeps it flush if a
+   future logo of a different aspect ever re-engages the clamp. */
 .brand-logo{
-  width: clamp(78px, 8vw, 108px);
+  width: clamp(78px, 8vw, 88px);
   height: auto;
   max-height: 68px;
   object-fit: contain;
+  object-position: left center;
 }
 
 .nav-links{
@@ -1341,11 +1348,14 @@ body.menu-open{ overflow: hidden; }
 .footer-ig:hover i{ transform: translate(2px,-2px); }
 
 .footer-brand{ display: grid; gap: var(--sp-5); justify-items: start; }
+/* Same reasoning as .brand-logo: 94px ÷ 1.30 ≈ 72px, so no letterboxing
+   and the footer mark shares the page's left edge. */
 .footer-logo{
-  width: clamp(88px, 9vw, 112px);
+  width: clamp(84px, 9vw, 94px);
   height: auto;
   max-height: 72px;
   object-fit: contain;
+  object-position: left center;
 }
 .footer-brand p{
   font-size: var(--fs-sm);
