@@ -7,6 +7,37 @@ identity, digital design and motion. This repo is its marketing site.
 
 ---
 
+## Where the project currently stands
+
+The site was rebuilt across five phases, all complete. It is **live and feature-complete**.
+
+| Phase | State |
+|---|---|
+| 1 — Audit | Complete. Original site catalogued; no redesign. |
+| 2 — Visual system & structure | Complete. Design tokens, 9-section homepage. |
+| 3 — Conversion & trust | Complete. Process, contact form, closing CTA. |
+| 4 — Polish, SEO, performance | Complete. 2265 KB → 106 KB, full SEO, a11y. |
+| 5 — Final QA | Complete. One defect found and fixed (logo alignment). |
+| **6 — Owner review** | **In progress. Awaiting the owner's feedback.** |
+
+**Phase 6 is a feedback-driven phase, not a build phase.** The owner reviews the live site and sends
+targeted feedback; you make the smallest effective correction for each item. Do **not** proactively
+redesign, add sections, add animations, change the palette, or refactor. If you have no feedback in
+hand, there is nothing to build — ask what they'd like changed.
+
+Working rules for Phase 6:
+
+1. Classify each item **Critical** (broken / wrong content / severe responsive) → **Important**
+   (poor UX, weak hierarchy, inconsistency) → **Polish** (spacing, timing, detail). Highest impact first.
+2. For subjective feedback ("too empty", "not premium"), first identify *which variable* is
+   responsible — typography, spacing, composition, contrast, imagery, hierarchy, animation, content
+   — then make the smallest change that fixes it.
+3. Verify mobile **and** desktop after any layout change. Don't fix one by breaking the other.
+4. Log every correction in `THAARA_CHANGELOG.md`: issue, change, files, reason.
+5. Report what changed, then stop and wait. Don't volunteer further redesigns.
+
+---
+
 ## ⚠️ Pushing deploys the live site
 
 `main` is wired to **GitHub Pages, which builds automatically on push**. There is no staging step.
