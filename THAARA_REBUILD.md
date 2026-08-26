@@ -8,6 +8,7 @@
 - **Phase 1 status:** Complete (audit only, no redesign).
 - **Phase 2 status:** Complete (visual system, homepage structure, brand experience).
 - **Phase 3 status:** Complete (conversion, trust, client journey).
+- **Phase 4 status:** Complete (polish, responsive, accessibility, SEO, performance).
 
 ---
 
@@ -1274,3 +1275,217 @@ was sent and never shows success.
 | Controls under 44 px @ 375 | 0 |
 | Horizontal overflow @ 375 | none |
 | Console errors | 0 |
+
+---
+
+# PHASE 4 — Polish, Responsive, Accessibility, SEO & Performance
+
+Completed 2026-08-25. No redesign, no framework, no new sections. Refinement only.
+
+## 38. Performance — the 2.2 MB problem, finally solved
+
+Flagged in Phase 1, deferred through Phases 2 and 3, fixed here.
+
+### Tooling
+
+No image tooling existed on the machine (`convert` on PATH is Windows' FAT-to-NTFS converter, not
+ImageMagick). `sharp` was installed **into the scratchpad**, not the project, and used to generate
+assets offline. **The site itself remains zero-dependency** — no `package.json`, no `node_modules`,
+no build step. Regenerate with the script in the scratchpad, or any equivalent tool.
+
+### What the source images actually were
+
+| File | Finding |
+|---|---|
+| `invitation-save-the-date.png` | 1624×969 RGBA, **alpha min = max = 255** — fully opaque. A quarter of the raw data was an alpha channel doing nothing. |
+| `logo.png` | 798×614 RGBA, alpha mean 12.8 — transparency genuinely used, so it must be preserved. |
+
+### Generated
+
+| Asset | Size |
+|---|---|
+| `invitation-{480,800,1200,1624}.avif` | 14.2 / 30.2 / 54.7 / 80.7 KB |
+| `invitation-{480,800,1200,1624}.webp` | 20.1 / 44.9 / 83.2 / 125.0 KB |
+| `logo-{128,256}.webp`, `logo-256.png` | 6.8 / 16.8 / 8.5 KB |
+| `favicon-32.png`, `favicon-180.png` | 1.0 / 12.3 KB |
+| `og-image.jpg` (1200×630) | 95.2 KB |
+
+The original PNG is **kept untouched** as the `<picture>` fallback and as the master.
+
+**Quality was measured, not assumed.** Decoded output compared against the original at matching
+size: WebP **PSNR 39.1 dB**, AVIF **39.9 dB**, mean absolute error under 2/255. Visually lossless.
+The OG image was inspected directly.
+
+### Result
+
+| | Phase 1 | Phase 4 |
+|---|---|---|
+| Cold-load total | **2265 KB** | **106 KB** |
+| Largest asset | 2165 KB PNG | 14 KB AVIF (desktop) |
+| `index.html` | 80.0 KB | 31.8 KB |
+| Load event | 3.7 s | 65 ms (local) |
+
+Two changes did most of the work:
+
+1. **The base64 favicon is gone.** It was a 55 KB data URI in `<head>` — byte-identical to
+   `logo.png`, a 798×614 image used as a 32 px icon, blocking parse on every visit. Replaced with
+   real 1.0 KB and 12.3 KB icon files. `index.html` dropped 63%.
+2. **Responsive `<picture>`** with AVIF → WebP → PNG and four widths each. At 1440/DPR 1 the hero
+   now serves a 14 KB AVIF where it previously served 2.2 MB.
+
+Also added: `width`/`height` on every image (no layout shift), `decoding="async"`,
+`fetchpriority="high"` on the hero, `loading="lazy"` below the fold.
+
+### A preload that was removed, and an honest correction
+
+A `<link rel="preload">` for the hero was added, then measured as causing a double download, then
+removed. **That measurement was wrong** — a cold-cache test on a fresh port showed a single fetch.
+The duplicate was an artifact of a cache polluted by repeated testing.
+
+The preload stayed removed on merit rather than on the bad measurement: `imagesizes` must be kept
+exactly in step with the `<picture>`'s `sizes`, and a future edit to one and not the other causes a
+real double download. Against that maintenance hazard the saving is 14 KB. Restore it only with a
+cold-cache measurement to justify it.
+
+## 39. SEO
+
+Everything in this section was absent before Phase 4.
+
+| Item | Implemented |
+|---|---|
+| Title | "THAARA — Invitation Experiences, Brand Identity & Motion" — names the actual work rather than repeating the tagline |
+| Meta description | Describes the studio in one sentence, no keyword stuffing |
+| Canonical | `https://jerishjerry.github.io/thaara-website/` |
+| Open Graph | type, site_name, locale, title, description, url, image (+ width/height/alt) |
+| Twitter | `summary_large_image` with title, description, image, alt |
+| Social image | `og-image.jpg`, 1200×630, generated from the real project artwork |
+| Favicon | 32 px and 180 px apple-touch-icon |
+| `robots.txt` | Allow all, points at the sitemap |
+| `sitemap.xml` | Single URL, matching the canonical |
+| `404.html` | Styled, `noindex`, routes back to the site and Instagram |
+| Structured data | `Organization` + `WebSite` JSON-LD, verified to parse |
+
+**The structured data claims only what the project evidences**: name, URL, logo, description, the
+Instagram profile, and the four real services. No address, phone number, founding date, rating,
+review or award — none of those are known, and inventing them would be both false and a
+structured-data policy violation.
+
+> **The canonical is the one thing to revisit.** It points at the GitHub Pages address, which is
+> where the site actually lives today. If THAARA moves to a custom domain, update it in three
+> places: the canonical, `og:url`/`og:image`/`twitter:image` in `index.html`, `<loc>` in
+> `sitemap.xml`, the `Sitemap:` line in `robots.txt`, the JSON-LD `@id`/`url`, and the "Back to
+> THAARA" link in `404.html`.
+
+## 40. New verified facts, from the artwork itself
+
+Rendering the OG image made the invitation legible for the first time. It contains, in THAARA's own
+artwork:
+
+- The wedding date: **23 August 2026**
+- The line "And so, our sweetest beginning begins"
+- A caption bar reading "01 — INVITATION EXPERIENCES" and **"An interactive wedding invitation,
+  designed as a website"**
+- A browser-window frame around the piece
+
+This retired the "Year — need user input" marker (now **Occasion: Wedding, 23 August 2026**), and
+let the project description and alt text become concrete rather than vague. Nothing here was
+inferred — it is all printed in the asset.
+
+## 41. Accessibility
+
+| Check | Result |
+|---|---|
+| Heading hierarchy | 1 × H1, 22 headings, **zero skipped levels** |
+| Images with alt | 4 of 4, now genuinely descriptive |
+| Landmarks | 1 header, 1 main, 1 footer, 2 labelled navs, 9 sections, 4 articles |
+| Clickable non-semantic elements | none |
+| Links without an accessible name | none |
+| Tab order | 28 elements, DOM order, **no positive `tabindex`** |
+| Skip link | present, first in tab order |
+| Mobile menu links when closed | excluded from tab order (`inert`) |
+| Form | all labelled, `aria-required`, `aria-describedby`, error summary `role="alert"`, success `role="status"` |
+| Contrast | **152 elements checked, 0 failures** |
+| `prefers-reduced-motion` | all 34 reveals shown immediately, no animation |
+| `lang` | `en` |
+
+### Two measurement corrections worth keeping
+
+1. **Focus styles cannot be verified with `.focus()`.** A programmatic focus call does not set
+   `:focus-visible`, and in a background tab it does not even match `:focus` — so a sweep reported
+   "no visible focus" on all 28 elements. The rules were verified by inspecting the stylesheet
+   instead: a global `:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px }` plus a
+   form-specific rule. **Rendered focus has not been confirmed in a real browser** — see §44.
+2. **Contrast checks must composite alpha.** `.needs-input` reported a contrast of exactly 1.00,
+   which is the signature of comparing a colour with itself: its background is
+   `rgba(201,163,94,.10)` and the checker treated it as opaque gold. Compositing the translucent
+   layers over the first opaque ancestor gives the true values — **6.07:1 and 6.49:1, both passing**.
+
+## 42. Motion
+
+Audited rather than expanded. Nothing new was added.
+
+- Transitions are overwhelmingly `transform`, `opacity`, `color`, `border-color` — compositor-cheap.
+- **No `backdrop-filter`**, no filters, no parallax, no cursor effects, no continuous loops.
+- One `requestAnimationFrame`, one-shot, for moving focus into the mobile menu.
+- The scroll listener is `{ passive: true }`.
+- **The nav underline was changed from animating `right` to `transform: scaleX()`.** It is the most
+  frequently triggered transition on the page, and animating `right` forced layout every frame. It
+  now also responds to `:focus-visible`, not just hover.
+
+Two layout-affecting transitions remain and were deliberately left: `padding-left` on mobile-menu
+links and `gap` on `.link-rule`. Both are hover/focus-only on small isolated elements, so the reflow
+is confined and rare. Changing them would alter the interaction for no measurable gain.
+
+## 43. Responsive
+
+Audited at 320, 375, 390, 412, 430, 768, 834, 1024, 1280, 1440, 1920.
+
+| Width | Result |
+|---|---|
+| 320 | no overflow, h1 34 px, hero plate 216 px vs work 278 px |
+| 430 | no overflow, h1 40 px |
+| 834 | no overflow, hamburger nav, 2-col principles |
+| 1920 | no overflow, container 1180, section padding 128 px |
+
+At every width: **zero horizontal overflow, zero controls under 44 px, zero text under 11 px**, and
+the h1 always clears the fixed header. Line measures across nine body styles land between **40 and
+62 characters**. Vertical alignment holds at every width — header logo, h1, every section eyebrow
+and the footer logo share one left edge.
+
+## 44. Code quality
+
+- Removed genuinely unused rules: `.body-text`, `.container--wide`, `.section--ruled`, and the
+  now-unreferenced `--container-wide` token.
+- Tokenised the last hard-coded colour: `#17130d` → `--on-gold`.
+- **Kept** `.project--split`, `.project--immersive`, `.is-reversed`, `.project-inner`,
+  `.project-text`. These are unused, deliberately: they are the mechanism for adding further
+  projects without writing new CSS, which is the top pending content item. Remove them if the
+  portfolio is never extended.
+- Brace balance verified; `script.js` passes `node --check`.
+
+## 45. Phase 4 verification
+
+| Check | Result |
+|---|---|
+| Console errors | **0** |
+| Failed requests | **0** |
+| Cold-load total | **106 KB** |
+| Internal anchors | 8 of 8 resolve |
+| Referenced assets exist | 17 of 17 |
+| Form messages hidden on load | 4 of 4 |
+| JSON-LD | parses; `Organization`, `WebSite` |
+| 404 page | renders, 1 × H1, `noindex`, no overflow |
+| Assets preserved | `logo.png`, `invitation-save-the-date.png` byte-identical |
+| Fabricated content | none |
+
+## 46. Still open after Phase 4
+
+- **The form cannot send.** `ENQUIRY_ENDPOINT` is empty and no email address exists. The strongest
+  CTA on the site still cannot complete. This is the single highest-value remaining item.
+- **Rendered visual QA has not been done.** The browser pane never composited during this phase, so
+  every finding above is from measurement — geometry, computed styles, resource timings — not from
+  looking at the page. §20's "does it feel like THAARA" test needs human eyes.
+- **Cross-browser testing has not been done.** Only one engine was available. Safari in particular
+  is worth checking for AVIF, `inert`, `display: contents` on `<picture>`, and `100svh` on the 404.
+- The canonical points at the GitHub Pages address (see §39).
+- Content gaps remain: email, testimonials, further projects, About's based-in / founded / who.

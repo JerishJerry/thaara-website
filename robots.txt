@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://jerishjerry.github.io/thaara-website/sitemap.xml

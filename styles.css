@@ -40,6 +40,7 @@
 
   --gold:      #c9a35e;   /* single accent 7.6:1 on --bg */
   --gold-lift: #dcb877;
+  --on-gold:   #17130d;   /* text on a gold fill  10.9:1 */
   --gold-soft: rgba(201,163,94,.32);
   --gold-haze: rgba(201,163,94,.10);
 
@@ -82,7 +83,6 @@
 
   /* ---- Layout ----------------------------------------------- */
   --container:        1180px;
-  --container-wide:   1400px;
   --container-narrow: 680px;
   --gutter: clamp(1.25rem, 5vw, 3rem);
 
@@ -142,6 +142,17 @@ body{
 }
 
 img{ max-width: 100%; display: block; }
+
+/* <picture> is only a wrapper for source selection. `display: contents`
+   keeps it out of layout entirely, so the <img> participates in the parent
+   exactly as it did before the wrapper was introduced — no inline-gap under
+   the image, no extra flex/grid item. */
+picture{ display: contents; }
+
+/* width/height on every <img> gives the browser an aspect ratio before the
+   bytes arrive, so nothing shifts as images load. These two need explicit
+   sizing because the attributes describe the source, not the display size. */
+.brand-logo, .footer-logo{ height: auto; }
 a{ color: inherit; text-decoration: none; }
 button{ font: inherit; color: inherit; }
 ul{ list-style: none; margin: 0; padding: 0; }
@@ -163,7 +174,7 @@ p{ margin: 0; }
   z-index: 200;
   padding: var(--sp-3) var(--sp-5);
   background: var(--gold);
-  color: #17130d;
+  color: var(--on-gold);
   font-size: var(--fs-xs);
   font-weight: 700;
   letter-spacing: .08em;
@@ -229,7 +240,6 @@ h1 em, h2 em, h3 em{
   color: var(--ink-dim);
 }
 
-.body-text{ color: var(--ink-dim); }
 
 /* Small uppercase metadata. */
 .meta{
@@ -260,7 +270,6 @@ h1 em, h2 em, h3 em{
   margin-inline: auto;
   padding-inline: var(--gutter);
 }
-.container--wide{ max-width: var(--container-wide); }
 .container--narrow{ max-width: var(--container-narrow); }
 
 .section{
@@ -271,8 +280,6 @@ h1 em, h2 em, h3 em{
 .section--alt{   background: var(--bg-alt); }
 .section--soft{  background: var(--bg-soft); }
 
-/* Hairline divider between tonally identical sections. */
-.section--ruled{ border-top: 1px solid var(--line); }
 
 /* Standard section header: eyebrow + heading (+ optional lead). */
 .section-head{ margin-bottom: clamp(var(--sp-8), 5vw, var(--sp-10)); }
@@ -328,7 +335,7 @@ h1 em, h2 em, h3 em{
 .btn--primary{
   background: var(--gold);
   border-color: var(--gold);
-  color: #17130d;
+  color: var(--on-gold);
 }
 .btn--primary:hover{
   background: var(--gold-lift);
@@ -467,18 +474,24 @@ h1 em, h2 em, h3 em{
   color: var(--ink);
   transition: color var(--dur) var(--ease);
 }
-/* Gold rule sweeps in from the left on hover. */
+/* Gold rule sweeps in from the left on hover.
+   scaleX rather than animating `right`: this is the most frequently
+   triggered transition on the page, and a transform runs on the compositor
+   instead of forcing layout on every frame. */
 .nav-links a::after{
   content: "";
   position: absolute;
-  left: 0; right: 100%;
+  left: 0; right: 0;
   bottom: 10px;
   height: 1px;
   background: var(--gold);
-  transition: right var(--dur) var(--ease);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform var(--dur) var(--ease);
 }
 .nav-links a:hover{ color: var(--gold); }
-.nav-links a:hover::after{ right: 0; }
+.nav-links a:hover::after,
+.nav-links a:focus-visible::after{ transform: scaleX(1); }
 
 /* Instagram sits apart, behind a divider — secondary by design. */
 .nav-links .nav-ig{
@@ -1270,6 +1283,27 @@ body.menu-open{ overflow: hidden; }
   font-size: var(--fs-2xl);
   max-width: 22ch;
 }
+
+
+/* ============================================================
+   14d  404
+   ============================================================ */
+
+.notfound{
+  min-height: 100svh;
+  display: grid;
+  place-items: center;
+}
+.notfound-inner{
+  display: grid;
+  gap: var(--sp-5);
+  justify-items: center;
+  text-align: center;
+}
+.notfound-inner h1{ font-size: var(--fs-2xl); max-width: 18ch; }
+.notfound-inner .lead{ max-width: 40ch; }
+.notfound-inner .btn-row{ margin-top: var(--sp-4); justify-content: center; }
+.notfound-inner .footer-logo{ margin-bottom: var(--sp-4); }
 
 
 /* ============================================================
