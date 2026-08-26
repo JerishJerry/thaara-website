@@ -14,11 +14,20 @@ two images. Open `index.html` in a browser and it runs.
 
 ```
 index.html                     the whole page
+404.html                       styled 404
 styles.css                     design system + all styles
-script.js                      nav state, mobile menu, scroll reveals
-logo.png                       brand mark
-invitation-save-the-date.png   portfolio artwork
-THAARA_REBUILD.md              project guide: audit, design system, decisions
+script.js                      nav state, mobile menu, scroll reveals, contact form
+logo.png                       brand mark (lossless master)
+invitation-save-the-date.png   portfolio artwork (lossless master)
+invitation-*.avif / .webp      generated responsive variants
+logo-*.webp / .png             generated logo variants
+favicon-*.png, og-image.jpg    generated icons and social card
+robots.txt, sitemap.xml        search metadata
+tools/build-images.js          regenerates the image variants (build-time only)
+
+CLAUDE.md                      instructions for AI assistants — read first
+THAARA_REBUILD.md              full project guide: audit, design system, decisions
+THAARA_CHANGELOG.md            post-review corrections
 ```
 
 ## Running it locally
