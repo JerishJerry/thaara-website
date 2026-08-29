@@ -93,13 +93,15 @@ When information is missing, mark it visibly instead:
 <span class="needs-input">Testimonials &amp; client permissions — need user input</span>
 ```
 
-There is currently **1 `needs-input` marker (Testimonials) plus the `[CLIENT TESTIMONIAL NEEDED]`
-block** publicly visible. That is intentional — honesty over a falsely finished page. Do not quietly
-fill them with plausible copy.
+There are currently **0 `needs-input` markers rendered** — both instances are commented out in
+`index.html`, hidden on request:
 
-A second marker — Work's "More work, once it is supplied" empty state — is **commented out** in
-`index.html`, hidden on request. Note that `grep` still counts its markup, so the source shows two;
-only one renders. Uncomment the block to restore it when further projects are supplied.
+- Work's "More work, once it is supplied" empty state.
+- The whole Social Proof / "In Their Words" testimonial section, including the
+  `[CLIENT TESTIMONIAL NEEDED]` block and its own marker.
+
+`grep` still counts both, so the source shows two; neither renders. Uncomment the relevant block to
+restore either when there's real content for it (further projects, or a real testimonial).
 
 The Nivin & Dhiya case study's own gap notice and marker (what a brief/further visuals would have
 added) were removed outright, ahead of a planned multi-project slides layout replacing this

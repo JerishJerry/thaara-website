@@ -39,6 +39,34 @@ Known-open items carried in, not defects to re-report:
 
 ---
 
+## 2026-08-29 — Social Proof section hidden · Important
+
+**Issue**
+Owner asked to hide the "In Their Words" testimonial section — the `[CLIENT TESTIMONIAL NEEDED]`
+placeholder quote, its explanatory note, and the `needs-input` badge.
+
+**Change**
+Wrapped the entire `<section id="proof">...</section>` in an HTML comment, following the same
+pattern already established for Work's commented-out "more work" empty state: dated explanatory
+comment at the top, restore by removing the comment wrapper. No CSS/nav changes needed — nothing
+links to `#proof`, and the section held nothing else worth preserving separately.
+
+**Files**
+`index.html`, `CLAUDE.md` (needs-input marker count corrected — both remaining markers are now
+commented out, 0 render)
+
+**Reason**
+Owner-directed; matches the existing "commented out, not deleted" convention so it costs nothing to
+render, leaves nothing in the accessibility tree, and is trivially restorable once a real
+testimonial exists.
+
+**Verified**
+Rendered at 375px and 1024px with a headless browser — Process's "Start a Project" link flows
+straight into Contact with normal spacing, no gap or leftover whitespace, 0 console errors, 0 failed
+requests. `#proof` locator returns 0 matches.
+
+---
+
 ## 2026-08-29 — Removed the Nivin & Dhiya description, tags and detail list · Important
 
 **Issue**
