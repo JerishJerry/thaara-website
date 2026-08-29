@@ -39,6 +39,37 @@ Known-open items carried in, not defects to re-report:
 
 ---
 
+## 2026-08-29 — Removed the Nivin & Dhiya description, tags and detail list · Important
+
+**Issue**
+Continuing the previous removal, the owner asked to remove the rest of the case study's body
+content ahead of the planned multi-project slides layout: the description paragraph, the Design /
+Illustration / Lettering tag pills, and the Category / Format / Artwork / Lettering / Occasion
+detail list. Confirmed scope with the owner first — body text and detail list only, keeping the
+image, project title ("Nivin × Dhiya"), and category label above it.
+
+**Change**
+- Removed the entire `<div class="project-body">` block from the case study `<article>` — its
+  description `<div>` (lead paragraph + `.role-list` tag pills) and its `<dl class="detail-list">`.
+- Removed the now-fully-unused `.project-body`, `.detail-list`, and `.role-list` CSS rules (none of
+  the three classes remain anywhere in `index.html`). Left `.project--split` and other
+  "alternate layout, ready for real projects" CSS in place — unrelated scaffolding for future
+  multi-project layouts, not dead code from this change.
+
+**Files**
+`index.html`, `styles.css`
+
+**Reason**
+Owner-directed removal ahead of the planned multi-project slides feature — not a fix, a deliberate
+content decision, same rationale as the prior gap-notice removal.
+
+**Verified**
+Rendered the case study at 375px and 1024px with a headless browser — image, title and category
+label remain, no leftover spacing where the removed content was, 0 console errors, 0 failed
+requests.
+
+---
+
 ## 2026-08-29 — Removed the case-study gap notice from Nivin & Dhiya · Important
 
 **Issue**
