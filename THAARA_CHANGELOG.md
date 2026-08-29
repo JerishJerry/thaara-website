@@ -39,6 +39,25 @@ Known-open items carried in, not defects to re-report:
 
 ---
 
+## 2026-08-29 — Em dashes replaced with hyphens site-wide · Polish
+
+**Issue**
+Owner asked for every em dash (—, `&mdash;`) across the page to be replaced with a plain hyphen.
+
+**Change**
+Swapped all 36 instances (28 literal `—` characters, 8 `&mdash;` entities) for `-`, in visible copy, meta/title/OG tags, and HTML comments. Every occurrence was already space-separated, so no spacing adjustments were needed.
+
+**Files**
+`index.html`
+
+**Reason**
+Direct owner preference on punctuation style.
+
+**Verified**
+Grepped for `—` and `&mdash;` in `index.html` — zero remaining. Confirmed other entities (`&rsquo;`, `&times;`, arrows) and CRLF line endings untouched; `git diff` shows only the intended dash-to-hyphen swaps.
+
+---
+
 ## 2026-08-29 — Fill in About section facts · Important
 
 **Issue**
