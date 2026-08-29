@@ -39,6 +39,33 @@ Known-open items carried in, not defects to re-report:
 
 ---
 
+## 2026-08-29 — "One occasion" phrase kept intact in the Why THAARA heading · Polish
+
+**Issue**
+After the previous orphaned-hyphen fix, the "Why THAARA" heading could wrap with the emphasised
+phrase split across two lines ("Work made for one" / "occasion - not adapted from..."), separating
+"one" from "occasion" even though they're styled together as one italic unit. Gluing the hyphen to
+"occasion" (previous fix) meant that whenever the combined "occasion -" didn't fit at the end of a
+line, "occasion" moved down alone, leaving "one" behind.
+
+**Change**
+Added `&nbsp;` between "one" and "occasion" inside the `<em>` in the h2 (`Work made for
+one&nbsp;occasion</em>&nbsp;- not adapted...`), so the whole emphasised phrase is one unbreakable
+unit and always wraps as a pair.
+
+**Files**
+`index.html`
+
+**Reason**
+The italic "one occasion" is meant to read as a single emphasised phrase; letting it split across
+lines undercut that. This keeps it intact regardless of wrap point.
+
+**Verified**
+Rendered the heading with a headless browser at 320, 375, 480, 700, 1024 and 1920px — "one occasion"
+stays on one line and the hyphen never starts a line at any width.
+
+---
+
 ## 2026-08-29 — Orphaned hyphens fixed after the em-dash swap · Important
 
 **Issue**
