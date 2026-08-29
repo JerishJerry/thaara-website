@@ -39,6 +39,40 @@ Known-open items carried in, not defects to re-report:
 
 ---
 
+## 2026-08-29 — Removed the case-study gap notice from Nivin & Dhiya · Important
+
+**Issue**
+The owner is planning to replace the single-project Work section with a slides layout covering
+multiple projects, and wants the case study's "what's missing" disclaimer (a `.project-gap`
+paragraph plus its `needs-input` badge) removed now rather than carried into that redesign.
+
+**Change**
+- Removed the `<div class="project-actions">` wrapper and its two children (the `.project-gap`
+  paragraph and the `needs-input` badge) from the Nivin & Dhiya case study — it held nothing else,
+  so the empty wrapper was removed too rather than left dead.
+- Removed the now-unused `.project-actions` and `.project-gap` CSS rules. Left the shared
+  `.needs-input` styling in place — still used by the testimonials marker and the commented-out
+  "more work" slot.
+- Corrected `CLAUDE.md`'s `needs-input` marker count, which was already stale before this change
+  (documented as "5 markers, source shows six"; actual state was 2 rendered + 1 commented). It now
+  reads 1 rendered (testimonials) + 1 commented out (the "more work" slot), and notes this case
+  study's marker was removed outright.
+
+**Files**
+`index.html`, `styles.css`, `CLAUDE.md`
+
+**Reason**
+Owner-directed removal ahead of the planned multi-project slides feature — not a fix, a deliberate
+content decision.
+
+**Verified**
+Rendered the case study card with a headless browser at 375px and 1024px — ends cleanly after the
+Design/Illustration/Lettering tag pills, no leftover spacing, 0 console errors. Grepped
+`project-actions`, `project-gap`, `needs-input` in `index.html` to confirm only the testimonials
+instance and the commented-out slot remain.
+
+---
+
 ## 2026-08-29 — "One occasion" phrase kept intact in the Why THAARA heading · Polish
 
 **Issue**

@@ -782,14 +782,6 @@ body.menu-open{ overflow: hidden; }
   color: var(--ink);
 }
 
-.project-actions{ margin-top: clamp(var(--sp-6), 4vw, var(--sp-7)); }
-.project-gap{
-  font-size: var(--fs-sm);
-  color: var(--ink-faint);
-  max-width: 52ch;
-  margin-bottom: var(--sp-4);
-}
-
 /* Roles actually evidenced by the artwork. */
 .role-list{
   display: flex;
