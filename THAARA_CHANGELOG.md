@@ -39,6 +39,36 @@ Known-open items carried in, not defects to re-report:
 
 ---
 
+## 2026-08-29 — Orphaned hyphens fixed after the em-dash swap · Important
+
+**Issue**
+Owner flagged the "Why THAARA" heading ("Work made for *one occasion* - not adapted from someone
+else's.") rendering with a lone `-` at the start of the second line, reading like a stray bullet.
+Root cause: a plain hyphen surrounded by regular spaces is a valid line-break point, so the
+previous em-dash-to-hyphen swap (see below) could strand the `-` at the start of any wrapped line,
+anywhere the browser chose to break there. An em dash didn't have this problem — visually it never
+reads as a bullet even when it starts a line.
+
+**Change**
+In the 24 lines of rendered copy containing ` - `, replaced the space *before* the hyphen with
+`&nbsp;`, e.g. `occasion - not` → `occasion&nbsp;- not`. This makes "word&nbsp;-" one unbreakable
+unit, so the line can only wrap at the space *after* the hyphen — the hyphen now always stays
+attached to the end of the previous line, never starts a new one. Left untouched: `<title>`/meta/OG
+tags, the `aria-label`, and HTML comments — none of those wrap on-screen, so they weren't at risk.
+
+**Files**
+`index.html`
+
+**Reason**
+Fixes a regression introduced by the earlier site-wide em-dash-to-hyphen change, rather than
+reverting the owner's punctuation preference.
+
+**Verified**
+`git diff` shows only the 24 targeted lines changed, each a `&nbsp;` insertion before its hyphen(s).
+Confirmed CRLF line endings and other entities untouched.
+
+---
+
 ## 2026-08-29 — Em dashes replaced with hyphens site-wide · Polish
 
 **Issue**
