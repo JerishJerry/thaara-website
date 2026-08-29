@@ -76,7 +76,12 @@ Four response paths against stubs — genuine success (shown, form reset), **HTT
 JSON. Honeypot confirmed out of the tab order and 1×1. No console errors, no failed requests, no
 overflow.
 
-**Not yet confirmed:** end-to-end delivery to the owner's inbox — that needs a real submission.
+**End-to-end test (2026-08-26).** One real submission fired through the page's own form, not a
+direct API call. `POST https://api.web3forms.com/submit` returned **HTTP 200 in 1512 ms** and the
+UI rendered the success state — which, given the stub tests prove `success:false` at HTTP 200
+produces a *failure*, confirms the API returned `success: true`. Form reset, submit button
+restored, no console errors. Web3Forms accepted and queued the message; final inbox delivery is
+the owner's to confirm.
 
 ---
 
