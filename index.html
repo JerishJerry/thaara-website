@@ -538,7 +538,7 @@
             <div class="contact-direct">
               <p class="meta">Or reach us directly</p>
               <a class="link-rule" href="https://www.instagram.com/thaara.creates" target="_blank" rel="noopener noreferrer">Instagram &mdash; @thaara.creates <i aria-hidden="true">↗</i></a>
-              <p class="contact-caveat">Instagram is the only contact route verified in this project. <span class="needs-input">Email address — need user input</span></p>
+              <p class="contact-caveat">Prefer a message? The form sends straight to us.</p>
             </div>
           </div>
 
@@ -570,6 +570,15 @@
               <p class="form-alert-title">Please check the following</p>
               <ul id="formErrorList"></ul>
             </div>
+
+            <!-- Honeypot. Bots fill every field they find; people never see
+                 this one. Web3Forms rejects the submission if it comes back
+                 checked. Hidden from assistive tech and skipped by Tab so it
+                 is invisible to real users too. -->
+            <label class="hp-field" aria-hidden="true">
+              Leave this field empty
+              <input type="checkbox" id="f-botcheck" name="botcheck" tabindex="-1" autocomplete="off">
+            </label>
 
             <div class="field">
               <label for="f-name">Name <span class="req" aria-hidden="true">*</span></label>

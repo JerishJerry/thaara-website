@@ -145,19 +145,40 @@ These are real, repeatedly hit, and documented in `THAARA_REBUILD.md` §50.
 
 ## The contact form
 
-`script.js` has one switch near the form code:
+**Wired to Web3Forms.** Submissions are emailed to the address registered against the access key.
 
 ```js
-var ENQUIRY_ENDPOINT = "";
+var ENQUIRY_ENDPOINT = "https://api.web3forms.com/submit";
+var WEB3FORMS_ACCESS_KEY = "f1a9544f-22f1-4181-85e4-049bb0b9c55b";
 ```
 
-- **Empty (current):** the form validates, then states plainly that nothing was sent, keeps the
-  visitor's text, and offers Instagram. **It never shows a success message.**
-- **Set to a URL:** it POSTs JSON and reports the real outcome — success only on a real success.
+The access key is **public by design** — Web3Forms documents it as such. It ships in `script.js`,
+is visible in page source, and only routes mail to the pre-registered address. It is not a secret;
+don't treat leaking it as an incident.
 
-**Do not make the form claim to have sent anything it didn't.** That guarantee is the whole point of
-how it's built. Instagram (`@thaara.creates`) is the only verified contact route in the project;
-there is no email address.
+Clearing `ENQUIRY_ENDPOINT` is the safe way to take the form offline: the honest not-connected path
+is still in the code and still works.
+
+### The one thing not to break
+
+**Web3Forms answers HTTP 200 with `{"success": false}` when it rejects a submission** — wrong key,
+spam block, quota. The handler therefore reads the response body and shows success **only** on
+`body.success === true`:
+
+```js
+if (!body || typeof body.success === "undefined") throw ...
+if (body.success !== true) throw new Error(body.message || ...)
+```
+
+Gating on `res.ok` alone would print *"Thank you. We've received your message"* for mail that was
+never delivered. That is the exact failure this form exists to prevent. If you refactor the submit
+handler, keep the body check.
+
+A hidden `botcheck` honeypot (`#f-botcheck`, `tabindex="-1"`, `aria-hidden`) sits in the form; real
+users never see or tab to it, and Web3Forms rejects submissions where it comes back checked.
+
+Instagram (`@thaara.creates`) remains the fallback on every failure path. There is still no public
+email address on the site.
 
 ---
 
@@ -191,7 +212,7 @@ artefact.
 
 ## Still open
 
-1. The form cannot send — no endpoint, no email address.
+1. No public email address on the site (the form covers contact; an address is optional).
 2. Testimonials, further projects, and About's location / founded / who-is-behind-THAARA.
 3. The canonical points at the GitHub Pages URL. Moving to a custom domain means updating it in
    `index.html` (canonical, `og:url`, `og:image`, `twitter:image`, JSON-LD), `sitemap.xml`,

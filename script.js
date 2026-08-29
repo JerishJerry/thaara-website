@@ -160,19 +160,25 @@
 
   /* ---------- 4. Enquiry form ----------
 
-     ENQUIRY_ENDPOINT is the single switch that makes this form send.
+     Wired to Web3Forms. Submissions are emailed to the address registered
+     against the access key below.
 
+     ENQUIRY_ENDPOINT is the switch:
+       "https://..." -> the form POSTs JSON and reports the real outcome.
        ""            -> nothing is sent. The form validates, then says
                         plainly that it is not connected and hands off to
                         Instagram. It never shows a success message.
-       "https://..." -> the form POSTs JSON there and reports the real
-                        outcome: success only on a successful response,
-                        failure otherwise.
 
-     Leave it empty until a real inbox exists. A form that claims to have
-     sent an enquiry it silently dropped is worse than no form. */
+     Clearing the endpoint is the safe way to take the form offline; the
+     honest not-connected path is still there and still works.
 
-  var ENQUIRY_ENDPOINT = "";
+     The access key is public by design — Web3Forms documents it as such.
+     It ships in this file and is visible in the page source. It only routes
+     mail to the pre-registered address; it grants no account access. */
+
+  var ENQUIRY_ENDPOINT = "https://api.web3forms.com/submit";
+  var WEB3FORMS_ACCESS_KEY = "f1a9544f-22f1-4181-85e4-049bb0b9c55b";
+  var ENQUIRY_SUBJECT = "New enquiry from thaara.creates";
 
   var form = document.getElementById("enquiryForm");
 
@@ -297,10 +303,12 @@
         var el = document.getElementById(id);
         return el ? el.value.trim() : "";
       };
+      var honeypot = document.getElementById("f-botcheck");
       return {
         name: get("f-name"),
         email: get("f-email"),
-        message: get("f-details")
+        message: get("f-details"),
+        botcheck: honeypot ? honeypot.checked : false
       };
     };
 
@@ -339,16 +347,47 @@
 
       setBusy(true);
 
+      /* Web3Forms payload. `access_key` is required; `subject`, `from_name`,
+         `replyto` and `botcheck` are its reserved fields. replyto is set to
+         the visitor's address so hitting Reply goes to them, not to the
+         form. botcheck is the honeypot: real people leave it unchecked. */
+      var payload = {
+        access_key: WEB3FORMS_ACCESS_KEY,
+        subject: ENQUIRY_SUBJECT,
+        from_name: data.name || "THAARA website",
+        replyto: data.email,
+        name: data.name,
+        email: data.email,
+        message: data.message,
+        botcheck: data.botcheck
+      };
+
       window.fetch(ENQUIRY_ENDPOINT, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data)
+        headers: { "Content-Type": "application/json", "Accept": "application/json" },
+        body: JSON.stringify(payload)
       }).then(function (res) {
-        if (!res.ok) { throw new Error("Server responded " + res.status); }
-        setBusy(false);
-        form.reset();
-        successBox.hidden = false;
-        successBox.scrollIntoView({ block: "nearest" });
+        /* Do NOT treat HTTP 200 as success. Web3Forms answers 200 with
+           { success: false } when it rejects a submission — wrong key, spam
+           block, quota. Gating on res.ok alone would show "Thank you" for a
+           message that was never delivered, which is the exact failure this
+           form is built to avoid. Read the body and trust only success:true. */
+        return res.text().then(function (raw) {
+          var body = null;
+          try { body = JSON.parse(raw); } catch (err) { /* not JSON */ }
+
+          if (!body || typeof body.success === "undefined") {
+            throw new Error("Unexpected response from the form service (HTTP " + res.status + ")");
+          }
+          if (body.success !== true) {
+            throw new Error(body.message || "The form service rejected the message");
+          }
+
+          setBusy(false);
+          form.reset();
+          successBox.hidden = false;
+          successBox.scrollIntoView({ block: "nearest" });
+        });
       }).catch(function (err) {
         setBusy(false);
         if (failureText) {
