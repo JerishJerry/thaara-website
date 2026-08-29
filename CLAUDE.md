@@ -90,12 +90,16 @@ awards, statistics, project results, founder details, years of experience, locat
 When information is missing, mark it visibly instead:
 
 ```html
-<span class="needs-input">Email address — need user input</span>
+<span class="needs-input">Testimonials &amp; client permissions — need user input</span>
 ```
 
-There are currently **7 `needs-input` markers plus one `[CLIENT TESTIMONIAL NEEDED]` block**, all
+There are currently **5 `needs-input` markers plus one `[CLIENT TESTIMONIAL NEEDED]` block**
 publicly visible. That is intentional — honesty over a falsely finished page. Do not quietly fill
 them with plausible copy.
+
+A sixth marker — Work's "More work, once it is supplied" empty state — is **commented out** in
+`index.html`, hidden on request. Note that `grep` still counts its markup, so the source shows six;
+only five render. Uncomment the block to restore it when further projects are supplied.
 
 Everything currently on the page traces to something real: the studio's own words, or the one
 project asset. The wedding date (23 August 2026) and the phrase "an interactive wedding invitation,
@@ -177,8 +181,11 @@ handler, keep the body check.
 A hidden `botcheck` honeypot (`#f-botcheck`, `tabindex="-1"`, `aria-hidden`) sits in the form; real
 users never see or tab to it, and Web3Forms rejects submissions where it comes back checked.
 
-Instagram (`@thaara.creates`) remains the fallback on every failure path. There is still no public
-email address on the site.
+Two verified contact routes also exist and are shown on the page: **`hello.thaaracreates@gmail.com`**
+and Instagram (**`@thaara.creates`**). Both are offered as the fallback on every failure path.
+
+The mailbox is *not* an endpoint. `ENQUIRY_ENDPOINT` is a `fetch()` target and a mailbox cannot
+accept a POST — Web3Forms is what forwards to that address.
 
 ---
 
@@ -212,7 +219,7 @@ artefact.
 
 ## Still open
 
-1. No public email address on the site (the form covers contact; an address is optional).
+1. Inbox delivery from the live domain is unconfirmed — tested from localhost only.
 2. Testimonials, further projects, and About's location / founded / who-is-behind-THAARA.
 3. The canonical points at the GitHub Pages URL. Moving to a custom domain means updating it in
    `index.html` (canonical, `og:url`, `og:image`, `twitter:image`, JSON-LD), `sitemap.xml`,

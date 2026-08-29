@@ -1118,6 +1118,21 @@ body.menu-open{ overflow: hidden; }
   border-top: 1px solid var(--line);
 }
 .contact-direct .meta{ margin-bottom: var(--sp-3); }
+
+/* Both direct routes stack on one left edge. justify-items:start keeps each
+   rule underline the width of its own text rather than the column. */
+.contact-routes{ display: grid; justify-items: start; gap: var(--sp-2); }
+
+/* An address is a literal string people read and retype, so it keeps its own
+   case instead of the component's tracked uppercase. overflow-wrap is the
+   guard: the address is one unbreakable word and browsers do not break at
+   "." or "@", so without it a narrow column would overflow horizontally. */
+.link-rule--mail{
+  text-transform: none;
+  letter-spacing: .02em;
+  overflow-wrap: anywhere;
+}
+
 .contact-caveat{
   margin-top: var(--sp-5);
   font-size: var(--fs-sm);
@@ -1348,7 +1363,9 @@ body.menu-open{ overflow: hidden; }
 }
 
 .footer-reach{ display: grid; gap: var(--sp-3); align-content: start; }
-.footer-ig{
+.footer-mail{ overflow-wrap: anywhere; }
+.footer-ig,
+.footer-mail{
   display: inline-flex;
   align-items: center;
   gap: var(--sp-2);
@@ -1358,7 +1375,8 @@ body.menu-open{ overflow: hidden; }
   transition: color var(--dur) var(--ease);
 }
 .footer-ig i{ font-style: normal; transition: transform var(--dur) var(--ease); }
-.footer-ig:hover{ color: var(--gold-lift); }
+.footer-ig:hover,
+.footer-mail:hover{ color: var(--gold-lift); }
 .footer-ig:hover i{ transform: translate(2px,-2px); }
 
 .footer-brand{ display: grid; gap: var(--sp-5); justify-items: start; }

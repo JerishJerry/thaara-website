@@ -72,6 +72,7 @@
         "logo": "https://jerishjerry.github.io/thaara-website/logo.png",
         "image": "https://jerishjerry.github.io/thaara-website/og-image.jpg",
         "description": "A creative studio making interactive wedding invitations and event websites, alongside brand identity, digital design and motion.",
+        "email": "hello.thaaracreates@gmail.com",
         "sameAs": ["https://www.instagram.com/thaara.creates"],
         "hasOfferCatalog": {
           "@type": "OfferCatalog",
@@ -267,14 +268,21 @@
           </div>
         </article>
 
-        <!-- Honest empty state. No invented projects. -->
+        <!-- Honest empty state, hidden on request (Phase 6, 2026-08-26).
+             Kept in place rather than deleted: it is the marker for the
+             work THAARA has not published yet, and goes straight back by
+             removing this comment wrapper. Commented out rather than
+             [hidden] or display:none so it costs nothing to render and
+             leaves nothing in the accessibility tree.
+
         <div class="project reveal">
           <div class="slot">
             <h3>More work, once it is supplied</h3>
-            <p>THAARA has one project in the repository. Additional projects — including anything currently living only on Instagram — can be added here as feature, split or full-width presentations.</p>
-            <div class="needs-input">Further projects &amp; assets — need user input</div>
+            <p>THAARA has one project in the repository. Additional projects &mdash; including anything currently living only on Instagram &mdash; can be added here as feature, split or full-width presentations.</p>
+            <div class="needs-input">Further projects &amp; assets &mdash; need user input</div>
           </div>
         </div>
+        -->
 
         <!-- No live project destination exists, so the honest next step
              from Work is to start a conversation, not a fake "view project". -->
@@ -537,8 +545,11 @@
 
             <div class="contact-direct">
               <p class="meta">Or reach us directly</p>
-              <a class="link-rule" href="https://www.instagram.com/thaara.creates" target="_blank" rel="noopener noreferrer">Instagram &mdash; @thaara.creates <i aria-hidden="true">↗</i></a>
-              <p class="contact-caveat">Prefer a message? The form sends straight to us.</p>
+              <div class="contact-routes">
+                <a class="link-rule link-rule--mail" href="mailto:hello.thaaracreates@gmail.com">hello.thaaracreates@gmail.com</a>
+                <a class="link-rule" href="https://www.instagram.com/thaara.creates" target="_blank" rel="noopener noreferrer">Instagram &mdash; @thaara.creates <i aria-hidden="true">↗</i></a>
+              </div>
+              <p class="contact-caveat">The form reaches us too &mdash; use whichever you prefer.</p>
             </div>
           </div>
 
@@ -556,7 +567,7 @@
             <noscript>
               <div class="form-alert form-alert--notice">
                 <p class="form-alert-title">This form needs JavaScript</p>
-                <p>It can&rsquo;t be submitted with JavaScript turned off. Please message us on Instagram instead &mdash; <a href="https://www.instagram.com/thaara.creates" target="_blank" rel="noopener noreferrer">@thaara.creates</a>.</p>
+                <p>It can&rsquo;t be submitted with JavaScript turned off. Please email <a href="mailto:hello.thaaracreates@gmail.com">hello.thaaracreates@gmail.com</a>, or message us on Instagram &mdash; <a href="https://www.instagram.com/thaara.creates" target="_blank" rel="noopener noreferrer">@thaara.creates</a>.</p>
               </div>
             </noscript>
 
@@ -611,11 +622,12 @@
                  submission actually succeeded. -->
             <div class="form-alert form-alert--notice" id="formNotConnected" role="alert" hidden>
               <p class="form-alert-title">This form isn&rsquo;t connected yet</p>
-              <p>Nothing was sent — there&rsquo;s no enquiry inbox wired up to it, and saying otherwise would be a lie. Your message is still in the field above.</p>
+              <p>Nothing was sent — there&rsquo;s no enquiry inbox wired up to it, and saying otherwise would be a lie. Your message is still in the field above: copy it and send it to us directly.</p>
               <div class="form-alert-actions">
                 <button class="btn btn--secondary" type="button" id="copyMessage">
                   <span class="btn-label">Copy my message</span>
                 </button>
+                <a class="btn btn--secondary" href="mailto:hello.thaaracreates@gmail.com">Email us</a>
                 <a class="btn btn--secondary" href="https://www.instagram.com/thaara.creates" target="_blank" rel="noopener noreferrer">Send via Instagram <i class="arrow" aria-hidden="true">↗</i></a>
               </div>
             </div>
@@ -627,8 +639,9 @@
 
             <div class="form-alert form-alert--error" id="formFailure" role="alert" hidden>
               <p class="form-alert-title">That didn&rsquo;t go through</p>
-              <p id="formFailureReason">Something went wrong sending your message. Please try again, or reach us on Instagram.</p>
+              <p id="formFailureReason">Something went wrong sending your message. Please try again, or reach us by email or Instagram.</p>
               <div class="form-alert-actions">
+                <a class="btn btn--secondary" href="mailto:hello.thaaracreates@gmail.com">Email us</a>
                 <a class="btn btn--secondary" href="https://www.instagram.com/thaara.creates" target="_blank" rel="noopener noreferrer">Send via Instagram <i class="arrow" aria-hidden="true">↗</i></a>
               </div>
             </div>
@@ -675,6 +688,7 @@
 
         <div class="footer-reach">
           <p class="meta">Get in touch</p>
+          <a class="footer-mail" href="mailto:hello.thaaracreates@gmail.com">hello.thaaracreates@gmail.com</a>
           <a class="footer-ig" href="https://www.instagram.com/thaara.creates" target="_blank" rel="noopener noreferrer">@thaara.creates <i aria-hidden="true">↗</i></a>
         </div>
       </div>

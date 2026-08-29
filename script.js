@@ -166,11 +166,16 @@
      ENQUIRY_ENDPOINT is the switch:
        "https://..." -> the form POSTs JSON and reports the real outcome.
        ""            -> nothing is sent. The form validates, then says
-                        plainly that it is not connected and hands off to
-                        Instagram. It never shows a success message.
+                        plainly that it is not connected and hands the
+                        visitor to email or Instagram. It never shows a
+                        success message.
 
      Clearing the endpoint is the safe way to take the form offline; the
      honest not-connected path is still there and still works.
+
+     This must stay a fetch() target. A mailbox cannot accept a POST, so
+     putting hello.thaaracreates@gmail.com here would break every
+     submission — Web3Forms is what forwards to that address.
 
      The access key is public by design — Web3Forms documents it as such.
      It ships in this file and is visible in the page source. It only routes
@@ -393,7 +398,7 @@
         if (failureText) {
           failureText.textContent =
             "Your message could not be sent (" + err.message +
-            "). Please try again, or reach us on Instagram.";
+            "). Please try again, or reach us by email or Instagram.";
         }
         failureBox.hidden = false;
         failureBox.scrollIntoView({ block: "nearest" });
