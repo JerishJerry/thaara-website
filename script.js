@@ -116,9 +116,23 @@
      The .reveal hidden state lives behind `.js` in CSS, so if this
      script never runs the content is visible rather than blank. */
 
-  var revealEls = Array.prototype.slice.call(document.querySelectorAll(".reveal"));
+  /* The hero runs on its own clock (see "Hero overture" in styles.css),
+     so it is held out of the observer's list entirely. */
+  var revealEls = Array.prototype.slice.call(document.querySelectorAll(".reveal"))
+    .filter(function (el) { return !el.closest(".hero"); });
+
+  var startOverture = function () {
+    document.documentElement.classList.add("hero-ready");
+  };
+
+  // A timeout, not requestAnimationFrame: rAF never runs in a tab that
+  // is not being composited, which would leave the hero at opacity 0.
+  // Under reduced motion the class is set at once — the media query has
+  // already flattened the transitions, so this only sets the end state.
+  if (reduceMotion) { startOverture(); } else { window.setTimeout(startOverture, 60); }
 
   var showAll = function () {
+    startOverture();
     revealEls.forEach(function (el) { el.classList.add("in-view"); });
   };
 

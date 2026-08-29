@@ -39,6 +39,75 @@ Known-open items carried in, not defects to re-report:
 
 ---
 
+## 2026-08-29 — Hero entrance given its own authored overture · Polish
+
+**Issue**
+Owner asked for animation on the opening of the page. The hero already animated — every element
+carried `.reveal` with a 4-step, 90 ms stagger — but it was revealed by the same
+`IntersectionObserver` that serves the rest of the page, so its timing was incidental rather than
+composed, and the two hairlines and the gold italic had no beat of their own.
+
+**Change**
+Three coordinated changes, kept to one moving idea rather than more animation:
+
+- **Hero runs on its own clock.** New `.hero-ready` class on `<html>`, released by `script.js`
+  60 ms after it runs. Hero `.reveal` elements are filtered out of the observer's list entirely
+  (`.filter(el => !el.closest(".hero"))`), so the sequence is authored, not dependent on when the
+  observer decides to fire. New `--dur-hero: .9s` and `--stagger: .12s` tokens; hero-scoped
+  `data-delay` rules compute their delay as `calc(var(--stagger) * n)`. Beats now run
+  0 / .12 / .24 / .36 / .48 / .60 s.
+- **"made personal." arrives on its own beat** (beat 3, .36 s). **Opacity only, deliberately** —
+  transforming an inline `<em>` needs `display: inline-block`, which would make the phrase
+  unbreakable and overflow the `h1` at 320 px.
+- **The two hairlines draw rather than fade.** `.hero-eyebrow .rule` runs `scaleX(0→1)` from
+  `transform-origin: left`; `.hero-cue .line` runs `scaleY(0→1)` from `top`. Both are flex children,
+  so they are blockified and transformable.
+
+Markup change was two attributes: `.btn-row` 3→4 and `.hero-cue` 4→5, freeing beat 3 for the `<em>`.
+
+**Files**
+`styles.css` (motion tokens, hero overture block, reduced-motion additions), `script.js`
+(observer filter + `startOverture`), `index.html` (two `data-delay` values)
+
+**Reason**
+Owner-directed. Checked against the `ui-ux-pro-max` dataset first, which changed the design:
+`excessive-motion` ("animate 1–2 key elements per view max", High) ruled out giving the `<em>` a
+translate of its own, so it is opacity-only and the only genuinely new moving parts are the two
+hairlines. `duration-timing` (Medium) is why `--dur-hero` is a separate token rather than reusing
+`--dur-slow`, which is doing scroll-reveal duty below the fold. `easing` confirmed the existing
+`--ease-out` deceleration curve was already correct for an entrance.
+
+Two defensive choices worth keeping: the overture is released by `setTimeout`, **not**
+`requestAnimationFrame`, because rAF never runs in a tab that is not being composited and the hero
+would be stranded at `opacity: 0` (`THAARA_REBUILD.md` §50.4); and the reduced-motion block now
+carries the hero's start states explicitly, so the hero never depends on JavaScript having released
+`.hero-ready`. `showAll()` also calls `startOverture()` as a safety net.
+
+**Verified**
+Served on a cold port (4188) — all assets returned fresh `200`s, no `304` staleness.
+
+- All 15 hero transitions reported `playState: "running"` via `getAnimations()`, at exactly the
+  intended delays (0 / 120 / 240 / 360 / 480 / 600 ms), all 900 ms on `cubic-bezier(.16,1,.3,1)`.
+  The `<em>` reports an opacity entry and **no transform entry**, confirming the wrapping risk is
+  avoided.
+- Start state confirmed with transitions suppressed: `em` opacity 0, `.btn-row` opacity 0,
+  `.rule` `scaleX(0)`, `.line` `scaleY(0)`. End state with `.hero-ready`: all 1.
+- Observer path intact — all 26 non-hero reveals still receive `.in-view` on scroll.
+- Reduced-motion rules parse and win on order: `.js .hero h1 em{opacity:1}`,
+  `.rule{scaleX(1)}`, `.line{scaleY(1)}`, all `transition: none`.
+- No horizontal overflow at 320 px or 1920 px. At 320 px the `<em>` stays `display: inline` and does
+  not overrun the `h1`.
+- Shared left edge intact — logo, eyebrow rule, `h1`, lead, button row, cue line and the Work
+  section all measured at exactly 123 px, spread 0.
+- 0 console errors, 0 failed requests.
+
+Not verified: the running animation was never observed painting. The Browser pane was hidden for the
+whole session, and transitions freeze at their start value in a non-compositing tab
+(`THAARA_REBUILD.md` §50.4) — the first screenshot caught exactly that. Timing, start state, end
+state and easing are confirmed programmatically, but nobody has watched it play.
+
+---
+
 ## 2026-08-29 — Social Proof section hidden · Important
 
 **Issue**

@@ -96,6 +96,8 @@
   --dur-fast: .25s;
   --dur:      .4s;
   --dur-slow: .8s;
+  --dur-hero: .9s;    /* the above-the-fold overture, slower than a scroll reveal */
+  --stagger:  .12s;   /* one beat of the hero sequence */
 
   /* Fixed header height, referenced by anchor scroll offset. */
   --nav-h: 84px;
@@ -405,9 +407,53 @@ h1 em, h2 em, h3 em{
 .js .reveal[data-delay="3"]{ transition-delay: .27s; }
 .js .reveal[data-delay="4"]{ transition-delay: .36s; }
 
+/* ---- Hero overture ----
+   The hero is above the fold, so it never needed an observer. It runs
+   on a clock of its own, released by `.hero-ready` on <html>, which
+   makes the timing authored rather than dependent on whenever
+   IntersectionObserver decides to fire. */
+.js .hero .reveal{ transition-duration: var(--dur-hero); }
+.js.hero-ready .hero .reveal{ opacity: 1; transform: none; }
+
+.js .hero .reveal[data-delay="1"]{ transition-delay: calc(var(--stagger) * 1); }
+.js .hero .reveal[data-delay="2"]{ transition-delay: calc(var(--stagger) * 2); }
+.js .hero .reveal[data-delay="4"]{ transition-delay: calc(var(--stagger) * 4); }
+.js .hero .reveal[data-delay="5"]{ transition-delay: calc(var(--stagger) * 5); }
+
+/* Beat 3 - the gold italic arrives after the rest of the headline.
+   Opacity only, deliberately: `display: inline-block` would be needed
+   to transform an inline <em>, and that would make "made personal."
+   unbreakable and overflow the h1 at 320px. */
+.js .hero h1 em{
+  opacity: 0;
+  transition: opacity var(--dur-hero) var(--ease-out) calc(var(--stagger) * 3);
+}
+.js.hero-ready .hero h1 em{ opacity: 1; }
+
+/* Beats 0 and 5 - the two hairlines draw rather than fade.
+   Both are flex children, so they are blockified and transformable. */
+.js .hero-eyebrow .rule{
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform var(--dur-hero) var(--ease-out);
+}
+.js.hero-ready .hero-eyebrow .rule{ transform: scaleX(1); }
+
+.js .hero-cue .line{
+  transform: scaleY(0);
+  transform-origin: top center;
+  transition: transform var(--dur-hero) var(--ease-out) calc(var(--stagger) * 5);
+}
+.js.hero-ready .hero-cue .line{ transform: scaleY(1); }
+
 @media (prefers-reduced-motion: reduce){
   html{ scroll-behavior: auto; }
   .js .reveal{ opacity: 1; transform: none; transition: none; }
+  /* The hero overture's start states, neutralised here too so the hero
+     never depends on JavaScript having released `.hero-ready`. */
+  .js .hero h1 em{ opacity: 1; transition: none; }
+  .js .hero-eyebrow .rule{ transform: scaleX(1); transition: none; }
+  .js .hero-cue .line{ transform: scaleY(1); transition: none; }
   *, *::before, *::after{
     animation-duration: .01ms !important;
     animation-iteration-count: 1 !important;
