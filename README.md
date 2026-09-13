@@ -51,7 +51,7 @@ works fine.
 
 ## Tech notes
 
-- **Fonts:** Cormorant Garamond (display) + Manrope (text), via Google Fonts.
+- **Fonts:** EB Garamond (display) + Source Sans 3 (text), via Google Fonts.
 - **Design tokens:** CSS custom properties at the top of `styles.css` — colour, a 10-step fluid
   type scale, an 11-step spacing scale, layout widths and motion timings. Every size in the build
   resolves to a token.

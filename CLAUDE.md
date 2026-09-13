@@ -120,7 +120,7 @@ Every size, colour, space and duration resolves to a token defined at the top of
 reconsider, not to hard-code one.
 
 - Palette: warm near-black in four steps, one gold accent, one hairline. `--on-gold` for text on gold.
-- Type: Cormorant Garamond (display) + Manrope (text), 10-step fluid scale.
+- Type: EB Garamond (display) + Source Sans 3 (text), 10-step fluid scale.
 - Motion: transform/opacity only. No parallax, no cursor effects, no glassmorphism, no gradients
   beyond the existing accents.
 - Every element on the page shares **one left edge**. If you change a logo or container width,

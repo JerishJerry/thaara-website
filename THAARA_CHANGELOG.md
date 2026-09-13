@@ -14,6 +14,40 @@ typography, animation timing, minor visual detail).
 
 ---
 
+## 2026-09-13 — Type pairing swapped to EB Garamond + Source Sans 3 · Important
+
+**Issue**
+Owner felt the type looked AI-made and asked for a normal font, choosing EB Garamond +
+Source Sans 3 (option 1 of 3 offered) for a classic wedding feel, applied to both headings
+and body.
+
+**Change**
+- `index.html` + `404.html`: Google Fonts request swapped from
+  `Cormorant Garamond + Manrope` to `EB Garamond (400..800 + italics) + Source Sans 3
+  (200..900 + italics)`, `display=swap` and preconnects untouched.
+- `styles.css`: `--serif` → `"EB Garamond"`, `--sans` → `"Source Sans 3"`. No scale,
+  spacing, colour, or weight changes — both new families cover the existing 400/500/600/700
+  usage, so no synthesized weights.
+- `CLAUDE.md`, `README.md`: font-pairing lines updated to match. `THAARA_REBUILD.md`
+  left as historical record.
+
+**Files**
+`index.html`, `404.html`, `styles.css`, `CLAUDE.md`, `README.md`
+
+**Reason**
+Owner-directed; smallest fix for the AI look is the typeface itself. Cormorant's thin
+high-contrast fashion serif + gold italic is the AI-luxury signal; EB Garamond reads as
+real print. Variable ranges keep request = usage.
+
+**Verified**
+Google Fonts CSS for the new request returns both families (400..800 / 200..900).
+No `Cormorant`/`Manrope` remains in `index.html`, `404.html`, `styles.css`, `script.js`.
+`node --check script.js` passes, CSS braces balanced (303/303), `/`, `/styles.css`,
+`/404.html` all serve HTTP 200 locally. Not verified: rendered visual QA at 320/1920px —
+owner to confirm the new look.
+
+---
+
 ## Baseline — 2026-08-26
 
 Phase 6 review opened against commit `4cd037b`, deployed and live at
