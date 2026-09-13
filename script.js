@@ -451,7 +451,47 @@
     }
   }
 
-  /* ---------- 5. Footer year ---------- */
+  /* ---------- 5. Sticky mobile CTA & hero dust pause ----------
+     The bar shows once the hero (and its CTAs) scrolls away, and hides
+     while the contact section is on screen. Dust animations freeze while
+     the hero is off-screen (battery saver). Both default to the no-JS
+     state — bar hidden, dust running — so a missing observer changes
+     nothing (same philosophy as the reveal safety net). */
+
+  var stickyCta = document.getElementById("stickyCta");
+  var heroSec = document.querySelector(".hero");
+  var contactSec = document.getElementById("contact");
+
+  if (stickyCta && heroSec && contactSec && ("IntersectionObserver" in window)) {
+    var pastHero = false;
+    var atContact = false;
+
+    var renderSticky = function () {
+      if (pastHero && !atContact) {
+        stickyCta.classList.add("is-visible");
+      } else {
+        stickyCta.classList.remove("is-visible");
+      }
+    };
+
+    var pageIO = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.target === heroSec) {
+          pastHero = !entry.isIntersecting;
+          // Freeze the petals while nobody can see them.
+          document.documentElement.classList.toggle("dust-paused", pastHero);
+        } else {
+          atContact = entry.isIntersecting;
+        }
+        renderSticky();
+      });
+    }, { threshold: 0 });
+
+    pageIO.observe(heroSec);
+    pageIO.observe(contactSec);
+  }
+
+  /* ---------- 6. Footer year ---------- */
 
   var year = document.getElementById("year");
   if (year) { year.textContent = String(new Date().getFullYear()); }

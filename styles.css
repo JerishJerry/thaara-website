@@ -436,6 +436,7 @@ h1 em, h2 em, h3 em{
      never depends on JavaScript having released `.hero-ready`. */
   .js .hero h1 em{ opacity: 1; transition: none; }
   .dust{ display: none; }
+  .scroll-hint{ display: none; }
   *, *::before, *::after{
     animation-duration: .01ms !important;
     animation-iteration-count: 1 !important;
@@ -628,6 +629,48 @@ body.menu-open{ overflow: hidden; }
 
 @media (min-width: 901px){ .mobile-menu{ display: none; } }
 
+/* ---- Sticky mobile enquiry bar ----
+   Phones only: a persistent path to the form once the hero (and its CTAs)
+   scrolls away. Hidden while the contact section is on screen, so it never
+   covers the form or footer. visibility:hidden keeps it out of the tab
+   order while hidden, mirroring the mobile-menu pattern. */
+.sticky-cta{
+  position: fixed;
+  left: var(--sp-4);
+  right: var(--sp-4);
+  bottom: calc(var(--sp-4) + env(safe-area-inset-bottom, 0px));
+  z-index: 90;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-3);
+  min-height: 52px;
+  border-radius: var(--radius-pill);
+  background: var(--gold);
+  color: var(--on-gold);
+  font-family: var(--sans);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  transform: translateY(140%);
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    transform    var(--dur) var(--ease),
+    visibility   var(--dur) step-end;
+}
+.sticky-cta .arrow{ font-style: normal; }
+.sticky-cta.is-visible{
+  transform: none;
+  visibility: visible;
+  pointer-events: auto;
+  transition:
+    transform    var(--dur) var(--ease),
+    visibility   0s step-start;
+}
+@media (max-width: 700px){ .sticky-cta{ display: inline-flex; } }
+
 
 /* ============================================================
    08  HERO
@@ -658,6 +701,51 @@ body.menu-open{ overflow: hidden; }
 .hero h1{ margin-bottom: var(--sp-6); max-width: 15ch; margin-inline: auto; }
 .hero .lead{ max-width: 46ch; margin-bottom: clamp(var(--sp-7), 4vw, var(--sp-8)); margin-inline: auto; }
 .hero .btn-row{ justify-content: center; }
+
+/* Capability strip: the four real services in one quiet centred line. */
+.hero-caps{
+  margin: var(--sp-6) 0 0;
+  font-size: var(--fs-3xs);
+  font-weight: 600;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+/* Enquiry bridge: one centred line from the hero straight to the form. */
+.hero-bridge{
+  margin: var(--sp-4) 0 0;
+  display: flex;
+  justify-content: center;
+}
+
+/* Passive scroll hint: a hairline at hero bottom-centre that draws and
+   fades on a slow loop. Decorative only (aria-hidden in markup). */
+.scroll-hint{
+  position: absolute;
+  left: 50%;
+  bottom: var(--sp-6);
+  width: 1px;
+  height: 44px;
+  overflow: hidden;
+  pointer-events: none;
+  transform: translateX(-50%);
+}
+.scroll-hint span{
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(var(--gold-soft), transparent);
+  transform-origin: top center;
+  animation: hint-pulse 2.6s var(--ease) infinite;
+}
+@keyframes hint-pulse{
+  0%{ transform: scaleY(0); opacity: 1; }
+  45%{ transform: scaleY(1); opacity: 1; }
+  100%{ transform: scaleY(1); opacity: 0; }
+}
+/* Never crowd the buttons on short screens. */
+@media (max-height: 700px){ .scroll-hint{ display: none; } }
 
 /* Welcome stack above the headline: the studio welcome in serif display,
    with the positioning line as a micro label beneath. */
@@ -755,6 +843,12 @@ body.menu-open{ overflow: hidden; }
 .dust span:nth-child(48){ left: 76%; --sway: -28px; --rot: 100deg; --s: 1.2;  animation-duration: 19s; animation-delay: -8s; }
 .dust span:nth-child(49){ left: 86%; --sway: 18px; --rot: 42deg;  --s: .85;  animation-duration: 11s; animation-delay: -1s; }
 .dust span:nth-child(50){ left: 98%; --sway: -24px; --rot: 138deg; --s: 1.05; animation-duration: 14s; animation-delay: -9s; }
+/* Depth cueing: far specks shrink, near specks grow. Placed after the track
+   rules so these win ties at equal specificity; small reads far, large near. */
+.dust span:nth-child(7n+1){ --s: .6; }
+.dust span:nth-child(7n+4){ --s: .7; }
+.dust span:nth-child(5n+2){ --s: 1.4; }
+.dust span:nth-child(5n){ --s: 1.3; }
 @keyframes dust-fall{
   0%{ opacity: 0; transform: translate3d(0, -2vh, 0) rotate(var(--rot, 20deg)) scale(var(--s, 1)); }
   12%{ opacity: .85; }
@@ -768,6 +862,10 @@ body.menu-open{ overflow: hidden; }
   .dust span:nth-child(5n+3),
   .dust span:nth-child(5n){ display: none; }
 }
+
+/* Frozen by script while the hero is off-screen (battery saver). Animations
+   run unless this class is set, so no-observer environments behave as today. */
+.dust-paused .dust span{ animation-play-state: paused; }
 
 
 /* ============================================================

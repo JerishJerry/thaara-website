@@ -14,6 +14,124 @@ typography, animation timing, minor visual detail).
 
 ---
 
+## 2026-09-13 — Sticky mobile enquiry bar · Important
+
+**Issue**
+On phones (the Instagram traffic), once the hero scrolls away there is no
+persistent path to the form until the closing section.
+
+**Change**
+- `index.html`: one `#stickyCta` anchor (`Start a project` → `#contact`)
+  after the footer. Phones only via CSS.
+- `styles.css`: fixed bottom bar (52px target, pill, gold, safe-area aware),
+  slide-up reveal; `visibility: hidden` while hidden keeps it out of the tab
+  order, mirroring the mobile-menu pattern.
+- `script.js`: one `IntersectionObserver` on hero + contact — shows past the
+  hero, hides at the contact section so it never covers the form or footer.
+  No-JS / no-observer state is hidden, changing nothing.
+
+**Files**
+`index.html`, `styles.css`, `script.js`
+
+**Reason**
+Owner-approved conversion lever for the enquiry goal (flagged openly as
+slightly less editorial). Smallest persistent-CTA form that respects the
+form, footer, and tab order.
+
+**Verified**
+`node --check script.js` passes; hooks counted in all three files; `/`
+serves HTTP 200 on a fresh port (4201). Not verified: show/hide behaviour
+and safe-area clearance on a real phone — owner to confirm.
+
+---
+
+## 2026-09-13 — Dust pauses off-screen + petal depth · Polish
+
+**Issue**
+50 perpetual animations ran even with the hero off-screen (phone battery),
+and all petals rendered at near-identical sharpness (one flat layer).
+
+**Change**
+- `script.js`: the page observer toggles `dust-paused` on `<html>` while the
+  hero is out of view; `styles.css` freezes the spans via
+  `animation-play-state: paused`. Runs-by-default design, so background tabs
+  and missing observers behave exactly as before; reduced-motion already
+  hides dust entirely.
+- `styles.css`: four group overrides after the track rules (equal
+  specificity, later wins) — every 7th span shrinks (.6/.7, far), every 5th
+  grows (1.3/1.4, near). No keyframe or markup changes.
+
+**Files**
+`styles.css`, `script.js`
+
+**Reason**
+Free battery saving plus a near/far illusion without `filter` blur, which
+would cost the compositor budget the motion rules protect.
+
+**Verified**
+`node --check script.js` passes, CSS braces balanced (366/366). Not verified:
+paused/running flip observed live — owner to confirm on scroll.
+
+---
+
+## 2026-09-13 — Passive scroll hint in the hero · Polish
+
+**Issue**
+With the full-page hero and the cue deleted, nothing hints that Work sits
+below except the secondary button.
+
+**Change**
+- `index.html`: one `aria-hidden` `.scroll-hint` hairline pinned to hero
+  bottom-centre. `styles.css`: a slow `scaleY` draw-and-fade loop
+  (`hint-pulse`, transform/opacity only), hidden on short viewports
+  (never crowds buttons) and under `prefers-reduced-motion`. Deliberately
+  textless — distinct from the deleted cue, not a resurrection of it.
+
+**Files**
+`index.html`, `styles.css`
+
+**Reason**
+Smallest scroll-affordance restoration that respects the deletion decision.
+
+**Verified**
+CSS braces balanced, `/` serves HTTP 200 on a fresh port (4201). Not
+verified: rendered position across viewport heights — owner to confirm.
+
+---
+
+## 2026-09-13 — Hero composition: lead, caps strip, enquiry bridge · Important
+
+**Issue**
+The hero stated a mood, not the product — a wedding couple had to read the
+small print to learn THAARA makes invitations, and nothing connected "I want
+one" to the form.
+
+**Change**
+- `index.html` lead now opens with the product: "Interactive wedding and
+  event invitations your guests enter, not just open&nbsp;- plus visual
+  identities, digital design and motion for meaningful moments." Every claim
+  traces to the four real services; hyphen style matches house punctuation.
+- `index.html`: one centred `.hero-caps` line (the four real services, zero
+  invention) sharing the buttons' reveal beat, plus one centred
+  `.hero-bridge` link ("Want one like Nivin × Dhiya's?" → `#contact`, real
+  project, real destination). `styles.css`: two small rules reusing `.meta`
+  / `.link-rule` treatments.
+- Stack order: welcome → headline → product-led sub → buttons → services →
+  bridge. No size, colour, or token changes.
+
+**Files**
+`index.html`, `styles.css`
+
+**Reason**
+Enquiry-goal conversion pass: state the offer above the fold and give desire
+a one-tap path to the form.
+
+**Verified**
+New hooks counted in both files; `/` serves HTTP 200 on a fresh port (4201).
+Line measures and wrap at 320px need the owner's eye on the preview.
+
+---
+
 ## 2026-09-13 — Header logo enlarged (88px → 96px) · Polish
 
 **Issue**
