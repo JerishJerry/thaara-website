@@ -658,18 +658,28 @@ body.menu-open{ overflow: hidden; }
 .hero .lead{ max-width: 46ch; margin-bottom: clamp(var(--sp-7), 4vw, var(--sp-8)); margin-inline: auto; }
 .hero .btn-row{ justify-content: center; }
 
-/* Small studio descriptor above the headline. */
+/* Welcome stack above the headline: short divider, the studio welcome in
+   serif display, and the positioning line as a micro label beneath. */
 .hero-eyebrow{
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: var(--sp-4);
+  gap: var(--sp-3);
   margin-bottom: var(--sp-6);
 }
 .hero-eyebrow .rule{
   width: clamp(28px, 6vw, 56px);
   height: 1px;
   background: var(--gold-soft);
+}
+.hero-eyebrow .welcome{
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: var(--fs-lg);
+  letter-spacing: 0;
+  color: var(--ink);
+  /* Keep the welcome on one line down to the narrowest screens. */
+  white-space: nowrap;
 }
 
 /* ---- Gold dust ----
@@ -678,10 +688,9 @@ body.menu-open{ overflow: hidden; }
    Decorative only — aria-hidden in markup, pointer-events none so every
    CTA stays fully clickable. Transform/opacity
    only. Colours and width resolve to tokens; the 12px height is fixed
-   petal geometry (like the --radius values). Ten choreography sets cycle
-   across the 50 spans (10n+1 … 10n); durations/delays are choreography
-   (like the existing stagger delays). Negative delays mean the field is
-   already populated on page load. */
+   petal geometry (like the --radius values). One track per span — 50 unique
+   columns, durations/delays as choreography (like the existing stagger
+   delays). Negative delays mean the field is already populated on load. */
 .dust{
   position: absolute;
   inset: 0;
@@ -699,16 +708,57 @@ body.menu-open{ overflow: hidden; }
   animation: dust-fall linear infinite;
 }
 .dust span:nth-child(even){ background: var(--gold-haze); }
-.dust span:nth-child(10n+1){ left: 2%;  --sway: 24px;  --rot: 18deg;  --s: 1;    animation-duration: 14s; animation-delay: -3s; }
-.dust span:nth-child(10n+2){ left: 12%; --sway: -28px; --rot: 65deg;  --s: 1.25; animation-duration: 17s; animation-delay: -11s; }
-.dust span:nth-child(10n+3){ left: 22%; --sway: 18px;  --rot: 120deg; --s: .8;   animation-duration: 12s; animation-delay: -7s; }
-.dust span:nth-child(10n+4){ left: 32%; --sway: -20px; --rot: 40deg;  --s: 1.1;  animation-duration: 16s; animation-delay: -1s; }
-.dust span:nth-child(10n+5){ left: 42%; --sway: 30px;  --rot: 95deg;  --s: .8;   animation-duration: 11s; animation-delay: -9s; }
-.dust span:nth-child(10n+6){ left: 53%; --sway: -26px; --rot: 150deg; --s: 1.2;  animation-duration: 18s; animation-delay: -5s; }
-.dust span:nth-child(10n+7){ left: 63%; --sway: 22px;  --rot: 75deg;  --s: 1;    animation-duration: 13s; animation-delay: -13s; }
-.dust span:nth-child(10n+8){ left: 73%; --sway: -18px; --rot: 25deg;  --s: .85;  animation-duration: 15s; animation-delay: -8s; }
-.dust span:nth-child(10n+9){ left: 84%; --sway: 28px;  --rot: 110deg; --s: 1.15; animation-duration: 12s; animation-delay: -4s; }
-.dust span:nth-child(10n){ left: 94%; --sway: -22px; --rot: 55deg;  --s: 1;    animation-duration: 19s; animation-delay: -15s; }
+/* One track per span — 50 unique columns across the hero. */
+.dust span:nth-child(1){ left: 2%;  --sway: 24px;  --rot: 18deg;  --s: 1;    animation-duration: 14s; animation-delay: -3s; }
+.dust span:nth-child(2){ left: 5%;  --sway: -28px; --rot: 65deg;  --s: 1.25; animation-duration: 17s; animation-delay: -11s; }
+.dust span:nth-child(3){ left: 8%;  --sway: 18px;  --rot: 120deg; --s: .8;   animation-duration: 12s; animation-delay: -7s; }
+.dust span:nth-child(4){ left: 11%; --sway: -20px; --rot: 40deg;  --s: 1.1;  animation-duration: 16s; animation-delay: -1s; }
+.dust span:nth-child(5){ left: 13%; --sway: 30px;  --rot: 95deg;  --s: .8;   animation-duration: 11s; animation-delay: -9s; }
+.dust span:nth-child(6){ left: 16%; --sway: -26px; --rot: 150deg; --s: 1.2;  animation-duration: 18s; animation-delay: -5s; }
+.dust span:nth-child(7){ left: 19%; --sway: 22px;  --rot: 75deg;  --s: 1;    animation-duration: 13s; animation-delay: -13s; }
+.dust span:nth-child(8){ left: 21%; --sway: -18px; --rot: 25deg;  --s: .85;  animation-duration: 15s; animation-delay: -8s; }
+.dust span:nth-child(9){ left: 24%; --sway: 28px;  --rot: 110deg; --s: 1.15; animation-duration: 12s; animation-delay: -4s; }
+.dust span:nth-child(10){ left: 27%; --sway: -22px; --rot: 55deg; --s: 1;    animation-duration: 19s; animation-delay: -15s; }
+.dust span:nth-child(11){ left: 29%; --sway: 20px; --rot: 88deg;  --s: .8;   animation-duration: 10s; animation-delay: -6s; }
+.dust span:nth-child(12){ left: 32%; --sway: -30px; --rot: 135deg; --s: 1.2;  animation-duration: 16s; animation-delay: -12s; }
+.dust span:nth-child(13){ left: 34%; --sway: 16px; --rot: 48deg;  --s: 1;    animation-duration: 14s; animation-delay: -2s; }
+.dust span:nth-child(14){ left: 37%; --sway: -24px; --rot: 102deg; --s: .85;  animation-duration: 18s; animation-delay: -10s; }
+.dust span:nth-child(15){ left: 39%; --sway: 26px; --rot: 30deg;  --s: 1.1;  animation-duration: 12s; animation-delay: -16s; }
+.dust span:nth-child(16){ left: 42%; --sway: -18px; --rot: 78deg; --s: .8;   animation-duration: 15s; animation-delay: -4s; }
+.dust span:nth-child(17){ left: 44%; --sway: 22px; --rot: 142deg; --s: 1.25; animation-duration: 11s; animation-delay: -8s; }
+.dust span:nth-child(18){ left: 47%; --sway: -28px; --rot: 58deg; --s: 1;    animation-duration: 17s; animation-delay: -14s; }
+.dust span:nth-child(19){ left: 49%; --sway: 18px; --rot: 96deg;  --s: .85;  animation-duration: 13s; animation-delay: -1s; }
+.dust span:nth-child(20){ left: 52%; --sway: -24px; --rot: 125deg; --s: 1.15; animation-duration: 19s; animation-delay: -9s; }
+.dust span:nth-child(21){ left: 54%; --sway: 26px; --rot: 38deg;  --s: .8;   animation-duration: 10s; animation-delay: -5s; }
+.dust span:nth-child(22){ left: 57%; --sway: -20px; --rot: 84deg; --s: 1.1;  animation-duration: 15s; animation-delay: -13s; }
+.dust span:nth-child(23){ left: 59%; --sway: 24px; --rot: 152deg; --s: 1;    animation-duration: 12s; animation-delay: -3s; }
+.dust span:nth-child(24){ left: 62%; --sway: -26px; --rot: 62deg; --s: 1.2;  animation-duration: 18s; animation-delay: -11s; }
+.dust span:nth-child(25){ left: 64%; --sway: 20px; --rot: 108deg; --s: .85;  animation-duration: 14s; animation-delay: -7s; }
+.dust span:nth-child(26){ left: 67%; --sway: -22px; --rot: 44deg; --s: 1;    animation-duration: 11s; animation-delay: -15s; }
+.dust span:nth-child(27){ left: 69%; --sway: 28px; --rot: 130deg; --s: 1.15; animation-duration: 16s; animation-delay: -2s; }
+.dust span:nth-child(28){ left: 72%; --sway: -18px; --rot: 72deg; --s: .8;   animation-duration: 12s; animation-delay: -10s; }
+.dust span:nth-child(29){ left: 74%; --sway: 24px; --rot: 20deg;  --s: 1.1;  animation-duration: 17s; animation-delay: -6s; }
+.dust span:nth-child(30){ left: 77%; --sway: -30px; --rot: 98deg; --s: 1.25; animation-duration: 13s; animation-delay: -12s; }
+.dust span:nth-child(31){ left: 79%; --sway: 18px; --rot: 52deg;  --s: .85;  animation-duration: 15s; animation-delay: -4s; }
+.dust span:nth-child(32){ left: 82%; --sway: -24px; --rot: 118deg; --s: 1;   animation-duration: 11s; animation-delay: -16s; }
+.dust span:nth-child(33){ left: 84%; --sway: 26px; --rot: 34deg;  --s: 1.2;  animation-duration: 19s; animation-delay: -8s; }
+.dust span:nth-child(34){ left: 87%; --sway: -20px; --rot: 90deg; --s: .8;   animation-duration: 14s; animation-delay: -1s; }
+.dust span:nth-child(35){ left: 89%; --sway: 22px; --rot: 146deg; --s: 1.1;  animation-duration: 12s; animation-delay: -9s; }
+.dust span:nth-child(36){ left: 92%; --sway: -26px; --rot: 58deg; --s: 1;    animation-duration: 18s; animation-delay: -5s; }
+.dust span:nth-child(37){ left: 94%; --sway: 20px; --rot: 104deg; --s: .9;   animation-duration: 13s; animation-delay: -13s; }
+.dust span:nth-child(38){ left: 96%; --sway: -22px; --rot: 28deg; --s: 1.15; animation-duration: 16s; animation-delay: -7s; }
+.dust span:nth-child(39){ left: 3%;  --sway: 28px; --rot: 132deg; --s: .8;   animation-duration: 10s; animation-delay: -11s; }
+.dust span:nth-child(40){ left: 9%;  --sway: -16px; --rot: 46deg; --s: 1.05; animation-duration: 15s; animation-delay: -3s; }
+.dust span:nth-child(41){ left: 15%; --sway: 24px; --rot: 92deg;  --s: 1.2;  animation-duration: 12s; animation-delay: -14s; }
+.dust span:nth-child(42){ left: 23%; --sway: -26px; --rot: 36deg; --s: .85;  animation-duration: 18s; animation-delay: -6s; }
+.dust span:nth-child(43){ left: 31%; --sway: 20px; --rot: 122deg; --s: 1;    animation-duration: 11s; animation-delay: -10s; }
+.dust span:nth-child(44){ left: 40%; --sway: -22px; --rot: 68deg; --s: 1.15; animation-duration: 17s; animation-delay: -2s; }
+.dust span:nth-child(45){ left: 48%; --sway: 26px; --rot: 14deg;  --s: .8;   animation-duration: 13s; animation-delay: -12s; }
+.dust span:nth-child(46){ left: 58%; --sway: -18px; --rot: 112deg; --s: 1.1;  animation-duration: 15s; animation-delay: -5s; }
+.dust span:nth-child(47){ left: 66%; --sway: 24px; --rot: 56deg;  --s: .9;   animation-duration: 12s; animation-delay: -16s; }
+.dust span:nth-child(48){ left: 76%; --sway: -28px; --rot: 100deg; --s: 1.2;  animation-duration: 19s; animation-delay: -8s; }
+.dust span:nth-child(49){ left: 86%; --sway: 18px; --rot: 42deg;  --s: .85;  animation-duration: 11s; animation-delay: -1s; }
+.dust span:nth-child(50){ left: 98%; --sway: -24px; --rot: 138deg; --s: 1.05; animation-duration: 14s; animation-delay: -9s; }
 @keyframes dust-fall{
   0%{ opacity: 0; transform: translate3d(0, -2vh, 0) rotate(var(--rot, 20deg)) scale(var(--s, 1)); }
   12%{ opacity: .85; }

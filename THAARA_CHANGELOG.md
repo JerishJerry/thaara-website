@@ -14,6 +14,45 @@ typography, animation timing, minor visual detail).
 
 ---
 
+## 2026-09-13 — 50 unique petal tracks + two-line welcome eyebrow · Important
+
+**Issue**
+Owner could only see ~10 petals: the 50 spans shared 10 choreography tracks
+(`10n+1` … `10n`), so five petals fell down each of 10 columns. Separately,
+owner asked for a larger company line reading "Welcome to THAARA" with the
+positioning line kept small beneath it, and for the headline + sub-text to sit
+properly below that.
+
+**Change**
+- `styles.css` (dust): replaced the 10 cycling track rules with 50 unique
+  `nth-child(1–50)` rules — own left (1–98% spread), duration (10–19s),
+  delay, sway, rotation, scale each. Same keyframe, tokens, and 8×12px
+  geometry; mobile still shows 20.
+- `index.html` (hero eyebrow): single meta line replaced with a `welcome`
+  span ("Welcome to THAARA") plus the existing `meta` span ("Creative &
+  Digital Experiences") beneath it.
+- `styles.css` (eyebrow): `.hero-eyebrow` is now a centred column — divider
+  rule on top, welcome in serif display at `--fs-lg` in ink, descriptor
+  unchanged as the micro line. Welcome kept on one line (`nowrap`; fits at
+  320px). Headline, lead, and button row were already centred with proper
+  `ch` measures and rhythm, so no further changes there.
+
+**Files**
+`index.html`, `styles.css`
+
+**Reason**
+Owner-directed: full-width festive field instead of 10 columns, and a proper
+welcome-led hero stack (welcome → headline → sub-text → buttons) matching the
+reference composition.
+
+**Verified**
+50 unique dust tracks counted in CSS, braces balanced (347/347),
+`node --check script.js` passes, `/` and `/styles.css` serve HTTP 200 on a
+fresh port (4196). Not verified: rendered paint at 320/1920px on a real
+device — owner to confirm from the preview.
+
+---
+
 ## 2026-09-13 — Hero centred; plate and scroll cue deleted · Important
 
 **Issue**
