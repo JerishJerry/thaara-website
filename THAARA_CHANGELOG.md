@@ -14,6 +14,31 @@ typography, animation timing, minor visual detail).
 
 ---
 
+## 2026-09-13 — Welcome divider line removed · Polish
+
+**Issue**
+Owner asked to remove the short divider line above "Welcome to THAARA".
+
+**Change**
+- `index.html`: deleted the `span.rule` from the hero eyebrow.
+- `styles.css`: deleted the `.hero-eyebrow .rule` rule plus its now-dead
+  overture (draw-from-centre) and reduced-motion rules. The eyebrow is now
+  just the welcome line with the descriptor beneath it; beat 0 of the
+  overture is the eyebrow reveal itself.
+
+**Files**
+`index.html`, `styles.css`
+
+**Reason**
+Owner-directed removal; smallest possible change with its dead CSS.
+
+**Verified**
+No `hero-eyebrow .rule` / `class="rule"` remains in shipping files. CSS
+braces balanced (343/343), `node --check script.js` passes, `/` serves
+HTTP 200 on a fresh port (4197).
+
+---
+
 ## 2026-09-13 — 50 unique petal tracks + two-line welcome eyebrow · Important
 
 **Issue**

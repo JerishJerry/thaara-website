@@ -429,22 +429,12 @@ h1 em, h2 em, h3 em{
 }
 .js.hero-ready .hero h1 em{ opacity: 1; }
 
-/* Beat 0 - the eyebrow hairline draws rather than fades.
-   It is a flex child, so it is blockified and transformable. */
-.js .hero-eyebrow .rule{
-  transform: scaleX(0);
-  transform-origin: center;
-  transition: transform var(--dur-hero) var(--ease-out);
-}
-.js.hero-ready .hero-eyebrow .rule{ transform: scaleX(1); }
-
 @media (prefers-reduced-motion: reduce){
   html{ scroll-behavior: auto; }
   .js .reveal{ opacity: 1; transform: none; transition: none; }
   /* The hero overture's start states, neutralised here too so the hero
      never depends on JavaScript having released `.hero-ready`. */
   .js .hero h1 em{ opacity: 1; transition: none; }
-  .js .hero-eyebrow .rule{ transform: scaleX(1); transition: none; }
   .dust{ display: none; }
   *, *::before, *::after{
     animation-duration: .01ms !important;
@@ -658,19 +648,14 @@ body.menu-open{ overflow: hidden; }
 .hero .lead{ max-width: 46ch; margin-bottom: clamp(var(--sp-7), 4vw, var(--sp-8)); margin-inline: auto; }
 .hero .btn-row{ justify-content: center; }
 
-/* Welcome stack above the headline: short divider, the studio welcome in
-   serif display, and the positioning line as a micro label beneath. */
+/* Welcome stack above the headline: the studio welcome in serif display,
+   with the positioning line as a micro label beneath. */
 .hero-eyebrow{
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: var(--sp-3);
   margin-bottom: var(--sp-6);
-}
-.hero-eyebrow .rule{
-  width: clamp(28px, 6vw, 56px);
-  height: 1px;
-  background: var(--gold-soft);
 }
 .hero-eyebrow .welcome{
   font-family: var(--serif);
