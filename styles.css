@@ -630,6 +630,12 @@ body.menu-open{ overflow: hidden; }
 
 .hero{
   position: relative;   /* positioning context for the gold-dust layer */
+  /* Full-page hero: fills one viewport so Work starts below the fold.
+     min-height (not height) lets the content grow past it on small screens.
+     Same 100svh unit as the 404 page. */
+  min-height: 100svh;
+  display: grid;
+  align-content: center;
   padding-top: calc(var(--nav-h) + clamp(var(--sp-8), 7vw, var(--sp-11)));
   padding-bottom: clamp(var(--sp-9), 7vw, var(--sp-11));
 }
@@ -747,9 +753,9 @@ body.menu-open{ overflow: hidden; }
 @keyframes dust-fall{
   0%{ opacity: 0; transform: translate3d(0, -2vh, 0) rotate(var(--rot, 20deg)) scale(var(--s, 1)); }
   12%{ opacity: .85; }
-  50%{ transform: translate3d(var(--sway, 20px), 38vh, 0) rotate(calc(var(--rot, 20deg) + 40deg)) scale(var(--s, 1)); }
+  50%{ transform: translate3d(var(--sway, 20px), 50vh, 0) rotate(calc(var(--rot, 20deg) + 40deg)) scale(var(--s, 1)); }
   88%{ opacity: .6; }
-  100%{ opacity: 0; transform: translate3d(calc(var(--sway, 20px) * -.5), 78vh, 0) rotate(calc(var(--rot, 20deg) + 90deg)) scale(var(--s, 1)); }
+  100%{ opacity: 0; transform: translate3d(calc(var(--sway, 20px) * -.5), 102vh, 0) rotate(calc(var(--rot, 20deg) + 90deg)) scale(var(--s, 1)); }
 }
 /* Fewer specks on small screens — subtler and cheaper (20 of 50). */
 @media (max-width: 699px){

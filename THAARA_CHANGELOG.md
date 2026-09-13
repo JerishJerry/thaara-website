@@ -14,6 +14,38 @@ typography, animation timing, minor visual detail).
 
 ---
 
+## 2026-09-13 — Hero enlarged to one full page · Important
+
+**Issue**
+Owner asked for the hero to fill one full page, so the Work section starts
+below the fold.
+
+**Change**
+- `styles.css`: `.hero` gains `min-height: 100svh` (same unit as the 404
+  page) with `display: grid; align-content: center`, so the centred copy
+  sits in the middle of the viewport. `min-height` — not `height` — lets the
+  content grow past it on small screens instead of clipping or overlapping.
+  Existing top padding still clears the fixed nav (`box-sizing: border-box`
+  keeps it inside the 100svh).
+- `styles.css` (dust): fall path extended (`38vh` → `50vh` midpoint,
+  `78vh` → `102vh` exit) so petals traverse the full-page hero rather than
+  fading out three-quarters down.
+
+**Files**
+`styles.css`
+
+**Reason**
+Owner-directed layout change; smallest change that delivers it. No markup,
+token, palette, or motion-language changes.
+
+**Verified**
+CSS braces balanced (343/343), `node --check script.js` passes, `/` and
+`/styles.css` serve HTTP 200 on a fresh port (4198). Not verified: rendered
+fold position at 320/1920px on a real device — owner to confirm Work now
+starts below the fold.
+
+---
+
 ## 2026-09-13 — Welcome divider line removed · Polish
 
 **Issue**
