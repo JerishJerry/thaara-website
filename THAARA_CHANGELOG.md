@@ -14,6 +14,43 @@ typography, animation timing, minor visual detail).
 
 ---
 
+## 2026-09-13 — Hero centred; plate and scroll cue deleted · Important
+
+**Issue**
+Owner asked to remove the hero invitation plate and the "Selected work below"
+cue, and to centre the hero like the BEMYINVITE reference (centred headline,
+sub-text, buttons). Permanent delete, not comment-out.
+
+**Change**
+- `index.html`: deleted the `div.hero-cue` scroll cue and the entire
+  `figure.hero-figure` block (plate link, picture, caption). `.hero-grid` now
+  holds only `.hero-copy`.
+- `styles.css`: `.hero-grid` is a single centred column at every width (the
+  1000px two-column rule is gone); eyebrow, `h1`, `.lead`, and `.btn-row` all
+  centre. Deleted the now-unreferenced `.hero-figure` / `.hero-plate` /
+  `figcaption` / plate-cap / `.hero-cue` rules plus the overture's beat-5 and
+  cue-line rules and their reduced-motion counterparts; the eyebrow rule now
+  draws from the centre. Net CSS weight goes down.
+- Left-edge discipline gains a documented exception for the hero — same
+  precedent as the centred closing CTA and 404. Work down keeps the edge.
+
+**Files**
+`index.html`, `styles.css`
+
+**Reason**
+Owner-directed layout change toward the reference. Deletion (not commenting)
+was explicitly requested. Both CTAs stay, so no section becomes a dead end;
+the invitation artwork still appears once, large, in Work.
+
+**Verified**
+No `hero-figure` / `hero-plate` / `hero-cue` / `data-delay="5"` remains in
+shipping files (only historical changelog entries). CSS braces balanced
+(306/306), `node --check script.js` passes, `/` and `/styles.css` serve
+HTTP 200 on a fresh port (4195). Not verified: rendered centring at
+320/1920px on a real device — owner to confirm from the preview.
+
+---
+
 ## 2026-09-13 — Gold-dust drift in the hero (50 petals) · Polish
 
 **Issue**

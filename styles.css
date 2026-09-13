@@ -418,7 +418,6 @@ h1 em, h2 em, h3 em{
 .js .hero .reveal[data-delay="1"]{ transition-delay: calc(var(--stagger) * 1); }
 .js .hero .reveal[data-delay="2"]{ transition-delay: calc(var(--stagger) * 2); }
 .js .hero .reveal[data-delay="4"]{ transition-delay: calc(var(--stagger) * 4); }
-.js .hero .reveal[data-delay="5"]{ transition-delay: calc(var(--stagger) * 5); }
 
 /* Beat 3 - the gold italic arrives after the rest of the headline.
    Opacity only, deliberately: `display: inline-block` would be needed
@@ -430,21 +429,14 @@ h1 em, h2 em, h3 em{
 }
 .js.hero-ready .hero h1 em{ opacity: 1; }
 
-/* Beats 0 and 5 - the two hairlines draw rather than fade.
-   Both are flex children, so they are blockified and transformable. */
+/* Beat 0 - the eyebrow hairline draws rather than fades.
+   It is a flex child, so it is blockified and transformable. */
 .js .hero-eyebrow .rule{
   transform: scaleX(0);
-  transform-origin: left center;
+  transform-origin: center;
   transition: transform var(--dur-hero) var(--ease-out);
 }
 .js.hero-ready .hero-eyebrow .rule{ transform: scaleX(1); }
-
-.js .hero-cue .line{
-  transform: scaleY(0);
-  transform-origin: top center;
-  transition: transform var(--dur-hero) var(--ease-out) calc(var(--stagger) * 5);
-}
-.js.hero-ready .hero-cue .line{ transform: scaleY(1); }
 
 @media (prefers-reduced-motion: reduce){
   html{ scroll-behavior: auto; }
@@ -453,7 +445,6 @@ h1 em, h2 em, h3 em{
      never depends on JavaScript having released `.hero-ready`. */
   .js .hero h1 em{ opacity: 1; transition: none; }
   .js .hero-eyebrow .rule{ transform: scaleX(1); transition: none; }
-  .js .hero-cue .line{ transform: scaleY(1); transition: none; }
   .dust{ display: none; }
   *, *::before, *::after{
     animation-duration: .01ms !important;
@@ -653,23 +644,25 @@ body.menu-open{ overflow: hidden; }
   padding-bottom: clamp(var(--sp-9), 7vw, var(--sp-11));
 }
 
+/* Centered hero (Phase 6): single column at every width, copy centered.
+   A documented exception to the page's shared left edge — same precedent
+   as the centered closing CTA and 404. Everything from Work down keeps it. */
 .hero-grid{
   display: grid;
   grid-template-columns: 1fr;
-  gap: clamp(var(--sp-8), 6vw, var(--sp-10));
-  align-items: center;
-}
-@media (min-width: 1000px){
-  .hero-grid{ grid-template-columns: 1.15fr 0.85fr; gap: var(--sp-10); }
+  justify-items: center;
+  text-align: center;
 }
 
-.hero h1{ margin-bottom: var(--sp-6); max-width: 15ch; }
-.hero .lead{ max-width: 46ch; margin-bottom: clamp(var(--sp-7), 4vw, var(--sp-8)); }
+.hero h1{ margin-bottom: var(--sp-6); max-width: 15ch; margin-inline: auto; }
+.hero .lead{ max-width: 46ch; margin-bottom: clamp(var(--sp-7), 4vw, var(--sp-8)); margin-inline: auto; }
+.hero .btn-row{ justify-content: center; }
 
 /* Small studio descriptor above the headline. */
 .hero-eyebrow{
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: var(--sp-4);
   margin-bottom: var(--sp-6);
 }
@@ -679,72 +672,11 @@ body.menu-open{ overflow: hidden; }
   background: var(--gold-soft);
 }
 
-/* ---- Hero visual ----
-   The invitation artwork, framed as an editorial plate. The Featured
-   Work section presents the same artwork far larger and in full, so the
-   two readings differ in scale and context rather than repeating. */
-.hero-figure{
-  display: flex;
-  flex-direction: column;
-  gap: var(--sp-4);
-  margin: 0;
-}
-.hero-plate{
-  position: relative;
-  overflow: hidden;
-  border: 1px solid var(--line-firm);
-  border-radius: var(--radius);
-  background: var(--bg-raise);
-  transition: border-color var(--dur) var(--ease), transform var(--dur-slow) var(--ease);
-}
-.hero-figure:hover .hero-plate{
-  border-color: var(--gold-soft);
-  transform: translateY(-4px);
-}
-.hero-plate img{ width: 100%; height: auto; }
-
-.hero-figure figcaption{
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--sp-4);
-  flex-wrap: wrap;
-}
-.hero-figure figcaption .name{
-  font-family: var(--serif);
-  font-size: var(--fs-sm);
-  color: var(--ink-dim);
-}
-
-/* Below the two-column breakpoint the hero plate is capped so it reads
-   as a teaser. Left full-width it would match the Featured Work visual
-   exactly, and the same artwork would appear twice at the same size. */
-@media (max-width: 999px){
-  .hero-figure{ align-items: flex-start; }
-  /* Percentage-based so the plate stays smaller than the Featured Work
-     visual at every width down to 320px, not just where 280px bites. */
-  .hero-plate{ max-width: min(280px, 78%); }
-  .hero-figure figcaption{ max-width: min(280px, 78%); }
-}
-
-/* Scroll cue. */
-.hero-cue{
-  display: none;
-  align-items: center;
-  gap: var(--sp-3);
-  margin-top: clamp(var(--sp-9), 6vw, var(--sp-10));
-}
-.hero-cue .line{
-  width: 1px; height: 40px;
-  background: linear-gradient(var(--gold-soft), transparent);
-}
-@media (min-width: 1000px){ .hero-cue{ display: flex; } }
-
 /* ---- Gold dust ----
    50 elongated petals drifting down the hero (Phase 6: owner asked for
    BEMYINVITE-style falling motion, translated into THAARA's palette).
    Decorative only — aria-hidden in markup, pointer-events none so every
-   CTA and the invitation plate stay fully clickable. Transform/opacity
+   CTA stays fully clickable. Transform/opacity
    only. Colours and width resolve to tokens; the 12px height is fixed
    petal geometry (like the --radius values). Ten choreography sets cycle
    across the 50 spans (10n+1 … 10n); durations/delays are choreography
