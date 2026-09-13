@@ -14,6 +14,34 @@ typography, animation timing, minor visual detail).
 
 ---
 
+## 2026-09-13 — Header logo enlarged (88px → 96px) · Polish
+
+**Issue**
+Owner felt the header logo read too small in the nav bar.
+
+**Change**
+- `styles.css` (`.brand-logo` only): width `clamp(78px, 8vw, 88px)` →
+  `clamp(84px, 9vw, 96px)`, `max-height` 68px → 74px. The caps move together
+  per the Phase 5 lesson: 96 ÷ 1.30 aspect ≈ 73.8px, so the natural height
+  still lands exactly on the cap — no letterbox, left edge stays glued.
+- Added a ≤600px guard (width 84px, max-height 64px) since the small-screen
+  nav is only 68px tall. Footer logo and all nav links untouched.
+
+**Files**
+`styles.css`
+
+**Reason**
+Owner-directed; "little larger" capped at 96px because 104px would leave
+~2px clearance in the 84px bar. Smallest change that answers it.
+
+**Verified**
+CSS braces balanced (345/345), `node --check script.js` passes, `/` and
+`/styles.css` serve HTTP 200 on a fresh port (4199). Not verified: rendered
+mark-vs-box alignment at desktop + 360px on a real device — owner to confirm
+no letterbox regression from the preview.
+
+---
+
 ## 2026-09-13 — Hero enlarged to one full page · Important
 
 **Issue**

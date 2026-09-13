@@ -479,17 +479,22 @@ h1 em, h2 em, h3 em{
 
 .brand{ display: flex; align-items: center; flex: 0 0 auto; }
 /* Width is capped so the natural height lands exactly on max-height
-   (88px ÷ 1.30 aspect ≈ 68px). At the old 108px cap the height clamp kicked
+   (96px ÷ 1.30 aspect ≈ 74px). At the old 108px cap the height clamp kicked
    in, object-fit letterboxed the mark inside a wider box, and the visible
    logo sat 9px right of the headline — breaking the one left edge every
    other element on the page shares. object-position keeps it flush if a
    future logo of a different aspect ever re-engages the clamp. */
 .brand-logo{
-  width: clamp(78px, 8vw, 88px);
+  width: clamp(84px, 9vw, 96px);
   height: auto;
-  max-height: 68px;
+  max-height: 74px;
   object-fit: contain;
   object-position: left center;
+}
+/* The nav bar is only 68px tall on small screens, so the logo steps back
+   down there (84px ÷ 1.30 ≈ 65px — same land-on-the-cap trick). */
+@media (max-width: 600px){
+  .brand-logo{ width: 84px; max-height: 64px; }
 }
 
 .nav-links{
