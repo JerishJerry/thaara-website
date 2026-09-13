@@ -14,6 +14,31 @@ typography, animation timing, minor visual detail).
 
 ---
 
+## 2026-09-13 — Welcome name set in gold (no hero logo) · Polish
+
+**Issue**
+Owner asked whether the logo belongs in the hero for brand visibility.
+Advised against duplicating the fixed header mark; agreed instead on
+emphasising the name in text (option B).
+
+**Change**
+- `index.html`: welcome line becomes `Welcome to <em>THAARA</em>`.
+- `styles.css`: `.hero-eyebrow .welcome em` in `--gold`, upright rather
+  than italic so it reads as emphasis instead of echoing the headline's
+  italic gold phrase. No layout, token, or asset changes.
+
+**Files**
+`index.html`, `styles.css`
+
+**Reason**
+Eye on the name with zero duplication, zero downloads, zero layout risk.
+
+**Verified**
+CSS braces balanced (366/366), `node --check script.js` passes, `/`
+serves HTTP 200 on a fresh port (4202).
+
+---
+
 ## 2026-09-13 — Sitemap lastmod refreshed (spec audit fix) · Polish
 
 **Issue**

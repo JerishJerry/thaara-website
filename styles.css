@@ -758,6 +758,12 @@ body.menu-open{ overflow: hidden; }
   /* Keep the welcome on one line down to the narrowest screens. */
   white-space: nowrap;
 }
+/* The name picks up the gold accent — upright, not italic, so it reads as
+   emphasis rather than echoing the headline's italic gold phrase. */
+.hero-eyebrow .welcome em{
+  font-style: normal;
+  color: var(--gold);
+}
 
 /* ---- Gold dust ----
    50 elongated petals drifting down the hero (Phase 6: owner asked for
