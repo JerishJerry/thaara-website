@@ -14,6 +14,29 @@ typography, animation timing, minor visual detail).
 
 ---
 
+## 2026-09-13 — Enquiry bridge line removed · Polish
+
+**Issue**
+Owner asked to remove the "Want one like Nivin × Dhiya's?" bridge line from
+the hero.
+
+**Change**
+- `index.html`: deleted the `p.hero-bridge` line. `styles.css`: deleted its
+  rule. The capability strip, both CTAs, and the scroll hint stay — the form
+  remains one tap away everywhere.
+
+**Files**
+`index.html`, `styles.css`
+
+**Reason**
+Owner-directed removal; smallest possible change with its rule.
+
+**Verified**
+No `hero-bridge` / "Want one like" remains in shipping files. CSS braces
+balanced (365/365).
+
+---
+
 ## 2026-09-13 — Sticky mobile enquiry bar · Important
 
 **Issue**

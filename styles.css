@@ -712,13 +712,6 @@ body.menu-open{ overflow: hidden; }
   color: var(--ink-faint);
 }
 
-/* Enquiry bridge: one centred line from the hero straight to the form. */
-.hero-bridge{
-  margin: var(--sp-4) 0 0;
-  display: flex;
-  justify-content: center;
-}
-
 /* Passive scroll hint: a hairline at hero bottom-centre that draws and
    fades on a slow loop. Decorative only (aria-hidden in markup). */
 .scroll-hint{
