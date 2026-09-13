@@ -14,6 +14,32 @@ typography, animation timing, minor visual detail).
 
 ---
 
+## 2026-09-13 — Sitemap lastmod refreshed (spec audit fix) · Polish
+
+**Issue**
+A spec-driven audit (anchors, assets, placeholders, metadata, JS/CSS) found
+one real defect: `sitemap.xml` still carried `<lastmod>2026-08-25` although
+the page has changed in every push since. Everything else passed — all
+anchors resolve, all 15 referenced assets exist, JSON-LD parses, JS and CSS
+validate, no TODO/lorem/dev URLs, and the new sticky-CTA/dust-pause observer
+logic re-checked clean (hidden-by-default, menu-safe, no-JS-safe).
+
+**Change**
+- `sitemap.xml`: `<lastmod>` → `2026-09-13`, matching the actual last change.
+
+**Files**
+`sitemap.xml`
+
+**Reason**
+Stale crawl metadata is the only necessary fix the audit surfaced. All other
+spec items are either already shipped or blocked on real inputs (see report).
+
+**Verified**
+Audit script: JSON-LD OK, 0 missing anchors, 0 missing assets, placeholder
+scan clean apart from CSS comments and `::placeholder`.
+
+---
+
 ## 2026-09-13 — Enquiry bridge line removed · Polish
 
 **Issue**
