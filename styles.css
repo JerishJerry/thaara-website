@@ -741,14 +741,15 @@ body.menu-open{ overflow: hidden; }
 @media (min-width: 1000px){ .hero-cue{ display: flex; } }
 
 /* ---- Gold dust ----
-   10 elongated petals drifting down the hero (Phase 6: owner asked for
+   50 elongated petals drifting down the hero (Phase 6: owner asked for
    BEMYINVITE-style falling motion, translated into THAARA's palette).
    Decorative only — aria-hidden in markup, pointer-events none so every
    CTA and the invitation plate stay fully clickable. Transform/opacity
-   only. Colours and width resolve to tokens; the 7px height is fixed
-   petal geometry (like the --radius values), and durations/delays are
-   choreography (like the existing stagger delays). Negative delays mean
-   the field is already populated on page load. */
+   only. Colours and width resolve to tokens; the 12px height is fixed
+   petal geometry (like the --radius values). Ten choreography sets cycle
+   across the 50 spans (10n+1 … 10n); durations/delays are choreography
+   (like the existing stagger delays). Negative delays mean the field is
+   already populated on page load. */
 .dust{
   position: absolute;
   inset: 0;
@@ -758,37 +759,36 @@ body.menu-open{ overflow: hidden; }
 .dust span{
   position: absolute;
   top: -3%;
-  width: var(--sp-1);
-  height: 7px;
+  width: var(--sp-2);
+  height: 12px;
   border-radius: 60% 5% 60% 5%;
   background: var(--gold-soft);
   opacity: 0;
   animation: dust-fall linear infinite;
 }
 .dust span:nth-child(even){ background: var(--gold-haze); }
-.dust span:nth-child(1){ left: 4%;  --sway: 24px;  --rot: 18deg;  --s: 1;    animation-duration: 14s; animation-delay: -3s; }
-.dust span:nth-child(2){ left: 14%; --sway: -28px; --rot: 65deg;  --s: 1.25; animation-duration: 17s; animation-delay: -11s; }
-.dust span:nth-child(3){ left: 26%; --sway: 18px;  --rot: 120deg; --s: .75;  animation-duration: 12s; animation-delay: -7s; }
-.dust span:nth-child(4){ left: 38%; --sway: -20px; --rot: 40deg;  --s: 1;    animation-duration: 16s; animation-delay: -1s; }
-.dust span:nth-child(5){ left: 50%; --sway: 30px;  --rot: 95deg;  --s: .75;  animation-duration: 11s; animation-delay: -9s; }
-.dust span:nth-child(6){ left: 61%; --sway: -26px; --rot: 150deg; --s: 1.25; animation-duration: 18s; animation-delay: -5s; }
-.dust span:nth-child(7){ left: 72%; --sway: 22px;  --rot: 75deg;  --s: 1;    animation-duration: 13s; animation-delay: -13s; }
-.dust span:nth-child(8){ left: 83%; --sway: -18px; --rot: 25deg;  --s: .75;  animation-duration: 15s; animation-delay: -8s; }
-.dust span:nth-child(9){ left: 92%; --sway: 28px;  --rot: 110deg; --s: 1.25; animation-duration: 12s; animation-delay: -4s; }
-.dust span:nth-child(10){ left: 96%; --sway: -22px; --rot: 55deg; --s: 1;    animation-duration: 19s; animation-delay: -15s; }
+.dust span:nth-child(10n+1){ left: 2%;  --sway: 24px;  --rot: 18deg;  --s: 1;    animation-duration: 14s; animation-delay: -3s; }
+.dust span:nth-child(10n+2){ left: 12%; --sway: -28px; --rot: 65deg;  --s: 1.25; animation-duration: 17s; animation-delay: -11s; }
+.dust span:nth-child(10n+3){ left: 22%; --sway: 18px;  --rot: 120deg; --s: .8;   animation-duration: 12s; animation-delay: -7s; }
+.dust span:nth-child(10n+4){ left: 32%; --sway: -20px; --rot: 40deg;  --s: 1.1;  animation-duration: 16s; animation-delay: -1s; }
+.dust span:nth-child(10n+5){ left: 42%; --sway: 30px;  --rot: 95deg;  --s: .8;   animation-duration: 11s; animation-delay: -9s; }
+.dust span:nth-child(10n+6){ left: 53%; --sway: -26px; --rot: 150deg; --s: 1.2;  animation-duration: 18s; animation-delay: -5s; }
+.dust span:nth-child(10n+7){ left: 63%; --sway: 22px;  --rot: 75deg;  --s: 1;    animation-duration: 13s; animation-delay: -13s; }
+.dust span:nth-child(10n+8){ left: 73%; --sway: -18px; --rot: 25deg;  --s: .85;  animation-duration: 15s; animation-delay: -8s; }
+.dust span:nth-child(10n+9){ left: 84%; --sway: 28px;  --rot: 110deg; --s: 1.15; animation-duration: 12s; animation-delay: -4s; }
+.dust span:nth-child(10n){ left: 94%; --sway: -22px; --rot: 55deg;  --s: 1;    animation-duration: 19s; animation-delay: -15s; }
 @keyframes dust-fall{
   0%{ opacity: 0; transform: translate3d(0, -2vh, 0) rotate(var(--rot, 20deg)) scale(var(--s, 1)); }
-  12%{ opacity: .7; }
+  12%{ opacity: .85; }
   50%{ transform: translate3d(var(--sway, 20px), 38vh, 0) rotate(calc(var(--rot, 20deg) + 40deg)) scale(var(--s, 1)); }
-  88%{ opacity: .5; }
+  88%{ opacity: .6; }
   100%{ opacity: 0; transform: translate3d(calc(var(--sway, 20px) * -.5), 78vh, 0) rotate(calc(var(--rot, 20deg) + 90deg)) scale(var(--s, 1)); }
 }
-/* Fewer specks on small screens — subtler and cheaper. */
+/* Fewer specks on small screens — subtler and cheaper (20 of 50). */
 @media (max-width: 699px){
-  .dust span:nth-child(2),
-  .dust span:nth-child(5),
-  .dust span:nth-child(7),
-  .dust span:nth-child(9){ display: none; }
+  .dust span:nth-child(5n+2),
+  .dust span:nth-child(5n+3),
+  .dust span:nth-child(5n){ display: none; }
 }
 
 

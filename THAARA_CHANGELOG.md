@@ -14,24 +14,26 @@ typography, animation timing, minor visual detail).
 
 ---
 
-## 2026-09-13 — Gold-dust drift in the hero (10 petals) · Polish
+## 2026-09-13 — Gold-dust drift in the hero (50 petals) · Polish
 
 **Issue**
 Owner asked for BEMYINVITE-style hero motion — petals falling plus mouse-follow
 motion. The mouse-following blobs were declined (cursor effects/parallax and
 pink-purple gradients are excluded by the brief); the falling motion was accepted
-as gold dust in THAARA's palette. Owner chose 10 specks, elongated petal shapes.
+as gold dust in THAARA's palette. Owner chose elongated petal shapes, then asked
+for bigger petals × 50 after the first 10 were too subtle to see.
 
 **Change**
-- `index.html`: one `div.dust` (aria-hidden, 10 empty spans) as the first child
+- `index.html`: one `div.dust` (aria-hidden, 50 empty spans) as the first child
   of `section.hero`. No content, invisible to assistive tech.
 - `styles.css`: `.hero` gains `position: relative`; new `.dust` layer
   (`absolute inset 0, overflow hidden, pointer-events none`) with a single
   `dust-fall` keyframe — transform/opacity only, linear timing. Petals are
-  `var(--sp-1)` wide × 7px with a petal border-radius, alternating
-  `--gold-soft` / `--gold-haze`; per-span left/sway/rotation/scale plus
-  10–19s durations and negative delays so the field is full on load. 4 spans
-  hidden under 700px (6 on mobile). Reduced-motion block hides `.dust`.
+  `var(--sp-2)` (8px) wide × 12px with a petal border-radius, alternating
+  `--gold-soft` / `--gold-haze` at up to .85 opacity; ten choreography sets
+  cycle across the 50 spans (`10n+1` … `10n`) with 10–19s durations and
+  negative delays so the field is full on load. 30 spans hidden under 700px
+  (20 on mobile). Reduced-motion block hides `.dust`.
 - `script.js`: untouched — dust spans are not `.reveal`, so the overture,
   observer list, and safety net are unaffected.
 
