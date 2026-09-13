@@ -14,6 +14,43 @@ typography, animation timing, minor visual detail).
 
 ---
 
+## 2026-09-13 — Gold-dust drift in the hero (10 petals) · Polish
+
+**Issue**
+Owner asked for BEMYINVITE-style hero motion — petals falling plus mouse-follow
+motion. The mouse-following blobs were declined (cursor effects/parallax and
+pink-purple gradients are excluded by the brief); the falling motion was accepted
+as gold dust in THAARA's palette. Owner chose 10 specks, elongated petal shapes.
+
+**Change**
+- `index.html`: one `div.dust` (aria-hidden, 10 empty spans) as the first child
+  of `section.hero`. No content, invisible to assistive tech.
+- `styles.css`: `.hero` gains `position: relative`; new `.dust` layer
+  (`absolute inset 0, overflow hidden, pointer-events none`) with a single
+  `dust-fall` keyframe — transform/opacity only, linear timing. Petals are
+  `var(--sp-1)` wide × 7px with a petal border-radius, alternating
+  `--gold-soft` / `--gold-haze`; per-span left/sway/rotation/scale plus
+  10–19s durations and negative delays so the field is full on load. 4 spans
+  hidden under 700px (6 on mobile). Reduced-motion block hides `.dust`.
+- `script.js`: untouched — dust spans are not `.reveal`, so the overture,
+  observer list, and safety net are unaffected.
+
+**Files**
+`index.html`, `styles.css`
+
+**Reason**
+Smallest translation of the requested motion into the existing system: no new
+dependencies, no palette change, no cursor/parallax effects, ~1KB added.
+
+**Verified**
+CSS braces balanced (325/325), `node --check script.js` passes, 10 spans in
+the dust layer, `/` and `/styles.css` serve HTTP 200 on a fresh port (4193).
+Not verified: the running animation painting (transitions/animations freeze in
+a non-compositing tab); timing, layering, and kill-switch confirmed from code.
+Check 320/1920px overflow and reduced-motion on a real device on review.
+
+---
+
 ## 2026-09-13 — Type pairing swapped to EB Garamond + Source Sans 3 · Important
 
 **Issue**
