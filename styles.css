@@ -1204,7 +1204,7 @@ body.menu-open{ overflow: hidden; }
    width and left-aligned, never centred — the page keeps one left edge. */
 .about-poster{
   width: min(var(--poster-w), 100%);
-  margin: var(--sp-8) 0 0;
+  margin: 0;
 }
 .about-poster img{
   display: block;

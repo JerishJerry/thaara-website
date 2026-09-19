@@ -57,6 +57,30 @@ strip wraps to 3 lines there with no line beginning on a separator. 0 console er
 
 ---
 
+## 2026-09-19 — Poster-to-statement gap fixed (double-spaced) · Polish
+
+**Issue**
+Owner reviewed the live poster and reported "a huge gap" above it. `.about-grid`'s own `gap:
+var(--sp-10)` (80px) already spaces the statement and poster, since they land in adjacent grid
+rows (statement row 1, poster row 2, both column 1) — `.about-poster` also carried its own
+`margin: var(--sp-8) 0 0` (48px) on top, doubling it to 128px.
+
+**Change**
+`.about-poster{ margin: var(--sp-8) 0 0; }` → `margin: 0;`. Grid gap alone now sets the spacing.
+
+**Files**
+`styles.css`
+
+**Reason**
+The margin was redundant from the start — added out of habit rather than checked against what
+the grid already provided. One property, not a new token or a magic number.
+
+**Verified**
+Measured gap 128px → 80px at 1280px, matching the row rhythm used elsewhere on the page. No
+change to left-edge alignment (still 20/90.5 depending on viewport) or overflow at 375px.
+
+---
+
 ## 2026-09-19 — Studio poster added to About · Important
 
 **Issue**
