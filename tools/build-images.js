@@ -21,11 +21,17 @@
      node "D:\Jerin Website\tools\build-images.js"
 
    Inputs (the lossless masters — never modify or delete them):
-     logo.png                      798x614  RGBA, transparency genuinely used
-     invitation-save-the-date.png  1624x969 RGBA, fully opaque (alpha is dead weight)
+     logo.png                      798x614   RGBA, transparency genuinely used
+     invitation-save-the-date.png  1624x969  RGBA, fully opaque (alpha is dead weight)
+     leo-asnia-source.webp         2160x3840 opaque — NOT a lossless master like the two
+                                    above; it's the client project's own cover image,
+                                    re-exported from the live site (no original design file
+                                    on hand). Kept anyway as this image's single source of
+                                    truth — do not re-fetch/replace casually.
 
    Outputs, all written to the repo root:
-     invitation-{480,800,1200,1624}.{avif,webp}   portfolio image, opaque
+     invitation-{480,800,1200,1624}.{avif,webp}   portfolio image, opaque, landscape
+     leo-asnia-{480,800,1200}.{avif,webp}         portfolio image, opaque, portrait 9:16
      logo-{128,256}.webp + logo-256.png           logo, alpha preserved
      favicon-32.png, favicon-180.png              icons on the brand ground
      og-image.jpg                                 1200x630 social card
@@ -68,10 +74,20 @@ const LOGO = ROOT + 'logo.png';
 const BG = { r: 25, g: 22, b: 17 };          // --bg  #191611
 const WIDTHS = [480, 800, 1200, 1624];
 
+/* One entry per project image in the Work section. `slug` is the served base
+   name: slug-{width}.{avif,webp}. Widths are per-image because the layouts
+   differ — the flagship runs near-container-width, so it earns 1624w; the
+   split-layout cards never render past ~560px CSS pixels, so 1200w already
+   covers a 2x screen and anything larger would be bytes nobody downloads. */
+const PORTFOLIO = [
+  { master: INVITATION, slug: 'invitation', widths: WIDTHS },
+  { master: ROOT + 'leo-asnia-source.webp', slug: 'leo-asnia', widths: [480, 800, 1200] },
+];
+
 const kb = (f) => (fs.statSync(ROOT + f).size / 1024).toFixed(1).padStart(7) + ' KB';
 
 (async () => {
-  for (const f of [INVITATION, LOGO]) {
+  for (const f of [LOGO, ...PORTFOLIO.map((p) => p.master)]) {
     if (!fs.existsSync(f)) {
       console.error('Missing source image: ' + f);
       process.exit(1);
@@ -80,19 +96,21 @@ const kb = (f) => (fs.statSync(ROOT + f).size / 1024).toFixed(1).padStart(7) + '
 
   const out = [];
 
-  /* ---- Portfolio image ----
-     The source is fully opaque, so flatten() drops the useless alpha channel
-     rather than paying to encode it. Quality stays high: this is the studio's
-     only piece of work on the site. */
-  for (const w of WIDTHS) {
-    const base = sharp(INVITATION)
-      .resize({ width: w, withoutEnlargement: true })
-      .flatten({ background: BG });
+  /* ---- Portfolio images ----
+     The sources are fully opaque, so flatten() drops the useless alpha channel
+     rather than paying to encode it. Quality stays high: this is the work the
+     studio is judged on. */
+  for (const { master, slug, widths } of PORTFOLIO) {
+    for (const w of widths) {
+      const base = sharp(master)
+        .resize({ width: w, withoutEnlargement: true })
+        .flatten({ background: BG });
 
-    await base.clone().webp({ quality: 86, effort: 6 }).toFile(ROOT + `invitation-${w}.webp`);
-    await base.clone().avif({ quality: 62, effort: 6 }).toFile(ROOT + `invitation-${w}.avif`);
+      await base.clone().webp({ quality: 86, effort: 6 }).toFile(ROOT + `${slug}-${w}.webp`);
+      await base.clone().avif({ quality: 62, effort: 6 }).toFile(ROOT + `${slug}-${w}.avif`);
 
-    out.push(`invitation ${String(w).padStart(4)}w   webp ${kb(`invitation-${w}.webp`)}   avif ${kb(`invitation-${w}.avif`)}`);
+      out.push(`${slug.padEnd(10)} ${String(w).padStart(4)}w   webp ${kb(`${slug}-${w}.webp`)}   avif ${kb(`${slug}-${w}.avif`)}`);
+    }
   }
 
   /* ---- Logo ----
@@ -138,6 +156,7 @@ const kb = (f) => (fs.statSync(ROOT + f).size / 1024).toFixed(1).padStart(7) + '
   console.log(out.join('\n'));
   console.log('\nMasters left untouched:');
   console.log('  invitation-save-the-date.png ' + kb('invitation-save-the-date.png'));
+  console.log('  leo-asnia-source.webp        ' + kb('leo-asnia-source.webp'));
   console.log('  logo.png                     ' + kb('logo.png'));
 })().catch((err) => {
   console.error(err);

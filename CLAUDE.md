@@ -107,6 +107,10 @@ The Nivin & Dhiya case study's own gap notice and marker (what a brief/further v
 added) were removed outright, ahead of a planned multi-project slides layout replacing this
 single-project Work section.
 
+Work now carries **two** projects (2026-09-19): Nivin & Dhiya as `.project--feature`, and Leo Ronald
+× Asnia as `.project--split`. Both are real and permissioned. Arav & Keerthana, which appears in the
+studio's marketing flyer, is a template/demo — **not** a client project, do not list it as work.
+
 Everything currently on the page traces to something real: the studio's own words, or the one
 project asset. The wedding date (23 August 2026) and the phrase "an interactive wedding invitation,
 designed as a website" are printed in the artwork itself.
@@ -201,6 +205,12 @@ Responsive `<picture>` with AVIF → WebP, four widths each, generated from the 
 
 - `logo.png` and `invitation-save-the-date.png` are the **lossless masters — never modify or
   delete them.** The invitation PNG is no longer served; it's kept as the source.
+- `leo-asnia-source.webp` is the source for the second project. Not a lossless master like the
+  other two: it is the client site's own cover image, re-exported from the live site because no
+  original design file was on hand. Still the single source of truth for `leo-asnia-*` — don't
+  re-fetch or swap it casually.
+- `tools/build-images.js` drives every project image off one `PORTFOLIO` array. Adding a third
+  project = one entry (`master`, `slug`, `widths`), not new code.
 - Regenerate variants with `tools/build-images.js` (needs `sharp` installed anywhere convenient —
   it is a build-time tool only and must **not** become a project dependency).
 - Every `<img>` needs `width`/`height` so nothing shifts as it loads.
@@ -225,6 +235,11 @@ artefact.
 
 ## Still open
 
+0. **Leo × Asnia is showing a static cover, not the video the owner wants.** The intended
+   presentation is a short loop scrolling through the live invitation, inside the phone-shaped
+   frame that is already built. Blocked on the recording itself (the client site's own opening
+   video is 11 MB / 4K — too heavy to reuse as-is) and on `ffmpeg`, which is not installed here.
+   The swap and the observer logic it needs are spelled out in `THAARA_CHANGELOG.md`, 2026-09-19.
 1. Inbox delivery from the live domain is unconfirmed — tested from localhost only.
 2. Testimonials, further projects, and About's location / founded / who-is-behind-THAARA.
 3. The canonical points at the GitHub Pages URL. Moving to a custom domain means updating it in

@@ -14,6 +14,61 @@ typography, animation timing, minor visual detail).
 
 ---
 
+## 2026-09-19 — Second project added: Leo Ronald × Asnia · Important
+
+**Issue**
+Work showed one project. The owner supplied a second real, permissioned
+project — an interactive wedding invitation built as its own website, live at
+`leoronaldasniaweddinginvitation.vercel.app` — and asked for the section to
+adapt to carry recent work. (Arav & Keerthana, seen in the studio's marketing
+flyer, was confirmed a template/demo, not a client project: not listed.)
+
+**Change**
+- `index.html`: new `article.project.project--split` as project `02`, using the
+  split layout that has sat unused since Phase 3. Portrait cover left, text
+  right, real outbound link to the live invitation (`target="_blank"
+  rel="noopener noreferrer"`, matching every other external link on the page).
+  Section H2 `A single project…` → `Two projects, each carried all the way
+  through.` Services cross-link no longer names one project.
+- `styles.css`: one new token `--phone-w: 320px`; `.project-visual--portrait`
+  (phone-width, 9:16, `object-fit: cover`); `.project-link` spacing; `--split`
+  added to the existing `--feature` hover rule rather than duplicating it.
+- `tools/build-images.js`: the hardcoded single portfolio image became a
+  `PORTFOLIO` array with per-image widths. Existing `invitation-*` output is
+  byte-for-byte unchanged.
+- New assets: `leo-asnia-source.webp` (source) → `leo-asnia-{480,800,1200}.{avif,webp}`.
+
+**Files**
+`index.html`, `styles.css`, `tools/build-images.js`, `tools/` image outputs
+
+**Reason**
+`.project--split` was kept in Phase 3 for exactly this, and `.project + .project`
+already draws the divider — so a second project needed almost no new CSS. The
+piece was designed for a phone, so it is shown at a phone's width rather than
+stretched across half a 1180px container; left-aligned, never centred, so the
+page keeps its one left edge.
+
+**Not done — next step**
+The owner wants this shown as a **video scrolling through the live site**, not a
+static cover. Not shipped: no screen recording in hand, and the client site's own
+opening video is 11 MB at 4K, far past what this page should carry. Needs either
+the owner's own recording or `ffmpeg` (not installed here) to cut a short,
+downscaled, silent loop. When it lands, swap the `<picture>` inside
+`.project-visual--portrait` for a `<video>` (`muted loop playsinline
+preload="none"` + poster) and add an IntersectionObserver that attaches `src`
+near-viewport, pauses off-screen, and does not autoplay under
+`prefers-reduced-motion` — same shape as the `dust-paused` observer in
+`script.js`. The frame and its aspect ratio already fit a video unchanged.
+
+**Verified**
+Served on fresh port 4188. One left edge: `#work .container` children all at
+x=90.5 (section head, both project heads, both visuals, section action). No
+horizontal overflow at 320px (`scrollWidth === innerWidth === 320`); split
+layout goes two-column at ≥900px, stacks below. 0 console errors, 0 failed
+requests. Browser picks `leo-asnia-480.avif` (37 KB) for the 320px box.
+
+---
+
 ## 2026-09-13 — Welcome name set in gold (no hero logo) · Polish
 
 **Issue**

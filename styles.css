@@ -84,6 +84,7 @@
   /* ---- Layout ----------------------------------------------- */
   --container:        1180px;
   --container-narrow: 680px;
+  --phone-w:          320px;   /* portrait work shown at the width it was designed for */
   --gutter: clamp(1.25rem, 5vw, 3rem);
 
   --radius:    4px;
@@ -914,10 +915,20 @@ body.menu-open{ overflow: hidden; }
   transition: transform var(--dur-slow) var(--ease), border-color var(--dur) var(--ease);
 }
 .project-visual img{ width: 100%; height: auto; }
-.project--feature:hover .project-visual{
+.project--feature:hover .project-visual,
+.project--split:hover .project-visual{
   transform: scale(1.008);
   border-color: var(--gold-soft);
 }
+
+/* Portrait pieces — work made for a phone screen. Shown at a phone's width
+   rather than stretched to the column, and left-aligned, never centred: the
+   page keeps one left edge. */
+.project-visual--portrait{
+  width: min(var(--phone-w), 100%);
+  aspect-ratio: 9 / 16;
+}
+.project-visual--portrait img{ height: 100%; object-fit: cover; }
 
 /* ---- Alternate layouts, ready for real projects ---- */
 .project--split .project-visual{ grid-area: v; }
@@ -936,6 +947,7 @@ body.menu-open{ overflow: hidden; }
   .project--split.is-reversed .project-inner{ grid-template-areas: "t v"; }
 }
 .project--split .project-text{ grid-area: t; }
+.project-link{ margin-top: var(--sp-5); }
 
 .project--immersive .project-visual{
   border-radius: 0;
