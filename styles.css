@@ -85,6 +85,7 @@
   --container:        1180px;
   --container-narrow: 680px;
   --phone-w:          320px;   /* portrait work shown at the width it was designed for */
+  --poster-w:         440px;   /* studio poster, sized to About's empty left column */
   --gutter: clamp(1.25rem, 5vw, 3rem);
 
   --radius:    4px;
@@ -703,7 +704,7 @@ body.menu-open{ overflow: hidden; }
 .hero .lead{ max-width: 46ch; margin-bottom: clamp(var(--sp-7), 4vw, var(--sp-8)); margin-inline: auto; }
 .hero .btn-row{ justify-content: center; }
 
-/* Capability strip: the four real services in one quiet centred line. */
+/* Capability strip: the five real services in one quiet centred line. */
 .hero-caps{
   margin: var(--sp-6) 0 0;
   font-size: var(--fs-3xs);
@@ -1028,7 +1029,7 @@ body.menu-open{ overflow: hidden; }
   line-height: 1.65;
 }
 
-/* Remaining three services as an editorial ruled list. */
+/* Remaining four services as an editorial ruled list. */
 .service-list{ border-top: 1px solid var(--line); }
 .service-item{
   display: grid;
@@ -1182,6 +1183,11 @@ body.menu-open{ overflow: hidden; }
 }
 @media (min-width: 900px){
   .about-grid{ grid-template-columns: 1fr 1fr; gap: var(--sp-10); align-items: start; }
+  /* Without this the poster auto-places into column 2 and pushes the prose
+     down into column 1. Statement and poster stack in the left column; the
+     prose holds the right one across both rows. */
+  .about-poster{ grid-column: 1; }
+  .about-body{ grid-column: 2; grid-row: 1 / span 2; }
 }
 
 .about-statement{
@@ -1193,6 +1199,28 @@ body.menu-open{ overflow: hidden; }
   max-width: 26ch;
 }
 .about-statement em{ font-style: italic; color: var(--gold); }
+
+/* The studio's own poster, filling the empty left column. Capped at a poster's
+   width and left-aligned, never centred — the page keeps one left edge. */
+.about-poster{
+  width: min(var(--poster-w), 100%);
+  margin: var(--sp-8) 0 0;
+}
+.about-poster img{
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+.about-poster figcaption{
+  margin-top: var(--sp-3);
+  font-family: var(--sans);
+  font-size: var(--fs-3xs);
+  line-height: 1.5;
+  color: var(--ink-faint);
+  max-width: 42ch;
+}
 
 .about-body{ display: grid; gap: var(--sp-5); }
 .about-body p{ color: var(--ink-dim); max-width: 52ch; }

@@ -28,10 +28,14 @@
                                     re-exported from the live site (no original design file
                                     on hand). Kept anyway as this image's single source of
                                     truth — do not re-fetch/replace casually.
+     studio-poster-source.jpg      1145x1374 opaque — the studio's own promotional poster
+                                    (studio collateral, not client work). A social-sized
+                                    export, so 880w is the largest useful variant.
 
    Outputs, all written to the repo root:
      invitation-{480,800,1200,1624}.{avif,webp}   portfolio image, opaque, landscape
      leo-asnia-{480,800,1200}.{avif,webp}         portfolio image, opaque, portrait 9:16
+     studio-poster-{480,880}.{avif,webp}          studio poster, opaque, portrait 5:6
      logo-{128,256}.webp + logo-256.png           logo, alpha preserved
      favicon-32.png, favicon-180.png              icons on the brand ground
      og-image.jpg                                 1200x630 social card
@@ -74,7 +78,8 @@ const LOGO = ROOT + 'logo.png';
 const BG = { r: 25, g: 22, b: 17 };          // --bg  #191611
 const WIDTHS = [480, 800, 1200, 1624];
 
-/* One entry per project image in the Work section. `slug` is the served base
+/* Every non-logo image on the page: the Work projects, plus studio collateral
+   that is explicitly NOT a project (see the entries). `slug` is the served base
    name: slug-{width}.{avif,webp}. Widths are per-image because the layouts
    differ — the flagship runs near-container-width, so it earns 1624w; the
    split-layout cards never render past ~560px CSS pixels, so 1200w already
@@ -82,6 +87,10 @@ const WIDTHS = [480, 800, 1200, 1624];
 const PORTFOLIO = [
   { master: INVITATION, slug: 'invitation', widths: WIDTHS },
   { master: ROOT + 'leo-asnia-source.webp', slug: 'leo-asnia', widths: [480, 800, 1200] },
+  /* Studio collateral, NOT a client project — THAARA's own promotional poster,
+     shown in About. The invitation pictured in it is a sample design. It rides
+     this array only because the encoding settings are the same. */
+  { master: ROOT + 'studio-poster-source.jpg', slug: 'studio-poster', widths: [480, 880] },
 ];
 
 const kb = (f) => (fs.statSync(ROOT + f).size / 1024).toFixed(1).padStart(7) + ' KB';
@@ -157,6 +166,7 @@ const kb = (f) => (fs.statSync(ROOT + f).size / 1024).toFixed(1).padStart(7) + '
   console.log('\nMasters left untouched:');
   console.log('  invitation-save-the-date.png ' + kb('invitation-save-the-date.png'));
   console.log('  leo-asnia-source.webp        ' + kb('leo-asnia-source.webp'));
+  console.log('  studio-poster-source.jpg     ' + kb('studio-poster-source.jpg'));
   console.log('  logo.png                     ' + kb('logo.png'));
 })().catch((err) => {
   console.error(err);

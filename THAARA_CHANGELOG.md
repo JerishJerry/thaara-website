@@ -14,6 +14,111 @@ typography, animation timing, minor visual detail).
 
 ---
 
+## 2026-09-19 — Website Design added as a fifth discipline · Critical
+
+**Issue**
+The studio's marketing flyer sells five services; the site said "Four disciplines" and folded
+website work into others. The owner confirmed Website Design is a standalone offering, scoped
+to **business and brand sites** — so the site was understating what THAARA sells.
+
+**Change**
+- New `04 Website Design` service item, placed **between** Digital Design and Motion rather than
+  appended, so the two services that could blur sit adjacent and resolve in one read. Motion &
+  Visuals moves 04 → 05.
+- `03 Digital Design` hands websites over: description now "Landing pages and social media&nbsp;-
+  the same typographic care applied to a single post as to a full page", and the `Websites` chip
+  is gone. `01 Invitation Experiences` keeps `Event websites` — there the site *is* the invitation.
+- Swept every other place the disciplines are enumerated: the H2, the hero lead (which listed
+  exactly 02/03/04 and would have silently become incomplete), the hero capability strip, the
+  JSON-LD `OfferCatalog`, the About fact list, the meta/og/twitter descriptions.
+- Hero strip separators bound to the preceding word with `&nbsp;` — with a fifth item, 320px
+  wrapped a bare `·` onto the start of line 2.
+- Two stale CSS comments ("the four real services", "Remaining three services").
+
+**Files**
+`index.html`, `styles.css`, `CLAUDE.md`, `README.md`
+
+**Reason**
+Appending at 05 would have left Motion sitting between the two services a reader most needs to
+tell apart. Insertion cost one character. `.service-list` needed no CSS — it is a bare wrapper
+with a hairline; `.service-item` carries its own grid and border, so a fourth row just flows.
+
+**Left alone deliberately**
+`<title>` / og:title / twitter:title. They read "Invitation Experiences, Brand Identity & Motion"
+and already omit Digital Design, so they were never an exhaustive list and nothing became false.
+At 56 characters the title is already at the SERP limit; adding ", Website Design" would push it
+to 72 and get it truncated. Also untouched: `index.html:404` "Four stages" — that is Process, not
+services, and is a trap for a careless find-and-replace.
+
+**Verified**
+JSON-LD parses; all five Services present in page order. Four `.service-item` numerals share one
+left edge at x=90.5. No horizontal overflow at 320px (`scrollWidth === innerWidth === 320`); the
+strip wraps to 3 lines there with no line beginning on a separator. 0 console errors.
+
+---
+
+## 2026-09-19 — Studio poster added to About · Important
+
+**Issue**
+About was the emptiest area on the page: at 1280px its left column held only the pull-quote and
+left **580.7px of measured dead space** beside the prose. Work was the only section on the whole
+site carrying any imagery. The owner supplied the studio's marketing poster to fill it.
+
+**Change**
+- New `<figure class="about-poster">` in About's left column, under the statement. `<figure>` is
+  new to this codebase — used because the caption is a required disclaimer, and `figcaption` is
+  programmatically tied to the image for assistive tech.
+- `styles.css`: one new token `--poster-w: 440px`; a small rule block in section 13; and two
+  explicit grid placements at ≥900px.
+- `tools/build-images.js`: one entry → `studio-poster-{480,880}.{avif,webp}`.
+- New master `studio-poster-source.jpg` at repo root.
+
+**Files**
+`index.html`, `styles.css`, `tools/build-images.js`, `CLAUDE.md`, plus the new image assets
+
+**Reason — and the bug this caught**
+A third child in `.about-grid` does **not** land under the statement. The grid is `1fr 1fr` with
+`align-items: start`; auto-placement put the poster in column 2 and pushed the prose down into
+column 1. Measured, not assumed — the first render had the poster at x=672.5 and the body at 90.5.
+Fixed with `.about-poster{ grid-column: 1 }` and `.about-body{ grid-column: 2; grid-row: 1/span 2 }`,
+scoped to the ≥900px query so mobile still stacks.
+
+The caption is content, not a system state, so it is a plain sentence — **not** `.needs-input` or
+`.slot`. Those mark *missing* content; this is finished work with nothing pending, and CLAUDE.md
+records the invariant that 0 `needs-input` markers render. Rendering one would falsify that.
+
+The couple's names are deliberately **absent from the `alt` text**. A sighted visitor sees them in
+the artwork — that is the poster. But putting them in `alt` writes non-client names into
+machine-readable text that can be indexed and quoted as a project, which CLAUDE.md forbids. The
+caption already carries the necessary fact for an assistive-tech user. This is a decision, not an
+oversight.
+
+**Flagged, not changed**
+The poster prints `hello.thaara.creates@gmail.com`; the site uses `hello.thaaracreates@gmail.com`
+in six places. Gmail ignores dots so both deliver to the same inbox, but a visitor now sees two
+spellings in one viewport. Worth settling on one spelling in the next export of the artwork — the
+Instagram handle already matches exactly.
+
+**Weight, honestly**
+Critical text payload (the figure the 2265 KB → 106 KB record actually tracks) moves ~106 → ~108 KB.
+The image itself is the page's third lazy, below-the-fold asset: 36 KB (480w AVIF) at phone sizes,
+85.6 KB (880w) at desktop — nothing for a visitor who never reaches About. Repo grows ~470 KB
+including the master.
+
+**Verified**
+One left edge holds: `#about` head, statement, poster and caption all at x=90.5 at 1280px (body at
+672.5 in column 2, as intended); at 320px poster and statement both at x=20. Caption contrast
+measured on its real painted background (`--bg-alt`, not the section default): **4.9:1**, passes AA
+for 11px text. No horizontal overflow at 320px. Browser picks 480w AVIF at 320px and 880w at
+desktop. 0 console errors, 0 failed requests.
+
+Note for whoever verifies next: the page renders **blank** in a non-compositing browser pane —
+`.reveal` transitions freeze at opacity 0 (CLAUDE.md §50 trap 4). Inject
+`.reveal{opacity:1!important;transform:none!important}` before screenshotting or you will think
+the section is broken.
+
+---
+
 ## 2026-09-19 — Second project added: Leo Ronald × Asnia · Important
 
 **Issue**

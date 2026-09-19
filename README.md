@@ -1,7 +1,7 @@
 # THAARA — Creative &amp; Digital Experiences
 
 Website for THAARA, a creative studio working on invitation experiences, brand identity,
-digital design and motion.
+digital design, website design and motion.
 
 **Live site:** https://thaara-creates.netlify.app/
 

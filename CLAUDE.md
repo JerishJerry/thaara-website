@@ -3,7 +3,7 @@
 Project instructions. Read this before touching anything.
 
 THAARA is a creative studio: interactive wedding invitations and event websites, plus brand
-identity, digital design and motion. This repo is its marketing site.
+identity, digital design, website design and motion. This repo is its marketing site.
 
 ---
 
@@ -111,6 +111,11 @@ Work now carries **two** projects (2026-09-19): Nivin & Dhiya as `.project--feat
 × Asnia as `.project--split`. Both are real and permissioned. Arav & Keerthana, which appears in the
 studio's marketing flyer, is a template/demo — **not** a client project, do not list it as work.
 
+That flyer itself is now on the page (2026-09-19), in About as `.about-poster` — the studio's own
+collateral, which is real work THAARA made for itself. Its `<figcaption>` is load-bearing: it says
+the invitation pictured is a sample. Keep it. The couple's names stay out of the `alt` text so they
+never enter machine-readable page text as a project.
+
 Everything currently on the page traces to something real: the studio's own words, or the one
 project asset. The wedding date (23 August 2026) and the phrase "an interactive wedding invitation,
 designed as a website" are printed in the artwork itself.
@@ -209,8 +214,11 @@ Responsive `<picture>` with AVIF → WebP, four widths each, generated from the 
   other two: it is the client site's own cover image, re-exported from the live site because no
   original design file was on hand. Still the single source of truth for `leo-asnia-*` — don't
   re-fetch or swap it casually.
-- `tools/build-images.js` drives every project image off one `PORTFOLIO` array. Adding a third
-  project = one entry (`master`, `slug`, `widths`), not new code.
+- `studio-poster-source.jpg` is the studio's own marketing poster, shown in About. A social-sized
+  export (1145×1374), so 880w is the largest useful variant — don't generate bigger.
+- `tools/build-images.js` drives every non-logo image off one `PORTFOLIO` array. Adding an image
+  = one entry (`master`, `slug`, `widths`), not new code. The array carries the two Work projects
+  **and** the studio poster; the poster's entry is commented as collateral, not a project.
 - Regenerate variants with `tools/build-images.js` (needs `sharp` installed anywhere convenient —
   it is a build-time tool only and must **not** become a project dependency).
 - Every `<img>` needs `width`/`height` so nothing shifts as it loads.
