@@ -57,6 +57,72 @@ strip wraps to 3 lines there with no line beginning on a separator. 0 console er
 
 ---
 
+## 2026-09-22 — Design audit: hierarchy, accent discipline, hero · Important
+
+**Issue**
+Owner's verdict on the live site: "it looks like AI slop." An audit of the rendered DOM found the
+cause was structural repetition, not any single defect. Measured, not guessed:
+
+- **8 of 8 headings** used the identical "plain phrase + italic gold `<em>`" construction. Three
+  of them also opened with a spelled-out number plus plural noun — "Two projects," / "Five
+  disciplines," / "Four stages,".
+- **7 of 8 section headings rendered at exactly 48px.** 68% of all text (128 of 187 elements) was
+  15px or smaller. The middle of the 10-step scale was nearly empty, so the page had two volumes:
+  shout and whisper.
+- **Gold was the most-used text colour** — 63 elements against 54 for primary ink — doing seven
+  different jobs: heading emphasis, 20 numerals, arrows, links, eyebrows, category labels and form
+  asterisks.
+- **Every section had pixel-identical padding**, so nothing read as more or less important.
+- **`.service-item` and `.stage` were the same component** — same grid, padding and hairline —
+  so Services and Process were one texture rendered twice.
+- **3 images in 9,859px of page**, and none at all in the hero. A design studio was arguing for
+  itself in words.
+- `--fs-base` (17px) was set on `body` and then overridden to 15px everywhere, so the token
+  described nothing. `h4` was dead CSS — no `<h4>` exists in the document.
+
+**Change**
+- Gold restricted to interactive elements plus two accent phrases (hero h1, closing h2) via a new
+  `<em class="accent">` opt-in. Removed from every other heading, from `.index-num`, `.stage-num`,
+  `.eyebrow` and the mobile-menu numerals. **63 gold elements → 27.**
+- Section headings now vary: Work/Services/closing stay at `--fs-2xl`, Why/Process/About/Contact
+  step down to `--fs-xl`.
+- Body copy raised from `--fs-sm` to `--fs-base` in `.service-desc`, `.principle p`,
+  `.stage-body p` — the token now means what it says, and 17px is a fairer size on a dark ground.
+- Process rebuilt as a horizontal four-column progression with a single rule across the top,
+  instead of a third vertical ruled list. **1,266px → 589px.**
+- `#why` and `#process` now use `--section-y-sm`, so the page has pacing.
+- Dropped the redundant `Why THAARA` eyebrow — the heading already answers it.
+- Hero rebuilt: left-aligned and asymmetric, with the flagship invitation artwork beside the copy.
+- Deleted the dead `h4` rule.
+
+**Files**
+`index.html`, `styles.css`, `CLAUDE.md`
+
+**Reason**
+The individual pieces were well made — the comments, the image pipeline, the honest form-failure
+states are genuinely careful work. But the page was one section template instantiated eight times,
+and that is what reads as machine-made. Every change here is about restoring difference:
+between sections, between levels of importance, and between what is an accent and what is ordinary.
+
+**Not done**
+Copy was left alone on the owner's instruction. Still outstanding there: the "X, not Y"
+construction appears **nine times** across hero, three service descriptions, three principles and
+About; `meaningful` appears 4 times; and `thoughtful, expressive` appears twice inside a single
+viewport in About (the gold pull-quote and the first body paragraph beside it).
+
+**Known compromise**
+The hero reuses the Nivin & Dhiya artwork, which also appears in Work. All three images on the
+site were already spoken for, so any hero image duplicates something. It reads as a signature
+piece rather than an error, and the two share one download — but a dedicated hero frame would be
+better.
+
+**Verified**
+Every element on the page now shares **one** left edge (170.5 at 1440px) — the hero included,
+which was previously the documented exception. No horizontal overflow at 320/375/1440. 0 console
+errors, 0 failed requests. Page height 9,859px → 8,971px.
+
+---
+
 ## 2026-09-19 — Poster-to-statement gap fixed (double-spaced) · Polish
 
 **Issue**

@@ -133,7 +133,23 @@ reconsider, not to hard-code one.
 - Motion: transform/opacity only. No parallax, no cursor effects, no glassmorphism, no gradients
   beyond the existing accents.
 - Every element on the page shares **one left edge**. If you change a logo or container width,
-  re-check that alignment — it has broken twice.
+  re-check that alignment — it has broken twice. Since 2026-09-22 the hero shares it too; there
+  is no longer a centred exception on the page except the closing CTA and 404.
+
+**Gold has two jobs and no more** (2026-09-22). It marks interactive things (links, arrows,
+buttons) and exactly two accent phrases — the hero h1 and the closing h2, via `<em class="accent">`.
+It was previously on all 8 headings, all 20 index numerals and every eyebrow, which made it the
+most-used colour on the page (63 elements vs 54 for primary ink) and stopped it reading as an
+accent at all. Don't reintroduce it on numerals, eyebrows or section headings.
+
+**Section headings are not all the same size.** Work, Services and the closing line run at
+`--fs-2xl`; Why, Process, About and Contact step down to `--fs-xl`. Seven of eight used to render
+at an identical 48px, which left the page with no internal hierarchy. Keep the distinction:
+heading size signals which sections carry the argument.
+
+**Body copy is `--fs-base` (17px), not `--fs-sm`.** The token used to be set on `body` and then
+overridden to 15px by every real paragraph rule, so the name described nothing. `--fs-sm` is for
+genuinely secondary text (captions, chips, tabular values).
 
 The brief throughout: premium, editorial, minimal, personal. Not a generic agency template.
 

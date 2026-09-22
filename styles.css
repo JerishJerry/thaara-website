@@ -216,14 +216,27 @@ h1, h2, h3, h4{
 h1{ font-size: var(--fs-3xl); line-height: 1.04; }
 h2{ font-size: var(--fs-2xl); line-height: 1.1;  }
 h3{ font-size: var(--fs-xl);  line-height: 1.15; }
-h4{ font-size: var(--fs-lg);  line-height: 1.2; font-weight: 400; letter-spacing: 0; }
 
-/* Italic gold accent inside display type — THAARA's signature detail. */
+/* Italic accent inside display type. Gold is deliberately NOT the default
+   here: when every heading carried a gold phrase the accent stopped reading
+   as an accent. It is now opt-in via .accent, used twice — the hero and the
+   closing line — so it bookends the page instead of wallpapering it. */
 h1 em, h2 em, h3 em{
   font-style: italic;
   font-weight: 500;
-  color: var(--gold);
+  color: inherit;
 }
+h1 em.accent, h2 em.accent{ color: var(--gold); }
+
+/* Not every section is equally important, so not every section heading is the
+   same size. Work and Services carry the argument (the proof and the offer)
+   and stay at full scale with the closing line; the supporting sections step
+   down. Before this, seven of eight headings rendered at an identical 48px,
+   which left the page with no internal hierarchy at all. */
+#why h2,
+#process h2,
+#about h2,
+#contact h2{ font-size: var(--fs-xl); }
 
 /* Uppercase micro-label above every section heading. */
 .eyebrow{
@@ -233,7 +246,7 @@ h1 em, h2 em, h3 em{
   font-weight: 600;
   letter-spacing: .2em;
   text-transform: uppercase;
-  color: var(--gold);
+  color: var(--ink-faint);
   margin: 0 0 var(--sp-5);
 }
 
@@ -254,12 +267,13 @@ h1 em, h2 em, h3 em{
   color: var(--ink-faint);
 }
 
-/* Serif numeral used as an index marker. */
+/* Serif numeral used as an index marker. Muted, not gold: these are
+   wayfinding, not emphasis, and there are twenty of them on the page. */
 .index-num{
   font-family: var(--serif);
   font-size: var(--fs-sm);
   font-weight: 500;
-  color: var(--gold);
+  color: var(--ink-faint);
   font-variant-numeric: tabular-nums;
 }
 
@@ -281,6 +295,12 @@ h1 em, h2 em, h3 em{
   padding-block: var(--section-y);
 }
 .section--tight{ padding-block: var(--section-y-sm); }
+
+/* Pacing. Every section used to carry pixel-identical padding, which made the
+   page metronomic — nothing read as more or less significant than anything
+   else. Work and Services get room; the supporting sections run tighter. */
+#why,
+#process{ padding-block: var(--section-y-sm); }
 .section--alt{   background: var(--bg-alt); }
 .section--soft{  background: var(--bg-soft); }
 
@@ -623,7 +643,7 @@ h1 em, h2 em, h3 em{
 }
 .mobile-menu a:hover,
 .mobile-menu a:focus-visible{ color: var(--gold); padding-left: var(--sp-2); }
-.mobile-menu a span{ font-size: var(--fs-2xs); color: var(--gold); }
+.mobile-menu a span{ font-size: var(--fs-2xs); color: var(--ink-faint); }
 .mobile-menu .mm-ig{ color: var(--ink-dim); border-bottom: none; }
 
 /* Lock background scroll while the panel is open. */
@@ -690,19 +710,33 @@ body.menu-open{ overflow: hidden; }
   padding-bottom: clamp(var(--sp-9), 7vw, var(--sp-11));
 }
 
-/* Centered hero (Phase 6): single column at every width, copy centered.
-   A documented exception to the page's shared left edge — same precedent
-   as the centered closing CTA and 404. Everything from Work down keeps it. */
+/* Asymmetric hero: copy left, the signature piece beside it. Replaces the
+   centred single column of Phase 6 — that was the page's one exception to the
+   shared left edge, and it made the first screen read as a template header
+   detached from the left-aligned page beneath it. The hero now shares the
+   same left edge as everything else. */
 .hero-grid{
   display: grid;
   grid-template-columns: 1fr;
-  justify-items: center;
-  text-align: center;
+  gap: clamp(var(--sp-8), 5vw, var(--sp-10));
+  align-items: center;
+}
+@media (min-width: 900px){
+  .hero-grid{ grid-template-columns: 1.02fr 1fr; }
 }
 
-.hero h1{ margin-bottom: var(--sp-6); max-width: 15ch; margin-inline: auto; }
-.hero .lead{ max-width: 46ch; margin-bottom: clamp(var(--sp-7), 4vw, var(--sp-8)); margin-inline: auto; }
-.hero .btn-row{ justify-content: center; }
+.hero h1{ margin-bottom: var(--sp-6); max-width: 17ch; }
+.hero .lead{ max-width: 46ch; margin-bottom: clamp(var(--sp-7), 4vw, var(--sp-8)); }
+
+.hero-visual picture{ display: block; }
+.hero-visual img{
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg-raise);
+}
 
 /* Capability strip: the five real services in one quiet centred line. */
 .hero-caps{
@@ -747,7 +781,7 @@ body.menu-open{ overflow: hidden; }
 .hero-eyebrow{
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   gap: var(--sp-3);
   margin-bottom: var(--sp-6);
 }
@@ -1048,7 +1082,7 @@ body.menu-open{ overflow: hidden; }
 }
 .service-item h3{ font-size: var(--fs-lg); font-weight: 400; }
 .service-item .service-desc{
-  font-size: var(--fs-sm);
+  font-size: var(--fs-base);
   color: var(--ink-dim);
   max-width: 46ch;
 }
@@ -1115,7 +1149,7 @@ body.menu-open{ overflow: hidden; }
   max-width: 18ch;
 }
 .principle p{
-  font-size: var(--fs-sm);
+  font-size: var(--fs-base);
   color: var(--ink-dim);
   max-width: 34ch;
 }
@@ -1125,40 +1159,54 @@ body.menu-open{ overflow: hidden; }
    12  PROCESS
    ============================================================ */
 
-/* Editorial vertical timeline. A hairline spine with large serif numerals —
-   the same ruled-list language used for services, not a corporate diagram. */
+/* Horizontal progression, not another ruled list. This was previously the
+   same component as .service-item — identical grid, padding and hairline —
+   so Services and Process read as one texture repeated twice. A process is
+   the one thing on the page that genuinely moves left-to-right, and it is
+   the least important section here, so it also runs far more compact. */
 .stages{
   list-style: none;
   margin: 0;
   padding: 0;
-  border-top: 1px solid var(--line);
+  display: grid;
+  gap: var(--sp-7);
+}
+@media (min-width: 800px){
+  .stages{
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--sp-6);
+    border-top: 1px solid var(--line);
+    padding-top: var(--sp-6);
+  }
 }
 
 .stage{
   display: grid;
   grid-template-columns: auto 1fr;
-  gap: var(--sp-5);
-  padding-block: clamp(var(--sp-6), 3.5vw, var(--sp-8));
-  border-bottom: 1px solid var(--line);
+  gap: var(--sp-4);
+  align-items: baseline;
 }
 @media (min-width: 800px){
-  .stage{ grid-template-columns: 6rem 1fr; gap: var(--sp-8); align-items: start; }
+  /* Stacked inside each column: the row itself carries the progression. */
+  .stage{ grid-template-columns: 1fr; gap: var(--sp-3); }
 }
 
 .stage-num{
-  font-family: var(--serif);
-  font-size: var(--fs-xl);
-  font-weight: 400;
+  font-family: var(--sans);
+  font-size: var(--fs-3xs);
+  font-weight: 600;
+  letter-spacing: .16em;
   line-height: 1;
-  color: var(--gold);
+  color: var(--ink-faint);
   font-variant-numeric: tabular-nums;
   transition: color var(--dur) var(--ease);
 }
 
 .stage-body h3{
-  font-size: var(--fs-lg);
-  font-weight: 500;
-  margin-bottom: var(--sp-3);
+  font-size: var(--fs-base);
+  font-weight: 600;
+  letter-spacing: .01em;
+  margin-bottom: var(--sp-2);
 }
 .stage-body p{
   font-size: var(--fs-sm);
