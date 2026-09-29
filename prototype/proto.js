@@ -906,8 +906,15 @@ async function boot() {
       .replace(
         "#include <map_fragment>",
         [
+          // Stock sampling, kept verbatim so r186's video decode survives:
+          // video maps upload as RGBA8 and rely on DECODE_VIDEO_TEXTURE,
+          // which a hand-rolled sample would silently drop (washed-out screen).
           "#ifdef USE_MAP",
-          "  diffuseColor *= texture2D( map, vMapUv, uBias );",
+          "  vec4 sampledDiffuseColor = texture2D( map, vMapUv, uBias );",
+          "  #ifdef DECODE_VIDEO_TEXTURE",
+          "    sampledDiffuseColor = sRGBTransferEOTF( sampledDiffuseColor );",
+          "  #endif",
+          "  diffuseColor *= sampledDiffuseColor;",
           "#endif",
           "diffuseColor.rgb *= uBright;",
           "diffuseColor.rgb = mix( diffuseColor.rgb, invNeutral( diffuseColor.rgb ), uTrue );",
