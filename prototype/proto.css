@@ -87,7 +87,7 @@ p, h1, h2, figure{ margin: 0; }
   display: block;
   z-index: 0;
 }
-.track{ height: 820vh; }   /* 100vh + 400vh per timeline unit: the opening 0..1, scene 2 1..1.8 */
+.track{ height: 1140vh; }   /* 100vh + 400vh per timeline unit: opening 0..1, scene 2 1..1.8, scene 3 1.8..2.6 */
 
 
 /* ---- Header ------------------------------------------------- */
@@ -310,6 +310,40 @@ p, h1, h2, figure{ margin: 0; }
 .p2 a{ pointer-events: auto; }
 .p2-lead{ margin-top: clamp(0.9rem, 2vh, 1.4rem); color: var(--ink-dim); }
 .p2-link{ margin-top: clamp(0.4rem, 1.2vh, 0.9rem); }
+
+/* ---- Scene 3: Services, the five disciplines ------------------- */
+.s3{
+  position: fixed;
+  z-index: 3;
+  left: var(--gutter);
+  bottom: var(--base);
+  display: grid;
+  pointer-events: none;
+  width: min(27rem, calc(42vw - var(--gutter)));
+}
+.s3-head{ grid-row: 1; grid-column: 1; }
+.s3-head h2{
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: var(--fs-lead);
+  line-height: 1.12;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+.s3-head h2 em{ font-style: italic; }
+.s3-lead{ margin-top: clamp(0.75rem, 1.8vh, 1.25rem); color: var(--ink-dim); }
+/* The five discipline beats share one grid cell, so cycling them never
+   moves the visible text: the tallest beat sets the height once. */
+.s3d{ grid-row: 2; grid-column: 1; margin-top: clamp(1rem, 2.4vh, 1.75rem); }
+.s3d h3{
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: var(--fs-project);
+  line-height: 1.05;
+  letter-spacing: -0.012em;
+  margin-top: 0.35rem;
+}
+.s3d-desc{ margin-top: 0.6rem; color: var(--ink-dim); }
 /* Screen-reader text for the phone while the scene runs; the picture in the static page. */
 .p2-still{
   position: absolute;
@@ -375,7 +409,7 @@ html:not([data-scene="loading"]) .loader{ opacity: 0; visibility: hidden; }
   .hint{ left: var(--gutter); right: auto; }
   .lead{ right: var(--gutter); width: auto; }
   .outro{ flex-direction: column; align-items: flex-start; }
-  .work, .p2{ right: var(--gutter); width: auto; }
+  .work, .p2, .s3{ right: var(--gutter); width: auto; }
 }
 
 
@@ -445,6 +479,27 @@ html:not(.js) .p2-still img{ width: 100%; height: auto; border-radius: 1.25rem; 
   [data-scene="static"] .p2-still,
   html:not(.js) .p2-still{ width: min(62vw, 18rem, calc((100vh - var(--header-h) - 22rem) * 0.5626)); }
 }
+
+/* Static and no-JS: Services is a third screen below the second. */
+[data-scene="static"] .s3,
+html:not(.js) .s3{
+  position: relative;
+  left: auto;
+  right: auto;
+  bottom: auto;
+  width: auto;
+  min-height: 100vh;
+  margin: 0 var(--gutter);
+  padding: calc(var(--header-h) + 2vh) 0 var(--base);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: clamp(1.25rem, 3vh, 2.5rem);
+  pointer-events: auto;
+}
+[data-scene="static"] .s3 *{ opacity: 1 !important; visibility: visible !important; transform: none !important; }
+[data-scene="static"] .s3d,
+html:not(.js) .s3d{ margin-top: 0; }
 
 
 /* ---- Capture mode: frames must be deterministic ------------- */

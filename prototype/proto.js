@@ -7,9 +7,13 @@
    it maps `S` to positions and rotations with viewport-aware framing math,
    recomputed on resize.
 
-   Scene 2 (timeline 1..TOTAL): the settled card eases aside and the camera
-   travels to a phone showing the live Leo Ronald x Asnia invitation, a looping
-   screen recording of the real site.
+    Scene 2 (timeline 1..1.8): the settled card eases aside and the camera
+    travels to a phone showing the live Leo Ronald x Asnia invitation, a looping
+    screen recording of the real site.
+
+    Scene 3 (timeline 1.8..TOTAL): the phone eases aside and the camera
+    travels to a material library - five tablets, one per discipline -
+    dollying along the arc as each beat arrives.
 
    ?capture   no loop, no loader, no intro; exposes window.__proto for
               deterministic frame capture (verification and video);
@@ -88,7 +92,7 @@ const PH_W = 1.22, PH_D = 0.13, PH_BEZEL = 0.052, PH_R = 0.17, PH_BEVEL = 0.03;
 const PH_SW = PH_W - 2 * PH_BEZEL, PH_SH = PH_SW / SCREEN_ASPECT, PH_H = PH_SH + 2 * PH_BEZEL;
 const PHONE_AT = { x: 5.6, y: 1.43, z: -0.4 };       // the settled card sits at (0, 1.43, 0.86)
 const PH_REST = { rx: 0.08, ry: -0.74, rz: -0.03 };  // three-quarter view, screen toward the text
-const TOTAL = 1.8; // timeline length: the opening keeps 0..1 unchanged, scene 2 is 1..1.8
+const TOTAL = 2.6; // timeline length: opening 0..1, scene 2 1..1.8, scene 3 1.8..2.6
 
 /* ---- Small math ---- */
 const clamp = (x, a, b) => Math.min(b, Math.max(a, x));
@@ -697,6 +701,9 @@ async function boot() {
   const p2Head = document.querySelector(".p2-head");
   const p2Lead = document.querySelector(".p2-lead");
   const p2Link = document.querySelector(".p2-link");
+  const s3El = document.querySelector(".s3");
+  const s3Head = document.querySelector(".s3-head");
+  const s3ds = [...document.querySelectorAll(".s3d")];
   const loaderFill = document.querySelector(".loader-fill");
   const setLoad = (p) => loaderFill && loaderFill.style.setProperty("--p", p.toFixed(3));
   const yieldUI = CAPTURE ? () => Promise.resolve() : () => wait(0);
@@ -1195,6 +1202,119 @@ async function boot() {
     };
   });
 
+  /* ---- Scene 3: the material library ----
+     Five tablets in a shallow arc, one per discipline, each in the scene's
+     own matter: ivory paper, bronze wax with a gold seal, graphite with gold
+     rules, clearcoat glass, champagne gold with a ribbon. Numeral + name
+     labels are canvas textures (page fonts, CSS-token colours). */
+  const S3 = { leave: 0, travel: 0, focus: 0 }; // owned by the timeline
+  const TW = 0.95, TH = 1.5, TD = 0.07, TBEV = 0.02;
+  const ARC = { x: 6.0, y: 1.35, z: -1.7, r: 2.7 };
+  const S3T = { tiltX: 0 }; // portrait only: tip faces down toward the low camera
+  const S3_LABELS = [
+    { num: "01", lines: ["Invitation", "Experiences"] },
+    { num: "02", lines: ["Brand", "Identity"] },
+    { num: "03", lines: ["Digital", "Design"] },
+    { num: "04", lines: ["Website", "Design"] },
+    { num: "05", lines: ["Motion &", "Visuals"] },
+  ];
+  const labelTex = (num, lines) => {
+    const cv = makeCanvas(512, 384), g = cv.getContext("2d");
+    g.clearRect(0, 0, 512, 384);
+    g.textAlign = "center";
+    g.fillStyle = TOK.gold;
+    g.font = '600 168px "EB Garamond", serif';
+    g.fillText(num, 256, 178);
+    g.fillStyle = TOK.ink;
+    g.font = '600 47px "Source Sans 3", sans-serif';
+    try { g.letterSpacing = "5px"; } catch (e) { /* older canvas: no tracking */ }
+    g.fillText(lines[0], 256, 262);
+    g.fillText(lines[1], 256, 322);
+    return canvasTex(cv, true, aniso);
+  };
+  const s3 = new THREE.Group(); // placement of the whole arc
+  const s3tabs = [];
+  {
+    // Tablet 5 gets its own deep-bronze face: a light gold face washes out
+    // the ivory label text, while polished metal mirror-flares at close
+    // range. Dark bronze + ivory text, with the ribbon's jewel gold above it.
+    const champagneSoft = keyPool(new THREE.MeshStandardMaterial({
+      name: "champagne-soft", color: cGold.clone().lerp(cBgRaise, 0.52), metalness: 0.35, roughness: 0.55, envMapIntensity: 0.8,
+    }));
+    const faceMats = [paperMat, waxBodyMat, graphiteMat, graphiteMat, champagneSoft];
+    for (let i = 0; i < 5; i++) {
+      const grp = new THREE.Group();
+      const bodyGeo = new THREE.ExtrudeGeometry(roundRect(TW - 2 * TBEV, TH - 2 * TBEV, 0.09), {
+        depth: TD - 2 * TBEV, bevelEnabled: true, bevelThickness: TBEV, bevelSize: TBEV, bevelSegments: 3, curveSegments: 16,
+      });
+      bodyGeo.translate(0, 0, -(TD - 2 * TBEV) / 2);
+      const body = new THREE.Mesh(bodyGeo, [faceMats[i], graphiteMat]);
+      grp.add(body);
+      const lab = new THREE.Mesh(
+        new THREE.PlaneGeometry(0.8, 0.6),
+        new THREE.MeshBasicMaterial({ name: "s3label" + i, map: labelTex(S3_LABELS[i].num, S3_LABELS[i].lines), transparent: true, fog: false })
+      );
+      lab.position.set(0, 0.38, TD / 2 + 0.021);
+      grp.add(lab);
+      if (i === 1) { // brand: gold seal ring + wax centre, low on the face
+        const ring = new THREE.Mesh(new THREE.RingGeometry(0.15, 0.21, 48), linerMat);
+        ring.position.set(0, -0.38, TD / 2 + 0.021);
+        const dot = new THREE.Mesh(new THREE.CircleGeometry(0.14, 48), waxCapMat);
+        dot.position.set(0, -0.38, TD / 2 + 0.022);
+        grp.add(ring, dot);
+      }
+      if (i === 2) { // digital: three fine gold rules
+        for (let k = 0; k < 3; k++) {
+          const rule = new THREE.Mesh(new THREE.BoxGeometry(0.58, 0.018, 0.012), linerMat);
+          rule.position.set(0, -0.18 - k * 0.2, TD / 2 + 0.02);
+          grp.add(rule);
+        }
+      }
+      if (i === 3) { // website: a glass pane over the face
+        const pane = new THREE.Mesh(new THREE.PlaneGeometry(TW - 0.1, TH - 0.1), glassMat);
+        pane.position.set(0, 0, TD / 2 + 0.012);
+        pane.renderOrder = 7;
+        grp.add(pane);
+      }
+      s3.add(grp);
+      s3tabs.push({ grp, base: new THREE.Vector3(), rotY: 0 });
+    }
+    // Motion's ribbon: a champagne torus floating over the fifth tablet.
+    var ribbon = new THREE.Mesh(new THREE.TorusGeometry(0.3, 0.038, 12, 72), champagneMat);
+    ribbon.position.set(0, 2.6, 0);
+    s3.add(ribbon);
+    // A shared dark plinth grounds the arc; its width follows the layout.
+    var plinth = new THREE.Mesh(new THREE.BoxGeometry(1, 0.1, 0.55), graphiteMat);
+    plinth.position.set(0, 0, 0);
+    s3.add(plinth);
+  }
+  s3.visible = false;
+  scene.add(s3);
+  const layoutArc = () => {
+    const tight = L.portrait ? 0.55 : 1;
+    const cy = L.portrait ? ARC.y + 0.95 : ARC.y;
+    S3T.tiltX = L.portrait ? 0.38 : 0;
+    let x0 = Infinity, x1 = -Infinity;
+    for (let i = 0; i < 5; i++) {
+      const a = ((-36 + i * 18) * Math.PI) / 180;
+      const x = ARC.x + ARC.r * Math.sin(a) * tight;
+      const z = ARC.z - ARC.r * (1 - Math.cos(a));
+      s3tabs[i].base.set(x, cy, z);
+      s3tabs[i].rotY = -a * 0.55;
+      x0 = Math.min(x0, x); x1 = Math.max(x1, x);
+      s3tabs[i].grp.position.copy(s3tabs[i].base);
+      s3tabs[i].grp.rotation.set(0, s3tabs[i].rotY, 0);
+    }
+    const span = x1 - x0 + TW;
+    plinth.scale.x = span + 0.5;
+    plinth.position.set((x0 + x1) / 2, cy - TH / 2 - 0.12, ARC.z + 0.1);
+    ribbon.position.set(s3tabs[4].base.x, cy + TH / 2 + 0.3, s3tabs[4].base.z);
+    return { cx: (x0 + x1) / 2, cy, cz: ARC.z - 0.3, w: span, h: TH + 0.9 };
+  };
+  const ARC_POOL = new THREE.Vector3(ARC.x, ARC.y + 0.9, ARC.z + 0.8);
+  const ARC_TGT = new THREE.Vector3(ARC.x, ARC.y, ARC.z);
+  const ARC_RIM = new THREE.Vector3(ARC.x + 2.6, ARC.y + 1.4, ARC.z - 1.5);
+
   /* ---- Lights ---- */
   const KEY_DIR = new THREE.Vector3(-0.62, 0.66, 0.42).normalize();
   const key = new THREE.DirectionalLight(cInk.clone().lerp(cGoldLift, 0.3), LIGHT.key);
@@ -1295,7 +1415,7 @@ async function boot() {
      Layout: screen rects (CSS px) that each beat's subject must fit.
      ============================================================ */
   const L = { vw: 1, vh: 1, aspect: 1, portrait: false, tiltK: 1 };
-  const F0 = {}, F1 = {}, F2 = {}, F3 = {}, FA = {}, FB = {}, FP = {}, FC = {};
+  const F0 = {}, F1 = {}, F2 = {}, F3 = {}, FA = {}, FB = {}, FP = {}, FC = {}, FQ = {}, FD = {};
   const eul = new THREE.Euler(), m4 = new THREE.Matrix4(), v3 = new THREE.Vector3();
 
   function fit(rect, w, h, cx, cy, cz, out) {
@@ -1422,6 +1542,14 @@ async function boot() {
       ? { l: g, r: vw - g, t: header + vh * 0.012, b: p2R.top - vh * 0.03 }
       : { l: Math.max(vw * 0.46, p2R.right + vw * 0.05), r: vw * 0.9, t: header + vh * 0.02, b: vh - g };
     fit(rP, PH_W * 1.12, PH_H * 1.04, PHONE_AT.x, PHONE_AT.y, PHONE_AT.z + PH_D / 2, FP);
+
+    // Scene 3: the material arc beside its text (landscape) or above it (portrait).
+    const s3R = s3El.getBoundingClientRect();
+    const arc = layoutArc();
+    const rQ = L.portrait
+      ? { l: g, r: vw - g, t: header + vh * 0.012, b: s3R.top - vh * 0.03 }
+      : { l: Math.max(vw * 0.42, s3R.right + vw * 0.05), r: vw - g, t: header + vh * 0.02, b: vh - g };
+    fit(rQ, arc.w * (L.portrait ? 1.45 : 1.1), arc.h * 1.15, arc.cx, arc.cy, arc.cz, FQ);
   }
 
   let needsResize = true;
@@ -1474,10 +1602,28 @@ async function boot() {
     .fromTo(p2Head, { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.06, ease: "power3.out" }, 1.33)
     .fromTo(p2Lead, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.06, ease: "power3.out" }, 1.36)
     .fromTo(p2Link, { autoAlpha: 0, y: 16 }, { autoAlpha: 1, y: 0, duration: 0.06, ease: "power3.out" }, 1.39)
+    // Scene 3. The phone's beats leave first; the section beat arrives and
+    // stays while the five discipline beats cycle beneath it; the last stays.
+    .fromTo(p2Head, { opacity: 1, y: 0 }, { opacity: 0, y: -14, duration: 0.03, ease: "power2.in", immediateRender: false }, 1.8)
+    .fromTo(p2Lead, { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, 1.8)
+    .fromTo(p2Link, { autoAlpha: 1, y: 0 }, { autoAlpha: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, 1.8)
+    .fromTo(s3Head, { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.06, ease: "power3.out" }, 1.88)
+    .fromTo(s3ds[0], { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.05, ease: "power3.out" }, 1.97)
+    .fromTo(s3ds[0], { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, 2.06)
+    .fromTo(s3ds[1], { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.05, ease: "power3.out" }, 2.08)
+    .fromTo(s3ds[1], { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, 2.17)
+    .fromTo(s3ds[2], { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.05, ease: "power3.out" }, 2.19)
+    .fromTo(s3ds[2], { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, 2.28)
+    .fromTo(s3ds[3], { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.05, ease: "power3.out" }, 2.3)
+    .fromTo(s3ds[3], { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, 2.39)
+    .fromTo(s3ds[4], { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.05, ease: "power3.out" }, 2.41)
     .set({}, {}, TOTAL);
   tl.to(S2, { leave: 1, duration: 0.24, ease: "power2.inOut" }, 1.02)
     .to(S2, { travel: 1, duration: 0.3, ease: "power2.inOut" }, 1.03)
     .to(S2, { turn: 1, duration: 0.36, ease: "power2.inOut" }, 1.2);
+  tl.to(S3, { leave: 1, duration: 0.24, ease: "power2.inOut" }, 1.82)
+    .to(S3, { travel: 1, duration: 0.3, ease: "power2.inOut" }, 1.83)
+    .to(S3, { focus: 4, duration: 0.6, ease: "none" }, 1.9);
 
   /* ============================================================
      Render-loop mapping: state -> transforms. The only writer.
@@ -1548,14 +1694,18 @@ async function boot() {
     card.rotation.z = 0.035 * lv;
     card.visible = lv < 0.999;
     const F = tr > 0 ? mixFrame(FA, FP, tr, FC) : FA;
-    const halfH = (VH1 * F.d) / 2, halfW = halfH * L.aspect;
-    camera.position.set(F.x - F.sx * halfW, F.y - F.sy * halfH, F.z + F.d);
+    // Scene 3. The camera pulls on to the arc, then pans along it with focus.
+    const FV = S3.travel > 0 ? mixFrame(F, FQ, S3.travel, FD) : F;
+    const halfH = (VH1 * FV.d) / 2, halfW = halfH * L.aspect;
+    // Dolly along the arc, scaled to the frame so narrow screens pan less.
+    if (S3.travel > 0) FV.x += (S3.focus - 2) * halfW * 0.3;
+    camera.position.set(FV.x - FV.sx * halfW, FV.y - FV.sy * halfH, FV.z + FV.d);
     camera.quaternion.identity();
     const par = PARALLAX ? Math.max(1 - p, tr) : 0;
     if (par > 0) {
       eOrbit.set(-ptr.y * 0.03 * par, ptr.x * 0.045 * par, 0, "YXZ");
       qOrbit.setFromEuler(eOrbit);
-      focus.set(F.x, F.y, F.z);
+      focus.set(FV.x, FV.y, FV.z);
       off.copy(camera.position).sub(focus).applyQuaternion(qOrbit);
       camera.position.copy(focus).add(off);
       camera.quaternion.copy(qOrbit);
@@ -1563,7 +1713,7 @@ async function boot() {
 
     // The phone: in from the right at a three-quarter angle, then it turns to face
     // the camera, with the envelope's idle float easing as it does.
-    phone.visible = tr > 0.001;
+    phone.visible = tr > 0.001 && S3.leave < 0.999;
     if (phone.visible) {
       const idle2 = REDUCED ? 0 : 1 - 0.72 * tu;
       const arrive = 1 - tr, k2 = L.tiltK;
@@ -1580,6 +1730,28 @@ async function boot() {
       screenU.uBright.value = lerp(0.9, 1, smooth(0.2, 1, tu));
     }
 
+    // Scene 3. The phone eases aside and away: the previous piece.
+    const slv = S3.leave;
+    phone.position.x -= 2.6 * slv;
+    phone.position.y -= 0.5 * slv;
+    phone.position.z -= 2.2 * slv;
+    handset.rotation.y -= 0.6 * slv;
+
+    // Scene 3 tablets: arc placement from layout, the visiting tablet lifts.
+    const st = S3.travel, fc = S3.focus;
+    s3.visible = st > 0.001;
+    if (s3.visible) {
+      for (let i = 0; i < 5; i++) {
+        const tb = s3tabs[i];
+        const wgt = Math.max(0, 1 - Math.abs(fc - i));
+        const lift = wgt * wgt * (3 - 2 * wgt);
+        tb.grp.position.set(tb.base.x, tb.base.y + 0.12 * lift, tb.base.z + 0.55 * lift);
+        tb.grp.rotation.set(S3T.tiltX, tb.rotY * (1 - 0.85 * lift), 0);
+      }
+      ribbon.rotation.y = REDUCED ? 0.6 : t * 0.5;
+      ribbon.rotation.x = 0.35;
+    }
+
     // The lights travel with the subject: the key's falloff and target, the gold rim.
     poolU.uPoolCentre.value.set(
       lerp(-1.05, PHONE_AT.x - 0.9, tr),
@@ -1589,12 +1761,17 @@ async function boot() {
     key.target.position.set(lerp(0, PHONE_AT.x, tr), lerp(rig.position.y * 0.5 + s * 0.5, PHONE_AT.y, tr), lerp(0, PHONE_AT.z, tr));
     key.position.copy(key.target.position).addScaledVector(KEY_DIR, 12);
     rim.position.set(lerp(3.6, PHONE_AT.x + 2.6, tr), lerp(1.5, PHONE_AT.y + 1.4, tr), lerp(-0.9, PHONE_AT.z - 1.5, tr));
+    // Scene 3: lights ride on from the phone to the arc.
+    poolU.uPoolCentre.value.lerp(ARC_POOL, st);
+    key.target.position.lerp(ARC_TGT, st);
+    key.position.copy(key.target.position).addScaledVector(KEY_DIR, 12);
+    rim.position.lerp(ARC_RIM, st);
     const back = smooth(0, 1, tr); // scene 2 brings back the atmosphere the settled card cleared
 
     // Backdrop pool follows the subject on screen.
-    backdropU.uCenter.value.set(F.sx, F.sy);
+    backdropU.uCenter.value.set(FV.sx, FV.sy);
     backdropU.uAmt.value = lerp(1 - 0.45 * smooth(0.4, 1, p), 1, back); // quieter ground under the label at the end
-    dustU.uPoolNdc.value.set(F.sx, F.sy, L.aspect);
+    dustU.uPoolNdc.value.set(FV.sx, FV.sy, L.aspect);
 
     // Bloom swells as the flap opens, eases off as the card fills the frame.
     // Scene 2 keeps it off: the true-colour screen is pre-inverted into HDR and would flare.
@@ -1651,6 +1828,7 @@ async function boot() {
   tl.progress(0);
   update();
   phone.visible = true; // compile scene 2's programs now, not mid-scroll
+  s3.visible = true; // same for scene 3
   renderer.initTexture(posterTex);
   if (renderer.extensions.has("KHR_parallel_shader_compile")) await renderer.compileAsync(scene, camera);
   else renderer.compile(scene, camera);
@@ -1683,7 +1861,8 @@ async function boot() {
     window.__proto.video = () => ({ ok: videoOk, time: video && video.currentTime, duration: video && video.duration });
     window.__proto.debug = { THREE, renderer, scene, camera, composer, bloom, finish, key, rim, hemi, innerLight,
       glowMat, spillMat, paperMat, linerMat, waxCapMat, waxBodyMat, foilMat, dustU, backdropU, cardU, S, I, L, LIGHT, rig, env, card, seal, pivot,
-      S2, phone, handset, screenU, screenMat, glassMat, graphiteMat, champagneMat, FP };
+      S2, phone, handset, screenU, screenMat, glassMat, graphiteMat, champagneMat, FP,
+      S3, s3, s3tabs, ribbon, plinth, FQ };
     window.__proto.info = () => ({
       dpr,
       samples: SAMPLES,
@@ -1740,7 +1919,7 @@ async function boot() {
     update();
     if (tl.time() > 0.7) askVideo();
     if (videoOk) {
-      const want = S2.travel > 0.2;
+      const want = S2.travel > 0.2 && S3.travel < 0.3;
       if (want && video.paused) video.play().catch(() => {});
       else if (!want && !video.paused) video.pause();
     }
