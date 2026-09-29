@@ -87,7 +87,7 @@ p, h1, h2, figure{ margin: 0; }
   display: block;
   z-index: 0;
 }
-.track{ height: 1420vh; }   /* 100vh + 400vh per timeline unit: opening 0..1, scenes 2..4 to 3.3 */
+.track{ height: 1700vh; }   /* 100vh + 400vh per timeline unit: opening 0..1, scenes 2..5 to 4.0 */
 
 
 /* ---- Header ------------------------------------------------- */
@@ -376,6 +376,39 @@ p, h1, h2, figure{ margin: 0; }
   margin-top: 0.35rem;
 }
 .s4d-desc{ margin-top: 0.6rem; color: var(--ink-dim); }
+
+/* ---- Scene 5: Process, four stages as stations ----------------- */
+.s5{
+  position: fixed;
+  z-index: 3;
+  left: var(--gutter);
+  bottom: var(--base);
+  display: grid;
+  pointer-events: none;
+  width: min(27rem, calc(42vw - var(--gutter)));
+}
+.s5-head{ grid-row: 1; grid-column: 1; }
+.s5-head h2{
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: var(--fs-lead);
+  line-height: 1.12;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+.s5-head h2 em{ font-style: italic; }
+.s5-lead{ margin-top: clamp(0.75rem, 1.8vh, 1.25rem); color: var(--ink-dim); }
+/* The four stage beats share one grid cell, like scenes 3-4. */
+.s5d{ grid-row: 2; grid-column: 1; margin-top: clamp(1rem, 2.4vh, 1.75rem); }
+.s5d h3{
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: var(--fs-project);
+  line-height: 1.05;
+  letter-spacing: -0.012em;
+  margin-top: 0.35rem;
+}
+.s5d-desc{ margin-top: 0.6rem; color: var(--ink-dim); }
 /* Screen-reader text for the phone while the scene runs; the picture in the static page. */
 .p2-still{
   position: absolute;
@@ -441,7 +474,7 @@ html:not([data-scene="loading"]) .loader{ opacity: 0; visibility: hidden; }
   .hint{ left: var(--gutter); right: auto; }
   .lead{ right: var(--gutter); width: auto; }
   .outro{ flex-direction: column; align-items: flex-start; }
-  .work, .p2, .s3, .s4{ right: var(--gutter); width: auto; }
+  .work, .p2, .s3, .s4, .s5{ right: var(--gutter); width: auto; }
 }
 
 
@@ -553,6 +586,27 @@ html:not(.js) .s4{
 [data-scene="static"] .s4 *{ opacity: 1 !important; visibility: visible !important; transform: none !important; }
 [data-scene="static"] .s4d,
 html:not(.js) .s4d{ margin-top: 0; }
+
+/* Static and no-JS: Process is a fifth screen below Why THAARA. */
+[data-scene="static"] .s5,
+html:not(.js) .s5{
+  position: relative;
+  left: auto;
+  right: auto;
+  bottom: auto;
+  width: auto;
+  min-height: 100vh;
+  margin: 0 var(--gutter);
+  padding: calc(var(--header-h) + 2vh) 0 var(--base);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: clamp(1.25rem, 3vh, 2.5rem);
+  pointer-events: auto;
+}
+[data-scene="static"] .s5 *{ opacity: 1 !important; visibility: visible !important; transform: none !important; }
+[data-scene="static"] .s5d,
+html:not(.js) .s5d{ margin-top: 0; }
 
 
 /* ---- Capture mode: frames must be deterministic ------------- */

@@ -15,8 +15,11 @@
     travels to a material library - five tablets, one per discipline -
     dollying along the arc as each beat arrives.
 
-    Scene 4 (timeline 2.6..TOTAL): the arc sinks away and the camera rises
+    Scene 4 (timeline 2.6..3.3): the arc sinks away and the camera rises
     to four gold rings, one per principle, turning slowly as each beat arrives.
+
+    Scene 5 (timeline 3.3..TOTAL): the rings rise away and the camera
+    travels forward through four portal stations joined by a gold path.
 
    ?capture   no loop, no loader, no intro; exposes window.__proto for
               deterministic frame capture (verification and video);
@@ -95,7 +98,7 @@ const PH_W = 1.22, PH_D = 0.13, PH_BEZEL = 0.052, PH_R = 0.17, PH_BEVEL = 0.03;
 const PH_SW = PH_W - 2 * PH_BEZEL, PH_SH = PH_SW / SCREEN_ASPECT, PH_H = PH_SH + 2 * PH_BEZEL;
 const PHONE_AT = { x: 5.6, y: 1.43, z: -0.4 };       // the settled card sits at (0, 1.43, 0.86)
 const PH_REST = { rx: 0.08, ry: -0.74, rz: -0.03 };  // three-quarter view, screen toward the text
-const TOTAL = 3.3; // opening 0..1, scene 2 1..1.8, scene 3 1.8..2.6, scene 4 2.6..3.3
+const TOTAL = 4.0; // opening 0..1, scenes 2..5 to 4.0 (0.7-0.8 each)
 
 /* ---- Small math ---- */
 const clamp = (x, a, b) => Math.min(b, Math.max(a, x));
@@ -710,6 +713,9 @@ async function boot() {
   const s4El = document.querySelector(".s4");
   const s4Head = document.querySelector(".s4-head");
   const s4ds = [...document.querySelectorAll(".s4d")];
+  const s5El = document.querySelector(".s5");
+  const s5Head = document.querySelector(".s5-head");
+  const s5ds = [...document.querySelectorAll(".s5d")];
   const loaderFill = document.querySelector(".loader-fill");
   const setLoad = (p) => loaderFill && loaderFill.style.setProperty("--p", p.toFixed(3));
   const yieldUI = CAPTURE ? () => Promise.resolve() : () => wait(0);
@@ -1234,8 +1240,7 @@ async function boot() {
     g.fillStyle = TOK.ink;
     g.font = '600 47px "Source Sans 3", sans-serif';
     try { g.letterSpacing = "5px"; } catch (e) { /* older canvas: no tracking */ }
-    g.fillText(lines[0], 256, 262);
-    g.fillText(lines[1], 256, 322);
+    lines.forEach((ln, k) => g.fillText(ln, 256, 262 + k * 60));
     return canvasTex(cv, true, aniso);
   };
   const s3 = new THREE.Group(); // placement of the whole arc
@@ -1342,6 +1347,60 @@ async function boot() {
   const RINGS_C = new THREE.Vector3(RINGS.x, RINGS.y0 + 1.5 * RINGS.dy, RINGS.z - 0.2);
   const RINGS_RIM = new THREE.Vector3(RINGS.x + 2.2, RINGS.y0 + 1.5 * RINGS.dy + 1.2, RINGS.z - 1.2);
 
+  /* ---- Scene 5: stations along a path ----
+     Four graphite portals with gold thresholds joined by a gold path line,
+     laid on a gentle S-curve; the camera travels the same curve through them. */
+  const S5 = { leave: 0, travel: 0, focus: 0 }; // owned by the timeline
+  const PATH = { x: 6.0, y: 0.9, z: -2.2, dx: 0.8, dy: 0.35, dz: 3.0 };
+  const S5_NUMS = ["01", "02", "03", "04"];
+  const S5_NAMES = ["Discover", "Shape", "Create", "Launch"];
+  const pathPt = (f) => ({
+    x: PATH.x + Math.sin(f * 0.9) * PATH.dx,
+    y: PATH.y + f * PATH.dy,
+    z: PATH.z - f * PATH.dz,
+  });
+  const s5 = new THREE.Group();
+  {
+    for (let i = 0; i < 4; i++) {
+      const p = pathPt(i);
+      const g = new THREE.Group();
+      // Stations stand on the travelled line, right of the camera: the frame's
+      // lateral offset carries the camera past them with clearance, so the
+      // journey glides by each portal instead of through it.
+      g.position.set(p.x, p.y, p.z);
+      g.rotation.y = -0.3;
+      const pilGeo = new THREE.BoxGeometry(0.18, 2.2, 0.18);
+      const pl = new THREE.Mesh(pilGeo, graphiteMat); pl.position.set(-0.75, 0, 0); g.add(pl);
+      const pr = new THREE.Mesh(pilGeo, graphiteMat); pr.position.set(0.75, 0, 0); g.add(pr);
+      const lin = new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.18, 0.18), graphiteMat);
+      lin.position.set(0, 1.1, 0); g.add(lin);
+      const sill = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.05, 0.34), linerMat);
+      sill.position.set(0, -1.1, 0); g.add(sill);
+      const plate = new THREE.Mesh(
+        new THREE.PlaneGeometry(0.85, 0.64),
+        new THREE.MeshBasicMaterial({ name: "s5plate" + i, map: labelTex(S5_NUMS[i], [S5_NAMES[i]]), transparent: true, fog: false })
+      );
+      plate.position.set(0, 1.72, 0);
+      g.add(plate);
+      s5.add(g);
+    }
+    // The gold path: straight runs joining consecutive stations.
+    const seg = (a, b) => {
+      const va = new THREE.Vector3(a.x, a.y - 1.2, a.z), vb = new THREE.Vector3(b.x, b.y - 1.2, b.z);
+      const m = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.025, va.distanceTo(vb)), linerMat);
+      m.position.copy(va).lerp(vb, 0.5);
+      m.lookAt(vb);
+      s5.add(m);
+    };
+    for (let i = 0; i < 3; i++) seg(pathPt(i), pathPt(i + 1));
+  }
+  s5.visible = false;
+  scene.add(s5);
+  // The last station: the journey ends looking through its portal.
+  const ST3 = pathPt(3);
+  const PATH_MID = new THREE.Vector3(PATH.x + 0.5, PATH.y + 0.5, PATH.z - 4.5);
+  const PATH_RIM = new THREE.Vector3(PATH.x + 2.2, PATH.y + 1.7, PATH.z - 5.5);
+
   /* ---- Lights ---- */
   const KEY_DIR = new THREE.Vector3(-0.62, 0.66, 0.42).normalize();
   const key = new THREE.DirectionalLight(cInk.clone().lerp(cGoldLift, 0.3), LIGHT.key);
@@ -1442,7 +1501,8 @@ async function boot() {
      Layout: screen rects (CSS px) that each beat's subject must fit.
      ============================================================ */
   const L = { vw: 1, vh: 1, aspect: 1, portrait: false, tiltK: 1 };
-  const F0 = {}, F1 = {}, F2 = {}, F3 = {}, FA = {}, FB = {}, FP = {}, FC = {}, FQ = {}, FD = {}, FR = {}, FE = {};
+  const F0 = {}, F1 = {}, F2 = {}, F3 = {}, FA = {}, FB = {}, FP = {}, FC = {}, FQ = {}, FD = {}, FR = {}, FE = {}, FS = {};
+  const DBG = {}; // scratchpad introspection: update() stashes the live camera frame here
   const eul = new THREE.Euler(), m4 = new THREE.Matrix4(), v3 = new THREE.Vector3();
 
   function fit(rect, w, h, cx, cy, cz, out) {
@@ -1584,6 +1644,13 @@ async function boot() {
       ? { l: g, r: vw - g, t: header + vh * 0.012, b: s4R.top - vh * 0.03 }
       : { l: Math.max(vw * 0.42, s4R.right + vw * 0.05), r: vw - g, t: header + vh * 0.02, b: vh - g };
     fit(rR, 3.4, 4.1, RINGS_C.x, RINGS_C.y, RINGS_C.z, FR);
+
+    // Scene 5: the first station right of the text (landscape) or above it (portrait).
+    const s5R = s5El.getBoundingClientRect();
+    const rS = L.portrait
+      ? { l: g, r: vw - g, t: header + vh * 0.012, b: s5R.top - vh * 0.03 }
+      : { l: Math.max(vw * 0.42, s5R.right + vw * 0.05), r: vw - g, t: header + vh * 0.02, b: vh - g };
+    fit(rS, 2.4, 4.4, PATH.x, PATH.y + 0.3, PATH.z, FS);
   }
 
   let needsResize = true;
@@ -1663,6 +1730,18 @@ async function boot() {
     .fromTo(s4ds[2], { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.05, ease: "power3.out" }, 2.99)
     .fromTo(s4ds[2], { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, 3.08)
     .fromTo(s4ds[3], { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.05, ease: "power3.out" }, 3.1)
+    // Scene 5. The rings' beats leave first; the section beat arrives and
+    // stays while the four stage beats cycle beneath it; the last stays.
+    .fromTo(s4Head, { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, 3.3)
+    .fromTo(s4ds[3], { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, 3.3)
+    .fromTo(s5Head, { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.06, ease: "power3.out" }, 3.38)
+    .fromTo(s5ds[0], { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.05, ease: "power3.out" }, 3.47)
+    .fromTo(s5ds[0], { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, 3.56)
+    .fromTo(s5ds[1], { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.05, ease: "power3.out" }, 3.58)
+    .fromTo(s5ds[1], { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, 3.67)
+    .fromTo(s5ds[2], { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.05, ease: "power3.out" }, 3.69)
+    .fromTo(s5ds[2], { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, 3.78)
+    .fromTo(s5ds[3], { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.05, ease: "power3.out" }, 3.8)
     .set({}, {}, TOTAL);
   tl.to(S2, { leave: 1, duration: 0.24, ease: "power2.inOut" }, 1.02)
     .to(S2, { travel: 1, duration: 0.3, ease: "power2.inOut" }, 1.03)
@@ -1673,6 +1752,9 @@ async function boot() {
   tl.to(S4, { leave: 1, duration: 0.24, ease: "power2.inOut" }, 2.62)
     .to(S4, { travel: 1, duration: 0.3, ease: "power2.inOut" }, 2.63)
     .to(S4, { focus: 3, duration: 0.55, ease: "none" }, 2.7);
+  tl.to(S5, { leave: 1, duration: 0.24, ease: "power2.inOut" }, 3.32)
+    .to(S5, { travel: 1, duration: 0.3, ease: "power2.inOut" }, 3.33)
+    .to(S5, { focus: 3, duration: 0.5, ease: "none" }, 3.4);
 
   /* ============================================================
      Render-loop mapping: state -> transforms. The only writer.
@@ -1748,17 +1830,42 @@ async function boot() {
     // Scene 4. The camera rises with the rings.
     const st4 = S4.travel, fc4 = S4.focus;
     const FV2 = st4 > 0 ? mixFrame(FV, FR, st4, FE) : FV;
-    const halfH = (VH1 * FV2.d) / 2, halfW = halfH * L.aspect;
-    // Dollies, scaled to the frame so narrow screens travel less.
-    if (S3.travel > 0) FV.x += (S3.focus - 2) * halfW * 0.3;
-    if (st4 > 0) FV2.y += (fc4 - 1.5) * halfH * 0.17;
-    camera.position.set(FV2.x - FV2.sx * halfW, FV2.y - FV2.sy * halfH, FV2.z + FV2.d);
+    // Scene 5. The camera travels the path through the stations.
+    const st5 = S5.travel, fc5 = S5.focus;
+    const FV3 = st5 > 0 ? mixFrame(FV2, FS, st5, FD) : FV2;
+    const halfH = (VH1 * FV3.d) / 2, halfW = halfH * L.aspect;
+    // Dollies, scaled to the frame so narrow screens travel less. Both fade
+    // out as scene 5 takes the camera: past the blend they would land on the
+    // shared scratch (the live frame), not the retired one, so fade to zero.
+    if (S3.travel > 0 && st5 < 1) FV.x += (S3.focus - 2) * halfW * 0.3 * (1 - st5);
+    if (st4 > 0 && st5 < 1) FV2.y += (fc4 - 1.5) * halfH * 0.17 * (1 - st5);
+    // Scene 5. The camera rides an explicit path pose: behind the current
+    // station-point by GAP, offset left by LX so the journey passes each
+    // portal on the right with clearance instead of through it. Faded in by
+    // st5 so the arrival framing hands over smoothly. Aspect-aware: narrow
+    // screens stand further back with less offset (their frustum is narrower).
+    if (st5 > 0) {
+      const px = PATH.x + Math.sin(fc5 * 0.9) * PATH.dx;
+      const py = PATH.y + fc5 * PATH.dy;
+      const pz = PATH.z - fc5 * PATH.dz;
+      const GAP = L.portrait ? 8.0 : 6.5;
+      const LX = L.portrait ? 1.05 : 1.6;
+      const hH = (VH1 * GAP) / 2, hW = hH * L.aspect;
+      FV3.x += (px - LX + FV3.sx * hW - FV3.x) * st5;
+      FV3.y += (py + 0.35 + FV3.sy * hH - FV3.y) * st5;
+      FV3.z += (pz - FV3.z) * st5;
+      FV3.d += (GAP - FV3.d) * st5;
+    }
+    camera.position.set(FV3.x - FV3.sx * halfW, FV3.y - FV3.sy * halfH, FV3.z + FV3.d);
+    DBG.x = FV3.x; DBG.y = FV3.y; DBG.z = FV3.z; DBG.d = FV3.d;
+    DBG.sx = FV3.sx; DBG.sy = FV3.sy; DBG.halfW = halfW; DBG.halfH = halfH;
+    DBG.st5 = st5; DBG.fc5 = fc5;
     camera.quaternion.identity();
     const par = PARALLAX ? Math.max(1 - p, tr) : 0;
     if (par > 0) {
       eOrbit.set(-ptr.y * 0.03 * par, ptr.x * 0.045 * par, 0, "YXZ");
       qOrbit.setFromEuler(eOrbit);
-      focus.set(FV2.x, FV2.y, FV2.z);
+      focus.set(FV3.x, FV3.y, FV3.z);
       off.copy(camera.position).sub(focus).applyQuaternion(qOrbit);
       camera.position.copy(focus).add(off);
       camera.quaternion.copy(qOrbit);
@@ -1809,7 +1916,12 @@ async function boot() {
     }
 
     // Scene 4 rings: rising spiral, the visiting ring swells gently.
-    s4.visible = st4 > 0.001;
+    s4.visible = st4 > 0.001 && S5.leave < 0.999;
+    // Scene 5: the rings rise away above as the path arrives.
+    s4.position.y = 6 * S5.leave;
+    s4.position.z = -3 * S5.leave;
+    // Scene 5 stations: the camera travels the path through them.
+    s5.visible = st5 > 0.001;
     if (s4.visible) {
       for (let i = 0; i < 4; i++) {
         const rg = s4rings[i];
@@ -1840,12 +1952,17 @@ async function boot() {
     key.target.position.lerp(RINGS_C, st4);
     key.position.copy(key.target.position).addScaledVector(KEY_DIR, 12);
     rim.position.lerp(RINGS_RIM, st4);
+    // Scene 5: lights ride on from the rings to the path midpoint.
+    poolU.uPoolCentre.value.lerp(PATH_MID, st5);
+    key.target.position.lerp(PATH_MID, st5);
+    key.position.copy(key.target.position).addScaledVector(KEY_DIR, 12);
+    rim.position.lerp(PATH_RIM, st5);
     const back = smooth(0, 1, tr); // scene 2 brings back the atmosphere the settled card cleared
 
     // Backdrop pool follows the subject on screen.
-    backdropU.uCenter.value.set(FV2.sx, FV2.sy);
+    backdropU.uCenter.value.set(FV3.sx, FV3.sy);
     backdropU.uAmt.value = lerp(1 - 0.45 * smooth(0.4, 1, p), 1, back); // quieter ground under the label at the end
-    dustU.uPoolNdc.value.set(FV2.sx, FV2.sy, L.aspect);
+    dustU.uPoolNdc.value.set(FV3.sx, FV3.sy, L.aspect);
 
     // Bloom swells as the flap opens, eases off as the card fills the frame.
     // Scene 2 keeps it off: the true-colour screen is pre-inverted into HDR and would flare.
@@ -1904,6 +2021,7 @@ async function boot() {
   phone.visible = true; // compile scene 2's programs now, not mid-scroll
   s3.visible = true; // same for scene 3
   s4.visible = true; // same for scene 4
+  s5.visible = true; // same for scene 5
   renderer.initTexture(posterTex);
   if (renderer.extensions.has("KHR_parallel_shader_compile")) await renderer.compileAsync(scene, camera);
   else renderer.compile(scene, camera);
@@ -1938,7 +2056,8 @@ async function boot() {
       glowMat, spillMat, paperMat, linerMat, waxCapMat, waxBodyMat, foilMat, dustU, backdropU, cardU, S, I, L, LIGHT, rig, env, card, seal, pivot,
       S2, phone, handset, screenU, screenMat, glassMat, graphiteMat, champagneMat, FP,
       S3, s3, s3tabs, ribbon, plinth, FQ,
-      S4, s4, s4rings, FR };
+      S4, s4, s4rings, FR,
+      S5, s5, FS, ST3, DBG };
     window.__proto.info = () => ({
       dpr,
       samples: SAMPLES,
