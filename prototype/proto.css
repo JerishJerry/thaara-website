@@ -87,7 +87,7 @@ p, h1, h2, figure{ margin: 0; }
   display: block;
   z-index: 0;
 }
-.track{ height: 1700vh; }   /* 100vh + 400vh per timeline unit: opening 0..1, scenes 2..5 to 4.0 */
+.track{ height: 1980vh; }   /* 100vh + 400vh per timeline unit: opening 0..1, scenes 2..6 to 4.7 */
 
 
 /* ---- Header ------------------------------------------------- */
@@ -409,6 +409,47 @@ p, h1, h2, figure{ margin: 0; }
   margin-top: 0.35rem;
 }
 .s5d-desc{ margin-top: 0.6rem; color: var(--ink-dim); }
+
+/* ---- Scene 6: About, the studio as a warm doorway ------------ */
+.s6{
+  position: fixed;
+  z-index: 3;
+  left: var(--gutter);
+  bottom: var(--base);
+  display: grid;
+  pointer-events: none;
+  width: min(27rem, calc(42vw - var(--gutter)));
+}
+.s6-head{ grid-row: 1; grid-column: 1; }
+.s6-head h2{
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: var(--fs-lead);
+  line-height: 1.12;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+.s6-head h2 em{ font-style: italic; }
+.s6-lead{
+  margin-top: clamp(0.75rem, 1.8vh, 1.25rem);
+  font-family: var(--serif);
+  font-size: var(--fs-project);
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+.s6-lead em{ font-style: italic; }
+/* The three body beats share one grid cell, like scenes 3-5. */
+.s6d{ grid-row: 2; grid-column: 1; margin-top: clamp(1rem, 2.4vh, 1.75rem); }
+.s6d-desc{ color: var(--ink-dim); }
+.facts{ display: grid; gap: clamp(0.6rem, 1.4vh, 1rem); }
+.facts dt{
+  font-size: var(--fs-eyebrow);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gold-dim);
+}
+.facts dd{ margin-top: 0.25rem; color: var(--ink); }
 /* Screen-reader text for the phone while the scene runs; the picture in the static page. */
 .p2-still{
   position: absolute;
@@ -474,7 +515,7 @@ html:not([data-scene="loading"]) .loader{ opacity: 0; visibility: hidden; }
   .hint{ left: var(--gutter); right: auto; }
   .lead{ right: var(--gutter); width: auto; }
   .outro{ flex-direction: column; align-items: flex-start; }
-  .work, .p2, .s3, .s4, .s5{ right: var(--gutter); width: auto; }
+  .work, .p2, .s3, .s4, .s5, .s6{ right: var(--gutter); width: auto; }
 }
 
 
@@ -607,6 +648,27 @@ html:not(.js) .s5{
 [data-scene="static"] .s5 *{ opacity: 1 !important; visibility: visible !important; transform: none !important; }
 [data-scene="static"] .s5d,
 html:not(.js) .s5d{ margin-top: 0; }
+
+/* Static and no-JS: About is a sixth screen below Process. */
+[data-scene="static"] .s6,
+html:not(.js) .s6{
+  position: relative;
+  left: auto;
+  right: auto;
+  bottom: auto;
+  width: auto;
+  min-height: 100vh;
+  margin: 0 var(--gutter);
+  padding: calc(var(--header-h) + 2vh) 0 var(--base);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: clamp(1.25rem, 3vh, 2.5rem);
+  pointer-events: auto;
+}
+[data-scene="static"] .s6 *{ opacity: 1 !important; visibility: visible !important; transform: none !important; }
+[data-scene="static"] .s6d,
+html:not(.js) .s6d{ margin-top: 0; }
 
 
 /* ---- Capture mode: frames must be deterministic ------------- */
