@@ -32,8 +32,43 @@ left everything else as it was. The owner then chose to redo it properly:
   Text overlays are minimal and use only existing site copy.
 - **Stack:** vendored Three.js 0.186.1 (plus post-processing addons for bloom) and GSAP 3.15 core,
   loaded through an import map. No bundler, no `package.json`.
+- **Deliverables for step 1:** screenshots on desktop and phone, a short video of the scroll
+  sequence, and a live link the owner can open on any device.
 - Nothing else gets built until the owner has seen the prototype. `main` and the live site stay
   untouched.
+
+### What each skill adds (read 2026-09-29, at the owner's request)
+
+- **threejs-webgl**
+  - Post-processing chain: EffectComposer → RenderPass → UnrealBloomPass → OutputPass. Bloom uses a
+    high threshold, so only the gold highlights and the light spill glow.
+  - Colour: sRGB output and sRGB image textures.
+  - Shadows: soft shadows from the key light.
+  - Housekeeping: reuse geometry, create nothing inside the render loop, handle resize and dispose.
+  - No z-fighting: no coplanar surfaces, and the near plane as far out as possible.
+- **substance-3d-texturing**
+  - The PBR metallic/roughness workflow, with the maps generated in code, because Substance Painter
+    isn't installed on this machine.
+  - Paper gets fibre-grain normal and roughness maps.
+  - The gold liner is metallic, with a fine patterned roughness/normal map.
+  - The seal gets the logo as a raised height/normal map, taken from `logo.png`'s alpha channel.
+  - Map conventions: baseColor maps in sRGB, data maps linear, about 1024px, with mipmaps.
+- **ui-ux-pro-max**
+  - Text over the scene keeps at least 4.5:1 contrast.
+  - DOM motion uses transform/opacity only. Entrances decelerate; exits are faster and accelerate.
+    One or two elements move per beat.
+  - The loader shows progress, and pointer parallax stays subtle.
+  - `prefers-reduced-motion` turns off idle motion and parallax.
+  - No horizontal scroll, and heights use dvh units.
+- **ui-designer**
+  - Colours come from the site's existing tokens, read in JS (no hex values in JS).
+  - A clear type hierarchy: EB Garamond for display, Source Sans 3 for text.
+  - Visible focus states, and touch targets of at least 44px.
+- **artifacts-builder**
+  - Its React/shadcn stack doesn't fit a WebGL scene, so it isn't used.
+  - Its "avoid AI slop" rules do apply: no layout that centres everything, no purple, no uniform
+    rounded corners, no Inter.
+  - Its single-file packaging idea is used to publish the prototype as a live link.
 
 ---
 

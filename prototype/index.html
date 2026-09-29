@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en" data-scene="loading">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>THAARA - Digital experiences, made personal.</title>
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#191611">
+  <!-- Placeholder so no browser requests /favicon.ico; the script below swaps in the logo. -->
+  <link rel="icon" href="data:,">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400..800;1,400..800&family=Source+Sans+3:ital,wght@0,200..900;1,200..900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="proto.css">
+
+  <script>
+    /* Asset paths. This is the one place to change when the prototype is republished
+       somewhere else: every <img data-asset> and every WebGL texture reads from here.
+       (The <noscript> block at the end of <body> repeats the invitation path.) */
+    window.PROTO_ASSETS = { invitation: "../invitation-1624.webp", logo: "../logo-256.png" };
+
+    (function () {
+      var root = document.documentElement;
+      var q = location.search;
+      if (/[?&]capture(=|&|$)/.test(q)) root.classList.add("capture");
+      var icon = document.createElement("link");
+      icon.rel = "icon";
+      icon.href = window.PROTO_ASSETS.logo;
+      document.head.appendChild(icon);
+      /* Watchdog: if the module never boots (script blocked, very old browser),
+         fall back to the static page instead of leaving the loader up forever. */
+      setTimeout(function () {
+        if (!window.__protoBooted && root.dataset.scene === "loading") root.dataset.scene = "static";
+      }, 9000);
+    })();
+  </script>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "../vendor/three/three.module.min.js",
+        "three/addons/": "../vendor/three/addons/"
+      }
+    }
+  </script>
+  <script src="../vendor/gsap/gsap.min.js" defer></script>
+  <script type="module" src="proto.js"></script>
+</head>
+<body>
+
+  <div class="loader" aria-hidden="true">
+    <div class="loader-in">
+      <img class="loader-logo" data-asset="logo" alt="" width="256" height="197">
+      <span class="loader-line"><span class="loader-fill"></span></span>
+    </div>
+  </div>
+
+  <canvas class="scene-canvas" aria-hidden="true"></canvas>
+
+  <header class="top">
+    <a class="brand" href="../"><img data-asset="logo" alt="THAARA" width="256" height="197"></a>
+    <div class="top-cta">
+      <a class="link-cta" href="../#contact">Start a project <i aria-hidden="true">&#8599;</i></a>
+    </div>
+  </header>
+
+  <main id="content">
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-in">
+        <p class="welcome"><span class="line">Welcome to <em>THAARA</em></span></p>
+        <h1 id="hero-title"><span class="line">Digital experiences,</span> <span class="line"><em class="accent">made personal.</em></span></h1>
+      </div>
+    </section>
+
+    <p class="hint"><span class="hint-in">Scroll to open <span class="hint-rule" aria-hidden="true"></span></span></p>
+
+    <div class="lead">
+      <p class="lead-in">Interactive wedding and event invitations your guests enter, not just open</p>
+    </div>
+
+    <figure class="still">
+      <img data-asset="invitation" width="1624" height="969"
+           alt="A THAARA invitation: a couple walking a palm-lined beach at sunset under hand-lettered calligraphy, framed as a browser window.">
+    </figure>
+
+    <section class="outro" aria-labelledby="project-title">
+      <div class="project">
+        <span class="project-num">01</span>
+        <h2 id="project-title">Nivin <em>&times;</em> Dhiya</h2>
+        <span class="project-cat">Invitation Experience</span>
+      </div>
+      <div class="outro-cta">
+        <a class="btn-gold" href="../#contact">Start a project <i aria-hidden="true">&#8599;</i></a>
+      </div>
+    </section>
+  </main>
+
+  <!-- Scroll distance for the sequence. The scene and every overlay are fixed. -->
+  <div class="track" aria-hidden="true"></div>
+
+  <script>
+    (function () {
+      var a = window.PROTO_ASSETS;
+      var imgs = document.querySelectorAll("img[data-asset]");
+      for (var i = 0; i < imgs.length; i++) imgs[i].src = a[imgs[i].getAttribute("data-asset")];
+    })();
+  </script>
+  <noscript>
+    <style>
+      .loader, .scene-canvas, .track, .hint, .lead, .outro, .still { display: none !important; }
+      .line, .brand, .top-cta a { opacity: 1 !important; transform: none !important; }
+      .brand img { content: url("../logo-256.png"); }
+      .noscript-still { position: fixed; top: calc(var(--header-h) + 2vh); right: var(--gutter); width: min(54vw, 60rem); margin: 0; }
+      .noscript-still img { width: 100%; height: auto; display: block; }
+    </style>
+    <figure class="noscript-still">
+      <img src="../invitation-1624.webp" width="1624" height="969"
+           alt="A THAARA invitation: a couple walking a palm-lined beach at sunset under hand-lettered calligraphy, framed as a browser window.">
+    </figure>
+  </noscript>
+</body>
+</html>

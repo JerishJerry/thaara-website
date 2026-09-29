@@ -1,0 +1,371 @@
+/* ============================================================
+   THAARA prototype: "The invitation opens"
+   A full-screen WebGL scene (proto.js) with DOM overlays on top.
+   Tokens are copied from the site's styles.css and read by JS.
+   ============================================================ */
+
+:root{
+  /* ---- Colour (from styles.css) ---------------------------- */
+  --bg:        #191611;
+  --bg-alt:    #211b15;
+  --bg-soft:   #292219;
+  --bg-raise:  #2f2720;
+
+  --ink:       #f3ece0;
+  --ink-dim:   #a99d8c;
+  --ink-faint: #938878;
+
+  --gold:      #c9a35e;
+  --gold-lift: #dcb877;
+  --on-gold:   #17130d;
+  --gold-soft: rgba(201,163,94,.34);
+  --line:      rgba(243,236,224,.12);
+
+  /* ---- Type ------------------------------------------------- */
+  --serif: "EB Garamond", Georgia, "Times New Roman", serif;
+  --sans:  "Source Sans 3", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+  --fs-micro:   0.75rem;
+  --fs-ui:      0.8125rem;
+  --fs-welcome: clamp(1.15rem, 0.85rem + 0.9vw, 1.7rem);
+  --fs-display: clamp(2.8rem, 6.2vw, 7rem);
+  --fs-lead:    clamp(1.7rem, 0.95rem + 2vw, 3rem);
+  --fs-project: clamp(1.6rem, 1.15rem + 1.8vw, 2.3rem);
+
+  /* ---- Layout ----------------------------------------------- */
+  --gutter:   clamp(1.25rem, 5vw, 3rem);
+  --header-h: 84px;
+  --base:     calc(var(--gutter) + 2.5vh);  /* shared bottom line of every text beat */
+
+  /* Written by proto.js from the camera's final framing of the card. */
+  --card-l: var(--gutter);
+  --card-r: calc(100% - var(--gutter));
+  --card-b: 78vh;
+
+  /* ---- Motion ------------------------------------------------ */
+  --ease-out: cubic-bezier(.16,1,.3,1);
+}
+@media (max-width: 600px){ :root{ --header-h: 68px; } }
+
+
+/* ---- Base --------------------------------------------------- */
+*, *::before, *::after{ box-sizing: border-box; }
+[hidden]{ display: none !important; }
+
+html{ -webkit-text-size-adjust: 100%; background: var(--bg); }
+body{
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 1.0625rem;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+img{ display: block; max-width: 100%; }
+a{ color: inherit; text-decoration: none; }
+p, h1, h2, figure{ margin: 0; }
+::selection{ background: var(--gold-soft); color: var(--ink); }
+
+:focus-visible{
+  outline: 2px solid var(--gold);
+  outline-offset: 4px;
+  border-radius: 2px;
+}
+
+
+/* ---- Scene -------------------------------------------------- */
+.scene-canvas{
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  display: block;
+  z-index: 0;
+}
+.track{ height: 500vh; }
+
+
+/* ---- Header ------------------------------------------------- */
+.top{
+  position: fixed;
+  z-index: 6;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--header-h);
+  padding: 0 var(--gutter);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  pointer-events: none;
+}
+.top a{ pointer-events: auto; }
+.brand{
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+.brand img{ width: auto; height: clamp(40px, 3.6vw, 52px); }
+
+.link-cta{
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 44px;
+  font-family: var(--sans);
+  font-size: var(--fs-ui);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--gold);
+  background-image: linear-gradient(var(--gold-soft), var(--gold-soft));
+  background-size: 100% 1px;
+  background-position: 0 calc(50% + 0.95em);
+  background-repeat: no-repeat;
+  transition: color .3s var(--ease-out);
+}
+.link-cta i{ font-style: normal; display: inline-block; transition: transform .35s var(--ease-out); }
+.link-cta:hover{ color: var(--gold-lift); }
+.link-cta:hover i{ transform: translate(2px, -2px); }
+
+
+/* ---- Hero --------------------------------------------------- */
+.hero{
+  position: fixed;
+  z-index: 3;
+  left: var(--gutter);
+  right: var(--gutter);
+  bottom: var(--base);
+  pointer-events: none;
+}
+.welcome{
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: var(--fs-welcome);
+  line-height: 1.2;
+  color: var(--ink);
+  white-space: nowrap;
+  margin-bottom: clamp(0.5rem, 1.1vw, 1.1rem);
+}
+.welcome em{ font-style: normal; color: var(--gold); }
+
+.hero h1{
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: var(--fs-display);
+  line-height: 0.96;
+  letter-spacing: -0.022em;
+  text-wrap: balance;
+}
+.hero h1 em{ font-style: italic; color: var(--gold); }
+.line{ display: block; width: fit-content; max-width: 100%; }
+
+
+/* ---- Scroll hint (UI chrome) --------------------------------- */
+.hint{
+  position: fixed;
+  z-index: 3;
+  right: var(--gutter);
+  bottom: var(--base);
+  pointer-events: none;
+  font-family: var(--sans);
+  font-size: var(--fs-micro);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-dim);   /* --ink-faint measured 4.35:1 over the lit scene */
+}
+.hint-in{ display: inline-flex; align-items: center; gap: 0.9rem; }
+.hint-rule{
+  display: block;
+  width: 2.5rem;
+  height: 1px;
+  background: currentColor;
+  transform-origin: left center;
+  animation: hint-rule 2.6s var(--ease-out) infinite;
+}
+@keyframes hint-rule{
+  0%   { transform: translateX(0) scaleX(0); }
+  45%  { transform: translateX(0) scaleX(1); }
+  100% { transform: translateX(2.5rem) scaleX(0); }
+}
+
+
+/* ---- Lead line ---------------------------------------------- */
+.lead{
+  position: fixed;
+  z-index: 3;
+  left: var(--gutter);
+  bottom: var(--base);
+  width: min(10.5em, calc(40vw - var(--gutter)));
+  font-size: var(--fs-lead);
+  pointer-events: none;
+}
+.lead-in{
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 1em;
+  line-height: 1.12;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  text-wrap: balance;
+}
+
+
+/* ---- Outro: project label + the one primary CTA -------------- */
+.outro{
+  position: fixed;
+  z-index: 3;
+  left: var(--card-l);
+  width: calc(var(--card-r) - var(--card-l));
+  top: calc(var(--card-b) + clamp(1rem, 2.6vh, 1.75rem));
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.25rem 2rem;
+  pointer-events: none;
+}
+.outro a{ pointer-events: auto; }
+.project{ display: flex; flex-direction: column; gap: 0.4rem; }
+.project-num,
+.project-cat{
+  font-family: var(--sans);
+  font-size: var(--fs-micro);
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+.project-num{ color: var(--ink-dim); }   /* --ink-faint measured 3.6:1 over the pool on phones */
+.project-cat{ color: var(--ink-dim); }
+.project h2{
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: var(--fs-project);
+  line-height: 1.05;
+  letter-spacing: -0.012em;
+}
+.project h2 em{ font-style: italic; }
+
+.btn-gold{
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 48px;
+  padding: 0.75rem 1.75rem;
+  border-radius: 999px;
+  background: var(--gold);
+  color: var(--on-gold);
+  font-family: var(--sans);
+  font-size: var(--fs-ui);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  transition: background-color .3s var(--ease-out), transform .3s var(--ease-out);
+}
+.btn-gold i{ font-style: normal; display: inline-block; transition: transform .35s var(--ease-out); }
+.btn-gold:hover{ background: var(--gold-lift); transform: translateY(-2px); }
+.btn-gold:hover i{ transform: translate(2px, -2px); }
+
+
+/* ---- The still image: screen-reader text for the card while the
+        scene runs, the visible picture in the static fallback. ---- */
+.still{
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+
+/* ---- Loader ------------------------------------------------- */
+.loader{
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  background: var(--bg);
+  transition: opacity .8s var(--ease-out), visibility 0s linear .8s;
+}
+.loader-in{ display: flex; flex-direction: column; align-items: center; gap: 1.75rem; }
+.loader-logo{ width: clamp(96px, 10vw, 136px); height: auto; }
+.loader-line{
+  display: block;
+  width: clamp(120px, 14vw, 180px);
+  height: 1px;
+  overflow: hidden;
+  background: var(--line);
+}
+.loader-fill{
+  display: block;
+  height: 100%;
+  background: var(--gold);
+  transform-origin: left center;
+  transform: scaleX(var(--p, 0));
+  transition: transform .45s var(--ease-out);
+}
+html:not([data-scene="loading"]) .loader{ opacity: 0; visibility: hidden; }
+
+/* Until the intro plays, the text beats that it staggers in stay hidden. */
+[data-scene="loading"] .line,
+[data-scene="loading"] .hint-in,
+[data-scene="loading"] .brand,
+[data-scene="loading"] .top-cta a{ opacity: 0; }
+
+
+/* ---- Portrait ----------------------------------------------- */
+@media (max-aspect-ratio: 9/10){
+  .hero{ bottom: calc(var(--base) + 2.4rem); }
+  .hint{ left: var(--gutter); right: auto; }
+  .lead{ right: var(--gutter); width: auto; }
+  .outro{ flex-direction: column; align-items: flex-start; }
+}
+
+
+/* ---- Static fallback (no WebGL2, ?static, or a boot failure) - */
+[data-scene="static"] .scene-canvas,
+[data-scene="static"] .track,
+[data-scene="static"] .loader,
+[data-scene="static"] .hint,
+[data-scene="static"] .lead,
+[data-scene="static"] .outro{ display: none; }
+[data-scene="static"] .still{
+  position: fixed;
+  z-index: 1;
+  top: calc(var(--header-h) + 2vh);
+  right: var(--gutter);
+  width: min(54vw, calc((100vh - var(--header-h) - 20rem) * 1.676));
+  height: auto;
+  overflow: visible;
+  clip-path: none;
+  white-space: normal;
+}
+[data-scene="static"] .still img{ width: 100%; height: auto; }
+@media (max-aspect-ratio: 9/10){
+  [data-scene="static"] .still{ left: var(--gutter); width: auto; }
+  [data-scene="static"] .hero{ bottom: var(--base); }
+}
+
+
+/* ---- Capture mode: frames must be deterministic ------------- */
+.capture *, .capture *::before, .capture *::after{
+  animation: none !important;
+  transition: none !important;
+}
+
+
+/* ---- Reduced motion ----------------------------------------- */
+@media (prefers-reduced-motion: reduce){
+  .hint-rule{ animation: none; }
+  .loader{ transition-duration: .3s, 0s; transition-delay: 0s, .3s; }
+}
