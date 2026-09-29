@@ -17,11 +17,17 @@
   <script>
     /* Asset paths. This is the one place to change when the prototype is republished
        somewhere else: every <img data-asset> and every WebGL texture reads from here.
-       (The <noscript> block at the end of <body> repeats the invitation path.) */
-    window.PROTO_ASSETS = { invitation: "../invitation-1624.webp", logo: "../logo-256.png" };
+       (The <noscript> block at the end of <body> repeats the invitation and poster paths.) */
+    window.PROTO_ASSETS = {
+      invitation: "../invitation-1624.webp",
+      logo: "../logo-256.png",
+      phonePoster: "../leo-asnia-1200.webp",
+      phoneVideo: "../leo-asnia-scroll.mp4"
+    };
 
     (function () {
       var root = document.documentElement;
+      root.classList.add("js"); /* html:not(.js) is the no-JS layout */
       var q = location.search;
       if (/[?&]capture(=|&|$)/.test(q)) root.classList.add("capture");
       var icon = document.createElement("link");
@@ -94,6 +100,31 @@
         <a class="btn-gold" href="../#contact">Start a project <i aria-hidden="true">&#8599;</i></a>
       </div>
     </section>
+
+    <!-- Scene 2. All copy is the live site's own (index.html, Work). -->
+    <section class="work" aria-labelledby="work-title">
+      <div class="work-in">
+        <p class="eyebrow">Selected Work</p>
+        <h2 id="work-title">Two projects, <em>each carried all the way through.</em></h2>
+        <p class="work-lead">Fewer pieces, each finished properly. Below is the work THAARA is currently showing.</p>
+      </div>
+    </section>
+
+    <section class="p2" aria-labelledby="p2-title">
+      <figure class="p2-still">
+        <img data-asset="phonePoster" width="1200" height="2133"
+             alt="The invitation's opening screen on a phone: an illustrated bride and groom driving a flower-covered car through a sunlit garden, the names Leo Ronald and Asnia, the line 'This thing proceedeth from the Lord', and a button reading 'Tap to open'.">
+      </figure>
+      <div class="p2-text">
+        <div class="project p2-head">
+          <span class="project-num">02</span>
+          <h2 id="p2-title">Leo Ronald <em>&times;</em> Asnia</h2>
+          <span class="project-cat">Invitation Website</span>
+        </div>
+        <p class="p2-lead">An interactive invitation built as its own website&nbsp;- an opening sequence, their story, the date, a live countdown and the places, all behind a single link the couple can send to anyone.</p>
+        <p class="p2-link"><a class="link-cta" href="https://leoronaldasniaweddinginvitation.vercel.app/" target="_blank" rel="noopener noreferrer">Open the live invitation <i aria-hidden="true">&#8599;</i></a></p>
+      </div>
+    </section>
   </main>
 
   <!-- Scroll distance for the sequence. The scene and every overlay are fixed. -->
@@ -108,10 +139,11 @@
   </script>
   <noscript>
     <style>
-      .loader, .scene-canvas, .track, .hint, .lead, .outro, .still { display: none !important; }
+      .loader, .scene-canvas, .track, .hint, .lead, .outro, .still, .work { display: none !important; }
       .line, .brand, .top-cta a { opacity: 1 !important; transform: none !important; }
       .brand img { content: url("../logo-256.png"); }
-      .noscript-still { position: fixed; top: calc(var(--header-h) + 2vh); right: var(--gutter); width: min(54vw, 60rem); margin: 0; }
+      .p2-still img { content: url("../leo-asnia-1200.webp"); }
+      .noscript-still { position: absolute; top: calc(var(--header-h) + 2vh); right: var(--gutter); width: min(54vw, 60rem); margin: 0; }
       .noscript-still img { width: 100%; height: auto; display: block; }
     </style>
     <figure class="noscript-still">

@@ -87,7 +87,7 @@ p, h1, h2, figure{ margin: 0; }
   display: block;
   z-index: 0;
 }
-.track{ height: 500vh; }
+.track{ height: 820vh; }   /* 100vh + 400vh per timeline unit: the opening 0..1, scene 2 1..1.8 */
 
 
 /* ---- Header ------------------------------------------------- */
@@ -275,6 +275,52 @@ p, h1, h2, figure{ margin: 0; }
 .btn-gold:hover i{ transform: translate(2px, -2px); }
 
 
+/* ---- Scene 2: Selected Work, then 02 Leo Ronald x Asnia ------ */
+.work,
+.p2{
+  position: fixed;
+  z-index: 3;
+  left: var(--gutter);
+  bottom: var(--base);
+  pointer-events: none;
+}
+.work{ width: min(34rem, calc(46vw - var(--gutter))); }
+.eyebrow{
+  font-family: var(--sans);
+  font-size: var(--fs-micro);
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  margin-bottom: clamp(0.75rem, 1.6vh, 1.1rem);
+}
+.work h2{
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: var(--fs-lead);
+  line-height: 1.12;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+.work h2 em{ font-style: italic; }
+.work-lead{ margin-top: clamp(0.75rem, 1.8vh, 1.25rem); max-width: 28rem; color: var(--ink-dim); }
+
+.p2{ width: min(27rem, calc(42vw - var(--gutter))); }
+.p2 a{ pointer-events: auto; }
+.p2-lead{ margin-top: clamp(0.9rem, 2vh, 1.4rem); color: var(--ink-dim); }
+.p2-link{ margin-top: clamp(0.4rem, 1.2vh, 0.9rem); }
+/* Screen-reader text for the phone while the scene runs; the picture in the static page. */
+.p2-still{
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+
 /* ---- The still image: screen-reader text for the card while the
         scene runs, the visible picture in the static fallback. ---- */
 .still{
@@ -329,6 +375,7 @@ html:not([data-scene="loading"]) .loader{ opacity: 0; visibility: hidden; }
   .hint{ left: var(--gutter); right: auto; }
   .lead{ right: var(--gutter); width: auto; }
   .outro{ flex-direction: column; align-items: flex-start; }
+  .work, .p2{ right: var(--gutter); width: auto; }
 }
 
 
@@ -340,7 +387,7 @@ html:not([data-scene="loading"]) .loader{ opacity: 0; visibility: hidden; }
 [data-scene="static"] .lead,
 [data-scene="static"] .outro{ display: none; }
 [data-scene="static"] .still{
-  position: fixed;
+  position: absolute;   /* scrolls away with the page; identical at the top */
   z-index: 1;
   top: calc(var(--header-h) + 2vh);
   right: var(--gutter);
@@ -354,6 +401,49 @@ html:not([data-scene="loading"]) .loader{ opacity: 0; visibility: hidden; }
 @media (max-aspect-ratio: 9/10){
   [data-scene="static"] .still{ left: var(--gutter); width: auto; }
   [data-scene="static"] .hero{ bottom: var(--base); }
+}
+
+/* Static and no-JS: project 02 is a second screen below the first. */
+[data-scene="static"] .work{ display: none; }
+[data-scene="static"] .hero,
+html:not(.js) .hero{ position: absolute; }
+[data-scene="static"] .p2,
+html:not(.js) .p2{
+  position: relative;
+  left: auto;
+  right: auto;
+  bottom: auto;
+  width: auto;
+  min-height: 100vh;
+  margin: 100vh var(--gutter) 0;
+  padding: calc(var(--header-h) + 2vh) 0 var(--base);
+  display: flex;
+  flex-direction: row-reverse;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 2rem 3rem;
+  pointer-events: auto;
+}
+[data-scene="static"] .p2 *{ opacity: 1 !important; visibility: visible !important; transform: none !important; }
+[data-scene="static"] .p2-text,
+html:not(.js) .p2-text{ max-width: 27rem; }
+[data-scene="static"] .p2-still,
+html:not(.js) .p2-still{
+  position: static;
+  flex: none;
+  width: min(34vw, 20rem, calc((100vh - var(--header-h) - 5rem) * 0.5626));
+  height: auto;
+  overflow: visible;
+  clip-path: none;
+  white-space: normal;
+}
+[data-scene="static"] .p2-still img,
+html:not(.js) .p2-still img{ width: 100%; height: auto; border-radius: 1.25rem; }
+@media (max-aspect-ratio: 9/10){
+  [data-scene="static"] .p2,
+  html:not(.js) .p2{ flex-direction: column; align-items: flex-start; justify-content: flex-end; }
+  [data-scene="static"] .p2-still,
+  html:not(.js) .p2-still{ width: min(62vw, 18rem, calc((100vh - var(--header-h) - 22rem) * 0.5626)); }
 }
 
 

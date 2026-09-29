@@ -7,8 +7,14 @@
    it maps `S` to positions and rotations with viewport-aware framing math,
    recomputed on resize.
 
+   Scene 2 (timeline 1..TOTAL): the settled card eases aside and the camera
+   travels to a phone showing the live Leo Ronald x Asnia invitation, a looping
+   screen recording of the real site.
+
    ?capture   no loop, no loader, no intro; exposes window.__proto for
-              deterministic frame capture (verification and video)
+              deterministic frame capture (verification and video);
+              renderFrame(progress, seconds, videoTime?) also seeks the
+              phone's screen video and waits for the frame
    ?static    force the static fallback
    ============================================================ */
 
@@ -74,6 +80,15 @@ const LIGHT = {
   bloom: [0.3, 0.45, 0.42, 0.86], // base strength, extra when open, radius, threshold
 };
 const VH1 = 2 * Math.tan((FOV * Math.PI) / 360); // visible height per unit distance
+
+/* ---- Scene 2: the phone (world units). The screen matches the recording's
+   frame, a 390x844 phone viewport. ---- */
+const SCREEN_ASPECT = 720 / 1558;
+const PH_W = 1.22, PH_D = 0.13, PH_BEZEL = 0.052, PH_R = 0.17, PH_BEVEL = 0.03;
+const PH_SW = PH_W - 2 * PH_BEZEL, PH_SH = PH_SW / SCREEN_ASPECT, PH_H = PH_SH + 2 * PH_BEZEL;
+const PHONE_AT = { x: 5.6, y: 1.43, z: -0.4 };       // the settled card sits at (0, 1.43, 0.86)
+const PH_REST = { rx: 0.08, ry: -0.74, rz: -0.03 };  // three-quarter view, screen toward the text
+const TOTAL = 1.8; // timeline length: the opening keeps 0..1 unchanged, scene 2 is 1..1.8
 
 /* ---- Small math ---- */
 const clamp = (x, a, b) => Math.min(b, Math.max(a, x));
@@ -677,6 +692,11 @@ async function boot() {
   const topCta = document.querySelector(".top-cta");
   const topCtaLink = document.querySelector(".top-cta a");
   const brandEl = document.querySelector(".brand");
+  const workIn = document.querySelector(".work-in");
+  const p2El = document.querySelector(".p2");
+  const p2Head = document.querySelector(".p2-head");
+  const p2Lead = document.querySelector(".p2-lead");
+  const p2Link = document.querySelector(".p2-link");
   const loaderFill = document.querySelector(".loader-fill");
   const setLoad = (p) => loaderFill && loaderFill.style.setProperty("--p", p.toFixed(3));
   const yieldUI = CAPTURE ? () => Promise.resolve() : () => wait(0);
@@ -719,13 +739,27 @@ async function boot() {
         document.fonts.load('700 1em "Source Sans 3"'),
       ]).catch(() => {})
     : Promise.resolve();
-  const [invTex, logoImg] = await Promise.all([
+  const [invTex, logoImg, posterTex] = await Promise.all([
     new THREE.TextureLoader(manager).loadAsync(ASSETS.invitation),
     new THREE.ImageLoader(manager).loadAsync(ASSETS.logo),
+    new THREE.TextureLoader(manager).loadAsync(ASSETS.phonePoster),
   ]);
   await Promise.race([fontsReady, wait(4000)]);
   invTex.colorSpace = THREE.SRGBColorSpace;
   invTex.anisotropy = aniso;
+  // The poster (the invitation's 9:16 opening screen) is cover-fitted to the phone screen.
+  posterTex.colorSpace = THREE.SRGBColorSpace;
+  posterTex.anisotropy = aniso;
+  {
+    const a = posterTex.image.width / posterTex.image.height;
+    if (a > SCREEN_ASPECT) {
+      posterTex.repeat.set(SCREEN_ASPECT / a, 1);
+      posterTex.offset.set((1 - SCREEN_ASPECT / a) / 2, 0);
+    } else {
+      posterTex.repeat.set(1, a / SCREEN_ASPECT);
+      posterTex.offset.set(0, (1 - a / SCREEN_ASPECT) / 2);
+    }
+  }
 
   const TEX = COARSE ? 512 : 1024;
   const paper = makePaper(TEX, aniso);
@@ -865,8 +899,8 @@ async function boot() {
   // mapper as it fills the frame, so the final image is the photo's own pixels.
   const cardU = { uTrue: { value: 0 }, uBright: { value: 0.6 }, uBias: { value: 0 } };
   const cardMat = new THREE.MeshBasicMaterial({ name: "card", map: invTex, fog: false });
-  cardMat.onBeforeCompile = (shader) => {
-    Object.assign(shader.uniforms, cardU);
+  const trueColour = (mat, U) => (mat.onBeforeCompile = (shader) => {
+    Object.assign(shader.uniforms, U);
     shader.fragmentShader = shader.fragmentShader
       .replace("#include <common>", "#include <common>\nuniform float uTrue;\nuniform float uBright;\nuniform float uBias;\n" + INV_NEUTRAL_GLSL)
       .replace(
@@ -879,7 +913,8 @@ async function boot() {
           "diffuseColor.rgb = mix( diffuseColor.rgb, invNeutral( diffuseColor.rgb ), uTrue );",
         ].join("\n")
       );
-  };
+  });
+  trueColour(cardMat, cardU);
 
   /* ---- Envelope ---- */
   const rig = new THREE.Group();
@@ -1043,6 +1078,116 @@ async function boot() {
   card.position.set(0, -0.12, Z_CARD);
   rig.add(card);
 
+  /* ---- Scene 2: the phone ----
+     Graphite glass front and back in a champagne metal frame. The screen is
+     unlit and pre-inverted through the tone mapper like the card, so it shows
+     true colour; a black additive glass layer over it carries only reflections. */
+  const roundRect = (w, h, r) => {
+    const sh = new THREE.Shape(), x = w / 2 - r, y = h / 2 - r;
+    sh.moveTo(-x, -h / 2);
+    sh.lineTo(x, -h / 2);
+    sh.absarc(x, -y, r, -Math.PI / 2, 0, false);
+    sh.lineTo(w / 2, y);
+    sh.absarc(x, y, r, 0, Math.PI / 2, false);
+    sh.lineTo(-x, h / 2);
+    sh.absarc(-x, y, r, Math.PI / 2, Math.PI, false);
+    sh.lineTo(-w / 2, -y);
+    sh.absarc(-x, -y, r, Math.PI, Math.PI * 1.5, false);
+    return sh;
+  };
+  // A flat rounded rectangle with 0..1 UVs across its bounds.
+  const flatGeo = (w, h, r) => {
+    const geo = new THREE.ShapeGeometry(roundRect(w, h, r), 24);
+    const pos = geo.attributes.position, uv = geo.attributes.uv;
+    for (let i = 0; i < pos.count; i++) uv.setXY(i, pos.getX(i) / w + 0.5, pos.getY(i) / h + 0.5);
+    uv.needsUpdate = true;
+    return geo;
+  };
+  const graphiteMat = keyPool(new THREE.MeshPhysicalMaterial({
+    name: "graphite", color: cBgRaise.clone().lerp(cInk, 0.04), metalness: 0.25, roughness: 0.36,
+    clearcoat: 1, clearcoatRoughness: 0.08,
+  }));
+  const champagneMat = keyPool(new THREE.MeshStandardMaterial({
+    name: "champagne", color: cGold.clone().lerp(cInk, 0.32), metalness: 1, roughness: 0.3, envMapIntensity: 2.4,
+  }));
+  const pillMat = keyPool(new THREE.MeshStandardMaterial({ name: "pill", color: cOnGold, metalness: 0, roughness: 0.3 }));
+  const glassMat = keyPool(new THREE.MeshStandardMaterial({
+    name: "glass", color: new THREE.Color(0, 0, 0), metalness: 0, roughness: 0.07, envMapIntensity: 3.2,
+    transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, fog: false,
+  }));
+  const screenU = { uTrue: { value: 1 }, uBright: { value: 1 }, uBias: { value: 0 } };
+  const screenMat = new THREE.MeshBasicMaterial({ name: "screen", map: posterTex, fog: false });
+  trueColour(screenMat, screenU);
+
+  const phone = new THREE.Group();   // placement and idle float
+  const handset = new THREE.Group(); // the turn
+  phone.add(handset);
+  scene.add(phone);
+  {
+    const inner = PH_D - 2 * PH_BEVEL;
+    const bodyGeo = new THREE.ExtrudeGeometry(roundRect(PH_W - 2 * PH_BEVEL, PH_H - 2 * PH_BEVEL, PH_R - PH_BEVEL), {
+      depth: inner, bevelEnabled: true, bevelThickness: PH_BEVEL, bevelSize: PH_BEVEL, bevelSegments: 6, curveSegments: 20,
+    });
+    bodyGeo.translate(0, 0, -inner / 2); // front face at z = +PH_D / 2
+    const body = new THREE.Mesh(bodyGeo, [graphiteMat, champagneMat]); // front and back caps, then the frame band
+    const screen = new THREE.Mesh(flatGeo(PH_SW, PH_SH, PH_R - PH_BEZEL), screenMat);
+    screen.position.z = PH_D / 2 + 0.0006;
+    const pill = new THREE.Mesh(flatGeo(0.27, 0.076, 0.038), pillMat); // the camera pill
+    pill.position.set(0, PH_SH / 2 - 0.064, PH_D / 2 + 0.0011);
+    const glass = new THREE.Mesh(flatGeo(PH_W - 2 * PH_BEVEL, PH_H - 2 * PH_BEVEL, PH_R - PH_BEVEL), glassMat);
+    glass.position.z = PH_D / 2 + 0.0017;
+    glass.renderOrder = 7;
+    // Side buttons: flattened capsules standing slightly proud of the frame.
+    const button = (len, side, y) => {
+      const m = new THREE.Mesh(new THREE.CapsuleGeometry(0.017, len, 4, 12), champagneMat);
+      m.scale.set(0.62, 1, 1.35);
+      m.position.set(side * (PH_W / 2 - 0.002), PH_H / 2 - y, 0);
+      return m;
+    };
+    handset.add(body, screen, pill, glass,
+      button(0.09, -1, 0.42), button(0.2, -1, 0.66), button(0.2, -1, 0.93), button(0.32, 1, 0.78));
+  }
+  phone.visible = false;
+
+  // The live screen: a looping recording of the real invitation, fetched once the
+  // opening nears its end. It plays from a blob URL, so it loops and seeks on any
+  // host (Safari will not play media from a server without byte ranges).
+  // Reduced motion, and any failure, keep the poster.
+  let video = null, videoTex = null, videoOk = false, videoAsked = false, askVideo = () => {};
+  const videoReady = new Promise((resolve) => {
+    if (REDUCED || !ASSETS.phoneVideo) return resolve(false);
+    video = document.createElement("video");
+    video.muted = video.defaultMuted = true;
+    video.loop = true;
+    video.playsInline = true;
+    video.setAttribute("playsinline", "");
+    video.preload = "auto";
+    video.addEventListener("loadeddata", () => {
+      videoTex = new THREE.VideoTexture(video);
+      videoTex.colorSpace = THREE.SRGBColorSpace;
+      videoTex.anisotropy = aniso;
+      videoTex.generateMipmaps = true; // the 1558 px frame is shown at a fraction of that
+      videoTex.minFilter = THREE.LinearMipmapLinearFilter;
+      screenMat.map = videoTex;
+      videoOk = true;
+      resolve(true);
+    }, { once: true });
+    const fail = () => {
+      videoOk = false;
+      screenMat.map = posterTex;
+      resolve(false);
+    };
+    video.addEventListener("error", fail, { once: true });
+    askVideo = () => {
+      if (videoAsked) return;
+      videoAsked = true;
+      fetch(ASSETS.phoneVideo)
+        .then((r) => (r.ok ? r.blob() : Promise.reject(new Error("HTTP " + r.status))))
+        .then((b) => { video.src = URL.createObjectURL(b); })
+        .catch(fail);
+    };
+  });
+
   /* ---- Lights ---- */
   const KEY_DIR = new THREE.Vector3(-0.62, 0.66, 0.42).normalize();
   const key = new THREE.DirectionalLight(cInk.clone().lerp(cGoldLift, 0.3), LIGHT.key);
@@ -1143,7 +1288,7 @@ async function boot() {
      Layout: screen rects (CSS px) that each beat's subject must fit.
      ============================================================ */
   const L = { vw: 1, vh: 1, aspect: 1, portrait: false, tiltK: 1 };
-  const F0 = {}, F1 = {}, F2 = {}, F3 = {}, FA = {}, FB = {};
+  const F0 = {}, F1 = {}, F2 = {}, F3 = {}, FA = {}, FB = {}, FP = {}, FC = {};
   const eul = new THREE.Euler(), m4 = new THREE.Matrix4(), v3 = new THREE.Vector3();
 
   function fit(rect, w, h, cx, cy, cz, out) {
@@ -1263,6 +1408,13 @@ async function boot() {
     root.style.setProperty("--card-l", L.cardRect.l.toFixed(1) + "px");
     root.style.setProperty("--card-r", L.cardRect.r.toFixed(1) + "px");
     root.style.setProperty("--card-b", L.cardRect.b.toFixed(1) + "px");
+
+    // Scene 2: the phone beside its text (landscape) or above it (portrait).
+    const p2R = p2El.getBoundingClientRect();
+    const rP = L.portrait
+      ? { l: g, r: vw - g, t: header + vh * 0.012, b: p2R.top - vh * 0.03 }
+      : { l: Math.max(vw * 0.46, p2R.right + vw * 0.05), r: vw * 0.9, t: header + vh * 0.02, b: vh - g };
+    fit(rP, PH_W * 1.12, PH_H * 1.04, PHONE_AT.x, PHONE_AT.y, PHONE_AT.z + PH_D / 2, FP);
   }
 
   let needsResize = true;
@@ -1287,6 +1439,7 @@ async function boot() {
      The sequence: one paused timeline, scrubbed by scroll.
      ============================================================ */
   const S = { dolly: 0, open: 0, slide: 0, away: 0, push: 0 }; // owned by the timeline
+  const S2 = { leave: 0, travel: 0, turn: 0 };                  // scene 2, also the timeline's
   const I = { exposure: CAPTURE ? 1 : 0, rise: CAPTURE ? 1 : 0, dust: CAPTURE ? 1 : 0 }; // owned by the intro
 
   const tl = gsap.timeline({ paused: true, defaults: { ease: "none" } });
@@ -1304,7 +1457,20 @@ async function boot() {
     .fromTo(topCta, { autoAlpha: 1 }, { autoAlpha: 0, duration: 0.04, ease: "power1.in" }, 0.79)
     .fromTo(projectEl, { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.06, ease: "power3.out" }, 0.8)
     .fromTo(outroCta, { autoAlpha: 0, y: 18 }, { autoAlpha: 1, y: 0, duration: 0.06, ease: "power3.out" }, 0.83)
-    .set({}, {}, 1);
+    // Scene 2. The label and the gold CTA leave first, the header's CTA returns
+    // (never two CTAs at once), and the second project's beats arrive with the phone.
+    .fromTo(projectEl, { opacity: 1, y: 0 }, { opacity: 0, y: -14, duration: 0.035, ease: "power2.in", immediateRender: false }, 1)
+    .fromTo(outroCta, { autoAlpha: 1, y: 0 }, { autoAlpha: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, 1)
+    .fromTo(topCta, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.05, ease: "power3.out", immediateRender: false }, 1.07)
+    .fromTo(workIn, { opacity: 0, yPercent: 12 }, { opacity: 1, yPercent: 0, duration: 0.06, ease: "power3.out" }, 1.1)
+    .fromTo(workIn, { opacity: 1, yPercent: 0 }, { opacity: 0, yPercent: -8, duration: 0.035, ease: "power2.in", immediateRender: false }, 1.25)
+    .fromTo(p2Head, { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.06, ease: "power3.out" }, 1.33)
+    .fromTo(p2Lead, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.06, ease: "power3.out" }, 1.36)
+    .fromTo(p2Link, { autoAlpha: 0, y: 16 }, { autoAlpha: 1, y: 0, duration: 0.06, ease: "power3.out" }, 1.39)
+    .set({}, {}, TOTAL);
+  tl.to(S2, { leave: 1, duration: 0.24, ease: "power2.inOut" }, 1.02)
+    .to(S2, { travel: 1, duration: 0.3, ease: "power2.inOut" }, 1.03)
+    .to(S2, { turn: 1, duration: 0.36, ease: "power2.inOut" }, 1.2);
 
   /* ============================================================
      Render-loop mapping: state -> transforms. The only writer.
@@ -1355,7 +1521,8 @@ async function boot() {
     env.rotation.set(-0.95 * smooth(0.28, 1, a), 0, 0.14 * smooth(0.28, 1, a));
     env.visible = a < 0.999;
 
-    // Camera: blend the four framings, then a small orbit for pointer parallax.
+    // Camera: blend the four framings, travel on to the phone, then a small orbit
+    // for pointer parallax.
     rig.updateMatrixWorld(true);
     card.getWorldPosition(v3);
     fit(L.r3, CARD_W, CARD_H, v3.x, v3.y, v3.z + CARD_T / 2, F3);
@@ -1363,45 +1530,85 @@ async function boot() {
     mixFrame(F0, F1, d, FA);
     mixFrame(FA, F2, s2, FB);
     mixFrame(FB, F3, p, FA);
-    const halfH = (VH1 * FA.d) / 2, halfW = halfH * L.aspect;
-    camera.position.set(FA.x - FA.sx * halfW, FA.y - FA.sy * halfH, FA.z + FA.d);
+
+    // Scene 2. F3 stays on the settled card's place while the card itself eases
+    // back and drifts aside into the dark: the previous piece.
+    const { leave: lv, travel: tr, turn: tu } = S2;
+    card.position.x -= 2.9 * lv;
+    card.position.y += 0.2 * lv;
+    card.position.z -= 3.4 * lv;
+    card.rotation.y = 0.5 * lv;
+    card.rotation.z = 0.035 * lv;
+    card.visible = lv < 0.999;
+    const F = tr > 0 ? mixFrame(FA, FP, tr, FC) : FA;
+    const halfH = (VH1 * F.d) / 2, halfW = halfH * L.aspect;
+    camera.position.set(F.x - F.sx * halfW, F.y - F.sy * halfH, F.z + F.d);
     camera.quaternion.identity();
-    const par = PARALLAX ? 1 - p : 0;
+    const par = PARALLAX ? Math.max(1 - p, tr) : 0;
     if (par > 0) {
       eOrbit.set(-ptr.y * 0.03 * par, ptr.x * 0.045 * par, 0, "YXZ");
       qOrbit.setFromEuler(eOrbit);
-      focus.set(FA.x, FA.y, FA.z);
+      focus.set(F.x, F.y, F.z);
       off.copy(camera.position).sub(focus).applyQuaternion(qOrbit);
       camera.position.copy(focus).add(off);
       camera.quaternion.copy(qOrbit);
     }
-    poolU.uPoolCentre.value.set(-1.05, rig.position.y + 0.85 + s * 0.9, 0.6);
-    key.target.position.set(0, rig.position.y * 0.5 + s * 0.5, 0);
+
+    // The phone: in from the right at a three-quarter angle, then it turns to face
+    // the camera, with the envelope's idle float easing as it does.
+    phone.visible = tr > 0.001;
+    if (phone.visible) {
+      const idle2 = REDUCED ? 0 : 1 - 0.72 * tu;
+      const arrive = 1 - tr, k2 = L.tiltK;
+      phone.position.set(
+        PHONE_AT.x + 0.45 * arrive,
+        PHONE_AT.y - 0.3 * arrive * arrive + idle2 * 0.06 * Math.sin(t * 0.83),
+        PHONE_AT.z - 0.7 * arrive
+      );
+      handset.rotation.set(
+        lerp(PH_REST.rx * k2, 0, tu) + idle2 * 0.03 * Math.sin(t * 0.61 + 0.7),
+        lerp((PH_REST.ry - 0.28 * arrive) * k2, 0, tu) + idle2 * 0.05 * Math.sin(t * 0.43),
+        lerp(PH_REST.rz * k2, 0, tu) + idle2 * 0.015 * Math.sin(t * 0.52 + 2.1)
+      );
+      screenU.uBright.value = lerp(0.9, 1, smooth(0.2, 1, tu));
+    }
+
+    // The lights travel with the subject: the key's falloff and target, the gold rim.
+    poolU.uPoolCentre.value.set(
+      lerp(-1.05, PHONE_AT.x - 0.9, tr),
+      lerp(rig.position.y + 0.85 + s * 0.9, PHONE_AT.y + 0.9, tr),
+      lerp(0.6, PHONE_AT.z + 0.8, tr)
+    );
+    key.target.position.set(lerp(0, PHONE_AT.x, tr), lerp(rig.position.y * 0.5 + s * 0.5, PHONE_AT.y, tr), lerp(0, PHONE_AT.z, tr));
     key.position.copy(key.target.position).addScaledVector(KEY_DIR, 12);
+    rim.position.set(lerp(3.6, PHONE_AT.x + 2.6, tr), lerp(1.5, PHONE_AT.y + 1.4, tr), lerp(-0.9, PHONE_AT.z - 1.5, tr));
+    const back = smooth(0, 1, tr); // scene 2 brings back the atmosphere the settled card cleared
 
     // Backdrop pool follows the subject on screen.
-    backdropU.uCenter.value.set(FA.sx, FA.sy);
-    backdropU.uAmt.value = 1 - 0.45 * smooth(0.4, 1, p); // quieter ground under the label at the end
-    dustU.uPoolNdc.value.set(FA.sx, FA.sy, L.aspect);
+    backdropU.uCenter.value.set(F.sx, F.sy);
+    backdropU.uAmt.value = lerp(1 - 0.45 * smooth(0.4, 1, p), 1, back); // quieter ground under the label at the end
+    dustU.uPoolNdc.value.set(F.sx, F.sy, L.aspect);
 
     // Bloom swells as the flap opens, eases off as the card fills the frame.
+    // Scene 2 keeps it off: the true-colour screen is pre-inverted into HDR and would flare.
     bloom.strength = (LIGHT.bloom[0] + LIGHT.bloom[1] * lit) * (1 - smooth(0.15, 0.72, p));
     bloom.enabled = bloom.strength > 0.004;
-    fxaa.enabled = p < 0.97; // the settled card is screen-aligned and must stay pixel-crisp
+    fxaa.enabled = p < 0.97 || tr > 0.02; // the settled card is screen-aligned and must stay pixel-crisp
 
-    // Card: dim inside the pocket, true colour at full screen.
-    cardU.uBright.value = lerp(0.58, 0.84, smooth(0.05, 0.9, s)) + 0.16 * smooth(0.35, 0.95, p);
-    cardU.uTrue.value = smooth(0.6, 1, p);
-    cardU.uBias.value = -0.45 * smooth(0.75, 1, p);
+    // Card: dim inside the pocket, true colour at full screen, dimming again as it leaves.
+    const dim = smooth(0, 0.8, lv);
+    cardU.uBright.value = (lerp(0.58, 0.84, smooth(0.05, 0.9, s)) + 0.16 * smooth(0.35, 0.95, p)) * (1 - 0.6 * dim);
+    cardU.uTrue.value = smooth(0.6, 1, p) * (1 - dim);
+    cardU.uBias.value = -0.45 * smooth(0.75, 1, p) * (1 - smooth(0, 0.3, lv));
 
     // Dust focuses on the subject and clears for the card.
     dustU.uTime.value = t;
-    dustU.uFocus.value = FA.d;
-    dustU.uFade.value = I.dust * (1 - smooth(0.3, 0.85, p));
+    dustU.uFocus.value = F.d;
+    dustU.uFade.value = I.dust * Math.max(1 - smooth(0.3, 0.85, p), back);
 
     finish.uniforms.uTime.value = t;
-    finish.uniforms.uVignette.value = 0.32 * (1 - smooth(0.35, 0.95, p));
-    finish.uniforms.uGrain.value = 0.032 * (1 - smooth(0.45, 0.95, p));
+    finish.uniforms.uVignette.value = 0.32 * Math.max(1 - smooth(0.35, 0.95, p), back);
+    finish.uniforms.uGrain.value = 0.032 * Math.max(1 - smooth(0.45, 0.95, p), back);
 
     renderer.toneMappingExposure = I.exposure;
   }
@@ -1436,21 +1643,40 @@ async function boot() {
   // Compile everything while the loader is still up.
   tl.progress(0);
   update();
+  phone.visible = true; // compile scene 2's programs now, not mid-scroll
+  renderer.initTexture(posterTex);
   if (renderer.extensions.has("KHR_parallel_shader_compile")) await renderer.compileAsync(scene, camera);
   else renderer.compile(scene, camera);
+  update();
   composer.render(0);
   setLoad(1);
 
   if (CAPTURE) {
-    window.__proto.renderFrame = (p, seconds) => {
+    // With the phone in view, the screen video is seeked to `videoTime` (default:
+    // `seconds`, looped) and the frame is awaited, so recordings show it moving.
+    window.__proto.renderFrame = async (p, seconds, videoTime) => {
       tl.progress(clamp(p, 0, 1));
       time = seconds || 0;
       update();
+      if (videoOk && phone.visible) {
+        const dur = video.duration || 1;
+        const vt = (((videoTime == null ? time : videoTime) % dur) + dur) % dur;
+        if (Math.abs(video.currentTime - vt) > 0.0005) {
+          await new Promise((r) => {
+            video.addEventListener("seeked", r, { once: true });
+            video.currentTime = vt;
+          });
+        }
+        videoTex.needsUpdate = true;
+      }
       composer.render(1 / 30);
       return new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(() => r())));
     };
+    window.__proto.total = TOTAL;
+    window.__proto.video = () => ({ ok: videoOk, time: video && video.currentTime, duration: video && video.duration });
     window.__proto.debug = { THREE, renderer, scene, camera, composer, bloom, finish, key, rim, hemi, innerLight,
-      glowMat, spillMat, paperMat, linerMat, waxCapMat, waxBodyMat, foilMat, dustU, backdropU, cardU, S, I, L, LIGHT, rig, env, card, seal, pivot };
+      glowMat, spillMat, paperMat, linerMat, waxCapMat, waxBodyMat, foilMat, dustU, backdropU, cardU, S, I, L, LIGHT, rig, env, card, seal, pivot,
+      S2, phone, handset, screenU, screenMat, glassMat, graphiteMat, champagneMat, FP };
     window.__proto.info = () => ({
       dpr,
       samples: SAMPLES,
@@ -1464,8 +1690,10 @@ async function boot() {
       cardRect: L.cardRect,
       portrait: L.portrait,
     });
+    askVideo();
+    await Promise.race([videoReady, wait(10000)]);
     root.dataset.scene = "ready";
-    readyHandlers.resolve({ static: false });
+    readyHandlers.resolve({ static: false, video: videoOk });
     return;
   }
 
@@ -1503,6 +1731,12 @@ async function boot() {
     ptr.x += (ptrT.x - ptr.x) * kp;
     ptr.y += (ptrT.y - ptr.y) * kp;
     update();
+    if (tl.time() > 0.7) askVideo();
+    if (videoOk) {
+      const want = S2.travel > 0.2;
+      if (want && video.paused) video.play().catch(() => {});
+      else if (!want && !video.paused) video.pause();
+    }
     composer.render(dt);
   }
   const start = () => {
@@ -1514,6 +1748,7 @@ async function boot() {
   const stop = () => {
     running = false;
     cancelAnimationFrame(raf);
+    if (video && !video.paused) video.pause();
   };
   document.addEventListener("visibilitychange", () => (document.hidden ? stop() : start()));
   // A lost GPU context (a phone reclaiming memory in the background) would leave a
