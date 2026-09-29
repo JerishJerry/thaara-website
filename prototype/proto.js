@@ -21,8 +21,11 @@
     Scene 5 (timeline 3.3..4.0): the rings rise away and the camera
     travels forward through four portal stations joined by a gold path.
 
-    Scene 6 (timeline 4.0..TOTAL): the stations sink away and the camera
+    Scene 6 (timeline 4.0..4.7): the stations sink away and the camera
     glides on to a warm lit doorway, settling facing the light.
+
+    Scene 7 (timeline 4.7..TOTAL): a floating invitation card drifts before
+    the door; the camera settles on the card with the light behind it.
 
    ?capture   no loop, no loader, no intro; exposes window.__proto for
               deterministic frame capture (verification and video);
@@ -101,7 +104,7 @@ const PH_W = 1.22, PH_D = 0.13, PH_BEZEL = 0.052, PH_R = 0.17, PH_BEVEL = 0.03;
 const PH_SW = PH_W - 2 * PH_BEZEL, PH_SH = PH_SW / SCREEN_ASPECT, PH_H = PH_SH + 2 * PH_BEZEL;
 const PHONE_AT = { x: 5.6, y: 1.43, z: -0.4 };       // the settled card sits at (0, 1.43, 0.86)
 const PH_REST = { rx: 0.08, ry: -0.74, rz: -0.03 };  // three-quarter view, screen toward the text
-const TOTAL = 4.7; // opening 0..1, scenes 2..6 to 4.7 (0.7 each after the opening)
+const TOTAL = 5.4; // opening 0..1, scenes 2..7 to 5.4 (0.7 each after the opening)
 
 /* ---- Small math ---- */
 const clamp = (x, a, b) => Math.min(b, Math.max(a, x));
@@ -722,6 +725,9 @@ async function boot() {
   const s6El = document.querySelector(".s6");
   const s6Head = document.querySelector(".s6-head");
   const s6ds = [...document.querySelectorAll(".s6d")];
+  const s7El = document.querySelector(".s7");
+  const s7Head = document.querySelector(".s7-head");
+  const s7ds = [...document.querySelectorAll(".s7d")];
   const loaderFill = document.querySelector(".loader-fill");
   const setLoad = (p) => loaderFill && loaderFill.style.setProperty("--p", p.toFixed(3));
   const yieldUI = CAPTURE ? () => Promise.resolve() : () => wait(0);
@@ -1453,6 +1459,34 @@ async function boot() {
   const DOOR_C = new THREE.Vector3(DOOR.x, DOOR.y + 0.2, DOOR.z);
   const DOOR_RIM = new THREE.Vector3(DOOR.x + 2.2, DOOR.y + 1.4, DOOR.z - 1.0);
 
+  /* ---- Scene 7: a floating invitation card ----
+     A small cream card with a gold seal hovers before the lit door, gently
+     bobbing: the visitor's message-to-be. */
+  const S7 = { leave: 0, travel: 0, focus: 0 }; // owned by the timeline
+  // Before the doorway and left of it, so the lit door rises behind the card.
+  const CARD = { x: 5.6, y: 1.2, z: -14.3 };
+  const s7 = new THREE.Group();
+  {
+    const note = new THREE.Mesh(new THREE.BoxGeometry(0.95, 0.6, 0.025), paperMat);
+    s7.add(note);
+    // The seal uses its own softly emissive gold so it reads as gold from
+    // every angle; a bare metal goes black when it reflects the dark room.
+    const sealMat = new THREE.MeshStandardMaterial({
+      color: 0xd8b45c, metalness: 0.7, roughness: 0.35,
+      emissive: 0x3a2a08, emissiveIntensity: 0.55
+    });
+    const seal = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 0.035, 24), sealMat);
+    seal.rotation.x = Math.PI / 2;
+    seal.position.set(0, 0, 0.03);
+    s7.add(seal);
+  }
+  s7.position.set(CARD.x, CARD.y, CARD.z);
+  s7.rotation.x = -0.06;
+  s7.visible = false;
+  scene.add(s7);
+  const CARD_C = new THREE.Vector3(CARD.x, CARD.y, CARD.z);
+  const CARD_RIM = new THREE.Vector3(CARD.x + 2.2, CARD.y + 1.2, CARD.z - 1.0);
+
   /* ---- Lights ---- */
   const KEY_DIR = new THREE.Vector3(-0.62, 0.66, 0.42).normalize();
   const key = new THREE.DirectionalLight(cInk.clone().lerp(cGoldLift, 0.3), LIGHT.key);
@@ -1553,7 +1587,7 @@ async function boot() {
      Layout: screen rects (CSS px) that each beat's subject must fit.
      ============================================================ */
   const L = { vw: 1, vh: 1, aspect: 1, portrait: false, tiltK: 1 };
-  const F0 = {}, F1 = {}, F2 = {}, F3 = {}, FA = {}, FB = {}, FP = {}, FC = {}, FQ = {}, FD = {}, FR = {}, FE = {}, FS = {}, FT = {};
+  const F0 = {}, F1 = {}, F2 = {}, F3 = {}, FA = {}, FB = {}, FP = {}, FC = {}, FQ = {}, FD = {}, FR = {}, FE = {}, FS = {}, FT = {}, FG = {};
   const DBG = {}; // scratchpad introspection: update() stashes the live camera frame here
   const eul = new THREE.Euler(), m4 = new THREE.Matrix4(), v3 = new THREE.Vector3();
 
@@ -1710,6 +1744,14 @@ async function boot() {
       ? { l: g, r: vw - g, t: header + vh * 0.012, b: s6R.top - vh * 0.03 }
       : { l: Math.max(vw * 0.42, s6R.right + vw * 0.05), r: vw - g, t: header + vh * 0.02, b: vh - g };
     fit(rT, 4.6, 3.8, DOOR.x, DOOR.y + 0.3, DOOR.z, FT);
+
+    // Scene 7: the card right of the text (landscape) or above it (portrait).
+    const s7R = s7El.getBoundingClientRect();
+    const rG = L.portrait
+      ? { l: g, r: vw - g, t: header + vh * 0.012, b: s7R.top - vh * 0.03 }
+      : { l: Math.max(vw * 0.42, s7R.right + vw * 0.05), r: vw - g, t: header + vh * 0.02, b: vh - g };
+    const cardX = L.portrait ? 2.0 : CARD.x, cardY = L.portrait ? 1.7 : CARD.y;
+    fit(rG, 2.2, 2.2, cardX, cardY + 0.3, CARD.z, FG);
   }
 
   let needsResize = true;
@@ -1812,6 +1854,17 @@ async function boot() {
     .fromTo(s6ds[1], { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.05, ease: "power3.out" }, 4.28)
     .fromTo(s6ds[1], { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, 4.37)
     .fromTo(s6ds[2], { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.05, ease: "power3.out" }, 4.39)
+    // Scene 7. The door's beats leave first; the section beat arrives and
+    // stays while the two route beats and the caveat arrive beneath it;
+    // the caveat stays.
+    .fromTo(s6Head, { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, 4.7)
+    .fromTo(s6ds[2], { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, 4.7)
+    .fromTo(s7Head, { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.06, ease: "power3.out" }, 4.78)
+    .fromTo(s7ds[0], { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.05, ease: "power3.out" }, 4.87)
+    .fromTo(s7ds[0], { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, 4.96)
+    .fromTo(s7ds[1], { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.05, ease: "power3.out" }, 4.98)
+    .fromTo(s7ds[1], { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, 5.07)
+    .fromTo(s7ds[2], { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.05, ease: "power3.out" }, 5.09)
     .set({}, {}, TOTAL);
   tl.to(S2, { leave: 1, duration: 0.24, ease: "power2.inOut" }, 1.02)
     .to(S2, { travel: 1, duration: 0.3, ease: "power2.inOut" }, 1.03)
@@ -1828,6 +1881,9 @@ async function boot() {
   tl.to(S6, { leave: 1, duration: 0.24, ease: "power2.inOut" }, 4.02)
     .to(S6, { travel: 1, duration: 0.3, ease: "power2.inOut" }, 4.03)
     .to(S6, { focus: 2, duration: 0.5, ease: "none" }, 4.1);
+  tl.to(S7, { leave: 1, duration: 0.24, ease: "power2.inOut" }, 4.72)
+    .to(S7, { travel: 1, duration: 0.3, ease: "power2.inOut" }, 4.73)
+    .to(S7, { focus: 2, duration: 0.5, ease: "none" }, 4.8);
 
   /* ============================================================
      Render-loop mapping: state -> transforms. The only writer.
@@ -1940,16 +1996,24 @@ async function boot() {
     // the pose overrode the frame distance); keep them until scene 6 blends in
     // the post-pose ones, so the approved rest pose does not move.
     const halfHc = halfH + (halfH4 - halfH) * st6, halfWc = halfW + (halfW4 - halfW) * st6;
-    camera.position.set(FV4.x - FV4.sx * halfWc, FV4.y - FV4.sy * halfHc, FV4.z + FV4.d);
-    DBG.x = FV4.x; DBG.y = FV4.y; DBG.z = FV4.z; DBG.d = FV4.d;
-    DBG.sx = FV4.sx; DBG.sy = FV4.sy; DBG.halfW = halfWc; DBG.halfH = halfHc;
+    // Scene 7. The door sinks away as the camera settles on the card, with a
+    // gentle push-in while the beats arrive. Computed after the earlier poses
+    // so each handoff starts from the live frame.
+    const st7 = S7.travel, fc7 = S7.focus;
+    const FV5 = st7 > 0 ? mixFrame(FV4, FG, st7, FD) : FV4;
+    if (st7 > 0) FV5.z -= fc7 * 0.25;
+    const halfH5 = (VH1 * FV5.d) / 2, halfW5 = halfH5 * L.aspect;
+    const halfHd = halfHc + (halfH5 - halfHc) * st7, halfWd = halfWc + (halfW5 - halfWc) * st7;
+    camera.position.set(FV5.x - FV5.sx * halfWd, FV5.y - FV5.sy * halfHd, FV5.z + FV5.d);
+    DBG.x = FV5.x; DBG.y = FV5.y; DBG.z = FV5.z; DBG.d = FV5.d;
+    DBG.sx = FV5.sx; DBG.sy = FV5.sy; DBG.halfW = halfWd; DBG.halfH = halfHd;
     DBG.st5 = st5; DBG.fc5 = fc5;
     camera.quaternion.identity();
     const par = PARALLAX ? Math.max(1 - p, tr) : 0;
     if (par > 0) {
       eOrbit.set(-ptr.y * 0.03 * par, ptr.x * 0.045 * par, 0, "YXZ");
       qOrbit.setFromEuler(eOrbit);
-      focus.set(FV4.x, FV4.y, FV4.z);
+      focus.set(FV5.x, FV5.y, FV5.z);
       off.copy(camera.position).sub(focus).applyQuaternion(qOrbit);
       camera.position.copy(focus).add(off);
       camera.quaternion.copy(qOrbit);
@@ -2013,6 +2077,24 @@ async function boot() {
     // The practical stays dark until its scene: it sits close enough to the
     // last station to kiss it with warmth otherwise.
     doorLight.intensity = 25 * st6;
+    // Scene 6: the door stays where it is — the card arrives before it, so
+    // the doorway becomes the new scene's glowing backdrop. It barely settles
+    // as the camera moves on.
+    s6.position.y = DOOR.y - 0.5 * S7.leave;
+    // Scene 7 card: hovering invitation, gently bobbing (still when reduced).
+    // Portrait parks the card well left of the tall doorway: the narrow frame
+    // cannot hold both, so the card floats on dark warmth with only a kiss of
+    // the door's glow at the frame edge, and the text stays on darkness.
+    s7.visible = st7 > 0.001;
+    const cardX = L.portrait ? 2.0 : CARD.x, cardY = L.portrait ? 1.7 : CARD.y;
+    CARD_C.set(cardX, cardY, CARD.z);
+    CARD_RIM.set(cardX + 2.2, cardY + 1.2, CARD.z - 1.0);
+    s7.position.x = cardX;
+    const bob = REDUCED ? 0 : 1;
+    s7.position.y = cardY + bob * 0.06 * Math.sin(t * 0.83);
+    // Angled so the card's face turns toward the camera: its left edge is
+    // nearer, the seal catching the key from the left.
+    s7.rotation.y = 0.22 + bob * 0.04 * Math.sin(t * 0.5);
     if (s4.visible) {
       for (let i = 0; i < 4; i++) {
         const rg = s4rings[i];
@@ -2053,12 +2135,17 @@ async function boot() {
     key.target.position.lerp(DOOR_C, st6);
     key.position.copy(key.target.position).addScaledVector(KEY_DIR, 12);
     rim.position.lerp(DOOR_RIM, st6);
+    // Scene 7: lights ride on from the door to the card.
+    poolU.uPoolCentre.value.lerp(CARD_C, st7);
+    key.target.position.lerp(CARD_C, st7);
+    key.position.copy(key.target.position).addScaledVector(KEY_DIR, 12);
+    rim.position.lerp(CARD_RIM, st7);
     const back = smooth(0, 1, tr); // scene 2 brings back the atmosphere the settled card cleared
 
     // Backdrop pool follows the subject on screen.
-    backdropU.uCenter.value.set(FV4.sx, FV4.sy);
+    backdropU.uCenter.value.set(FV5.sx, FV5.sy);
     backdropU.uAmt.value = lerp(1 - 0.45 * smooth(0.4, 1, p), 1, back); // quieter ground under the label at the end
-    dustU.uPoolNdc.value.set(FV4.sx, FV4.sy, L.aspect);
+    dustU.uPoolNdc.value.set(FV5.sx, FV5.sy, L.aspect);
 
     // Bloom swells as the flap opens, eases off as the card fills the frame.
     // Scene 2 keeps it off: the true-colour screen is pre-inverted into HDR and would flare.
@@ -2119,6 +2206,7 @@ async function boot() {
   s4.visible = true; // same for scene 4
   s5.visible = true; // same for scene 5
   s6.visible = true; // same for scene 6
+  s7.visible = true; // same for scene 7
   renderer.initTexture(posterTex);
   if (renderer.extensions.has("KHR_parallel_shader_compile")) await renderer.compileAsync(scene, camera);
   else renderer.compile(scene, camera);
@@ -2155,7 +2243,8 @@ async function boot() {
       S3, s3, s3tabs, ribbon, plinth, FQ,
       S4, s4, s4rings, FR,
       S5, s5, FS, ST3, DBG,
-      S6, s6, FT };
+      S6, s6, FT,
+      S7, s7, FG };
     window.__proto.info = () => ({
       dpr,
       samples: SAMPLES,

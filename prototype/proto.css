@@ -87,7 +87,7 @@ p, h1, h2, figure{ margin: 0; }
   display: block;
   z-index: 0;
 }
-.track{ height: 1980vh; }   /* 100vh + 400vh per timeline unit: opening 0..1, scenes 2..6 to 4.7 */
+.track{ height: 2260vh; }   /* 100vh + 400vh per timeline unit: opening 0..1, scenes 2..7 to 5.4 */
 
 
 /* ---- Header ------------------------------------------------- */
@@ -450,6 +450,41 @@ p, h1, h2, figure{ margin: 0; }
   color: var(--gold-dim);
 }
 .facts dd{ margin-top: 0.25rem; color: var(--ink); }
+
+/* ---- Scene 7: Contact, a floating invitation card ------------ */
+.s7{
+  position: fixed;
+  z-index: 3;
+  left: var(--gutter);
+  bottom: var(--base);
+  display: grid;
+  pointer-events: none;
+  width: min(27rem, calc(42vw - var(--gutter)));
+}
+/* The contact links are the scene's content: clickable. */
+.s7 a{ pointer-events: auto; }
+.s7-head{ grid-row: 1; grid-column: 1; }
+.s7-head h2{
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: var(--fs-lead);
+  line-height: 1.12;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+.s7-head h2 em{ font-style: italic; }
+.s7-lead{ margin-top: clamp(0.75rem, 1.8vh, 1.25rem); color: var(--ink-dim); }
+/* The three contact beats share one grid cell, like scenes 3-6. */
+.s7d{ grid-row: 2; grid-column: 1; margin-top: clamp(1rem, 2.4vh, 1.75rem); }
+.s7d .meta{
+  font-size: var(--fs-eyebrow);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  margin-bottom: 0.4rem;
+}
+.s7d .link-cta{ font-size: clamp(0.95rem, 1.6vw, 1.1rem); overflow-wrap: anywhere; }
+.s7d-desc{ color: var(--ink-dim); }
 /* Screen-reader text for the phone while the scene runs; the picture in the static page. */
 .p2-still{
   position: absolute;
@@ -515,7 +550,7 @@ html:not([data-scene="loading"]) .loader{ opacity: 0; visibility: hidden; }
   .hint{ left: var(--gutter); right: auto; }
   .lead{ right: var(--gutter); width: auto; }
   .outro{ flex-direction: column; align-items: flex-start; }
-  .work, .p2, .s3, .s4, .s5, .s6{ right: var(--gutter); width: auto; }
+  .work, .p2, .s3, .s4, .s5, .s6, .s7{ right: var(--gutter); width: auto; }
 }
 
 
@@ -669,6 +704,27 @@ html:not(.js) .s6{
 [data-scene="static"] .s6 *{ opacity: 1 !important; visibility: visible !important; transform: none !important; }
 [data-scene="static"] .s6d,
 html:not(.js) .s6d{ margin-top: 0; }
+
+/* Static and no-JS: Contact is a seventh screen below About. */
+[data-scene="static"] .s7,
+html:not(.js) .s7{
+  position: relative;
+  left: auto;
+  right: auto;
+  bottom: auto;
+  width: auto;
+  min-height: 100vh;
+  margin: 0 var(--gutter);
+  padding: calc(var(--header-h) + 2vh) 0 var(--base);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: clamp(1.25rem, 3vh, 2.5rem);
+  pointer-events: auto;
+}
+[data-scene="static"] .s7 *{ opacity: 1 !important; visibility: visible !important; transform: none !important; }
+[data-scene="static"] .s7d,
+html:not(.js) .s7d{ margin-top: 0; }
 
 
 /* ---- Capture mode: frames must be deterministic ------------- */
