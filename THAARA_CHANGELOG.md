@@ -72,9 +72,23 @@ left everything else as it was. The owner then chose to redo it properly:
 
 ### Status
 
-- **2026-09-29: step 1 is built.** The prototype is at `prototype/` (commit `2ac3349`).
-  - It has 0 console errors across five viewport sizes in headless Chrome.
-  - It is waiting for the owner's verdict. Nothing further gets built until then.
+- **2026-09-29: step 1 is built and approved.** The prototype is at `prototype/` (commit
+  `2ac3349`), with 0 console errors across five viewport sizes in headless Chrome. The owner approved
+  the direction ("I like this").
+- **Roadmap.** The page continues as one scroll journey, with one scene for each section of the
+  current site. The owner sees each scene before the next one is built.
+  1. Opening: the invitation opens. **Done, and approved.**
+  2. Work, project 02, Leo Ronald × Asnia. The Nivin × Dhiya card drifts aside and a 3D phone turns
+     to face the camera. It shows their invitation, ideally as a recorded loop of the live site
+     (CLAUDE.md open item 0), along with the real "Open the live invitation" link. **In progress.**
+  3. Services: the five disciplines.
+  4. Why THAARA: the four principles.
+  5. Process: the four stages, as stations along a path through the space.
+  6. About: the studio poster as a printed poster in the scene, with the facts.
+  7. Contact: the real enquiry form over a calm scene. The Web3Forms `body.success === true` check
+     is kept.
+  8. Closing and footer: "Let's make something worth keeping." The gold dust gathers into the
+     THAARA mark.
 - **Open question for the owner:** the live link. The prototype carries THAARA's real branding, so
   it is published only if the owner asks.
 
