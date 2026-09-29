@@ -70,6 +70,14 @@ left everything else as it was. The owner then chose to redo it properly:
     rounded corners, no Inter.
   - Its single-file packaging idea is used to publish the prototype as a live link.
 
+### Status
+
+- **2026-09-29: step 1 is built.** The prototype is at `prototype/` (commit `2ac3349`).
+  - It has 0 console errors across five viewport sizes in headless Chrome.
+  - It is waiting for the owner's verdict. Nothing further gets built until then.
+- **Open question for the owner:** the live link. The prototype carries THAARA's real branding, so
+  it is published only if the owner asks.
+
 ---
 
 ## 2026-09-19 — Website Design added as a fifth discipline · Critical
