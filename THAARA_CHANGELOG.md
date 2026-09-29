@@ -14,6 +14,29 @@ typography, animation timing, minor visual detail).
 
 ---
 
+## Phase 7 v2: full 3D redesign, on branch `3d-redesign` (resume here)
+
+2026-09-29. The owner rejected the first attempt as not a redesign, and it was deleted. That attempt
+(branch `redesign-3d`, last commit `bd739d2`) dropped 3D objects into the old layout's image slots and
+left everything else as it was. The owner then chose to redo it properly:
+
+- **The page itself becomes a full-screen 3D scene.** The old two-column layout is gone.
+- **Step 1, and the only step until the owner has judged it:** one rough prototype of the opening
+  screen, at `prototype/index.html`. Scrolling moves the camera through the sequence:
+  1. An ivory envelope floats in a dark, warm space. It has a gold liner and a wax seal carrying the
+     THAARA logo.
+  2. The flap opens and warm light spills out.
+  3. The Nivin × Dhiya card rises out of the envelope.
+  4. The envelope drops away, and the camera pushes into the card until it fills the screen.
+
+  Text overlays are minimal and use only existing site copy.
+- **Stack:** vendored Three.js 0.186.1 (plus post-processing addons for bloom) and GSAP 3.15 core,
+  loaded through an import map. No bundler, no `package.json`.
+- Nothing else gets built until the owner has seen the prototype. `main` and the live site stay
+  untouched.
+
+---
+
 ## 2026-09-19 — Website Design added as a fifth discipline · Critical
 
 **Issue**
