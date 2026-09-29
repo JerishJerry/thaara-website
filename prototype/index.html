@@ -269,6 +269,85 @@
       <div class="s7d s7t2">
         <p class="s7d-desc">The form reaches us too&nbsp;- use whichever you prefer.</p>
       </div>
+      <form class="enquiry s7t3" id="enquiryForm" method="post" novalidate aria-label="Enquiry form">
+
+        <noscript>
+          <div class="form-alert form-alert--notice">
+            <p class="form-alert-title">This form needs JavaScript</p>
+            <p>It can&rsquo;t be submitted with JavaScript turned off. Please email <a href="mailto:hello.thaaracreates@gmail.com">hello.thaaracreates@gmail.com</a>, or message us on Instagram&nbsp;- <a href="https://www.instagram.com/thaara.creates" target="_blank" rel="noopener noreferrer">@thaara.creates</a>.</p>
+          </div>
+        </noscript>
+
+        <div
+          class="form-alert form-alert--error"
+          id="formErrorSummary"
+          role="alert"
+          tabindex="-1"
+          hidden
+        >
+          <p class="form-alert-title">Please check the following</p>
+          <ul id="formErrorList"></ul>
+        </div>
+
+        <label class="hp-field" aria-hidden="true">
+          Leave this field empty
+          <input type="checkbox" id="f-botcheck" name="botcheck" tabindex="-1" autocomplete="off">
+        </label>
+
+        <div class="field">
+          <label for="f-name">Name <span class="req" aria-hidden="true">*</span></label>
+          <input type="text" id="f-name" name="name" autocomplete="name"
+                 required aria-required="true" aria-describedby="e-name">
+          <p class="field-error" id="e-name" hidden></p>
+        </div>
+
+        <div class="field">
+          <label for="f-email">Email <span class="req" aria-hidden="true">*</span></label>
+          <input type="email" id="f-email" name="email" autocomplete="email"
+                 inputmode="email" required aria-required="true" aria-describedby="e-email">
+          <p class="field-error" id="e-email" hidden></p>
+        </div>
+
+        <div class="field">
+          <label for="f-details">Message <span class="req" aria-hidden="true">*</span></label>
+          <textarea id="f-details" name="message" rows="5"
+                    required aria-required="true" aria-describedby="e-details hint-details"></textarea>
+          <p class="field-hint" id="hint-details">Tell us a little about what you have in mind.</p>
+          <p class="field-error" id="e-details" hidden></p>
+        </div>
+
+        <button class="btn-gold" type="submit" id="formSubmit">
+          <span class="btn-label">Send message</span>
+          <i aria-hidden="true">&#8599;</i>
+        </button>
+
+        <div class="form-alert form-alert--notice" id="formNotConnected" role="alert" tabindex="-1" hidden>
+          <p class="form-alert-title">This form isn&rsquo;t connected yet</p>
+          <p>Nothing was sent&nbsp;- there&rsquo;s no enquiry inbox wired up to it, and saying otherwise would be a lie. Your message is still in the field above: copy it and send it to us directly.</p>
+          <div class="form-alert-actions">
+            <button class="link-cta" type="button" id="copyMessage">
+              <span class="btn-label">Copy my message</span>
+            </button>
+            <a class="link-cta" href="mailto:hello.thaaracreates@gmail.com">Email us</a>
+            <a class="link-cta" href="https://www.instagram.com/thaara.creates" target="_blank" rel="noopener noreferrer">Send via Instagram <i aria-hidden="true">↗</i></a>
+          </div>
+        </div>
+
+        <div class="form-alert form-alert--success" id="formSuccess" role="status" tabindex="-1" hidden>
+          <p class="form-alert-title">Thank you</p>
+          <p>We&rsquo;ve received your message and will be in touch.</p>
+        </div>
+
+        <div class="form-alert form-alert--error" id="formFailure" role="alert" tabindex="-1" hidden>
+          <p class="form-alert-title">That didn&rsquo;t go through</p>
+          <p id="formFailureReason">Something went wrong sending your message. Please try again, or reach us by email or Instagram.</p>
+          <div class="form-alert-actions">
+            <a class="link-cta" href="mailto:hello.thaaracreates@gmail.com">Email us</a>
+            <a class="link-cta" href="https://www.instagram.com/thaara.creates" target="_blank" rel="noopener noreferrer">Send via Instagram <i aria-hidden="true">↗</i></a>
+          </div>
+        </div>
+
+      </form>
     </section>
 
     <!-- Scene 8. All copy is the live site's own (index.html, footer).

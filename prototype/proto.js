@@ -731,8 +731,144 @@ async function boot() {
   const s7El = document.querySelector(".s7");
   const s7Head = document.querySelector(".s7-head");
   const s7ds = [...document.querySelectorAll(".s7d")];
+  const s7t3 = document.querySelector(".s7t3");
   const s8El = document.querySelector(".s8");
   const s8ds = [...document.querySelectorAll(".s8d")];
+
+  /* ---- Enquiry form (scene 7's staying beat) ----
+     Mirrors the live form's behavior (script.js): same fields, same
+     validation strings, same honest outcome states. Two deliberate
+     differences: ENQUIRY_ENDPOINT is empty, so the prototype never sends
+     mail — the not-connected path always runs; and nothing calls
+     scrollIntoView, which in a scroll-driven page would yank the timeline
+     mid-reading. Alerts carry role=alert/status and take focus with
+     preventScroll instead; the beats are already in view. */
+  const ENQUIRY_ENDPOINT = "";
+  const enquiryForm = document.getElementById("enquiryForm");
+  if (enquiryForm) {
+    const submitBtn = document.getElementById("formSubmit");
+    const errorBox = document.getElementById("formErrorSummary");
+    const errorList = document.getElementById("formErrorList");
+    const notConnected = document.getElementById("formNotConnected");
+    const successBox = document.getElementById("formSuccess");
+    const failureBox = document.getElementById("formFailure");
+    const failureText = document.getElementById("formFailureReason");
+    const copyBtn = document.getElementById("copyMessage");
+    const RULES = [
+      {
+        id: "f-name", label: "Name",
+        validate: (v) => !v ? "Enter your name so we know who we are replying to." : null
+      },
+      {
+        id: "f-email", label: "Email",
+        validate: (v) => {
+          if (!v) return "Enter your email address so we can reply.";
+          if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) return "That email address looks incomplete — check for a typo.";
+          return null;
+        }
+      },
+      {
+        id: "f-details", label: "Message",
+        validate: (v) => {
+          if (!v) return "Add a message, even just a sentence.";
+          if (v.length < 10) return "A little more detail would help.";
+          return null;
+        }
+      }
+    ];
+    const hide = (el) => { if (el) el.hidden = true; };
+    const clearOutcomes = () => { hide(notConnected); hide(successBox); hide(failureBox); };
+    const msgFor = (rule) => document.getElementById("e-" + rule.id.replace(/^f-/, ""));
+    const clearFieldError = (rule) => {
+      const input = document.getElementById(rule.id), msg = msgFor(rule);
+      if (input) input.removeAttribute("aria-invalid");
+      if (msg) { msg.hidden = true; msg.textContent = ""; }
+    };
+    const showFieldError = (rule, message) => {
+      const input = document.getElementById(rule.id), msg = msgFor(rule);
+      if (input) input.setAttribute("aria-invalid", "true");
+      if (msg) { msg.hidden = false; msg.textContent = message; }
+    };
+    const validate = () => {
+      const failures = [];
+      for (const rule of RULES) {
+        const input = document.getElementById(rule.id);
+        if (!input) continue;
+        const error = rule.validate(input.value.trim());
+        if (error) { showFieldError(rule, error); failures.push({ rule, message: error }); }
+        else clearFieldError(rule);
+      }
+      if (failures.length) {
+        errorList.innerHTML = "";
+        for (const f of failures) {
+          const li = document.createElement("li");
+          const a = document.createElement("a");
+          a.href = "#" + f.rule.id;
+          a.textContent = f.rule.label + " — " + f.message;
+          a.addEventListener("click", (e) => {
+            e.preventDefault();
+            const el = document.getElementById(f.rule.id);
+            if (el) el.focus({ preventScroll: true });
+          });
+          li.appendChild(a);
+          errorList.appendChild(li);
+        }
+        errorBox.hidden = false;
+        errorBox.focus({ preventScroll: true });
+      } else errorBox.hidden = true;
+      return failures.length === 0;
+    };
+    for (const rule of RULES) {
+      const input = document.getElementById(rule.id);
+      if (!input) continue;
+      input.addEventListener("input", () => {
+        if (input.getAttribute("aria-invalid") === "true" && !rule.validate(input.value.trim())) clearFieldError(rule);
+      });
+    }
+    const readForm = () => {
+      const get = (id) => { const el = document.getElementById(id); return el ? el.value.trim() : ""; };
+      const honeypot = document.getElementById("f-botcheck");
+      return { name: get("f-name"), email: get("f-email"), message: get("f-details"), botcheck: honeypot ? honeypot.checked : false };
+    };
+    const asText = (d) => ["Name: " + d.name, "Email: " + d.email, "", d.message].join("\n");
+    enquiryForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      clearOutcomes();
+      if (!validate()) return;
+      // No endpoint: say so. Do not pretend anything was sent.
+      if (!ENQUIRY_ENDPOINT) {
+        notConnected.hidden = false;
+        notConnected.focus({ preventScroll: true });
+        return;
+      }
+    });
+    if (copyBtn) {
+      copyBtn.addEventListener("click", () => {
+        const text = asText(readForm());
+        const label = copyBtn.querySelector(".btn-label");
+        const done = (ok) => {
+          if (!label) return;
+          label.textContent = ok ? "Copied" : "Press Ctrl+C to copy";
+          window.setTimeout(() => { label.textContent = "Copy my message"; }, 2400);
+        };
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(() => done(true), () => done(false));
+        } else {
+          const ta = document.createElement("textarea");
+          ta.value = text;
+          ta.setAttribute("readonly", "");
+          ta.style.position = "fixed";
+          ta.style.opacity = "0";
+          document.body.appendChild(ta);
+          ta.select();
+          let ok = false;
+          try { ok = document.execCommand("copy"); } catch (err) { ok = false; }
+          document.body.removeChild(ta);
+          done(ok);
+        }
+      });
+    }
+  }
   const loaderFill = document.querySelector(".loader-fill");
   const setLoad = (p) => loaderFill && loaderFill.style.setProperty("--p", p.toFixed(3));
   const yieldUI = CAPTURE ? () => Promise.resolve() : () => wait(0);
@@ -1880,9 +2016,14 @@ async function boot() {
     .fromTo(s7ds[1], { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.05, ease: "power3.out" }, 4.98)
     .fromTo(s7ds[1], { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, 5.07)
     .fromTo(s7ds[2], { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.05, ease: "power3.out" }, 5.09)
+    // The enquiry arrives last in scene 7 and stays with the caveat; the
+    // head leaves to give it room. Both exit when scene 8 arrives.
+    .fromTo(s7Head, { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, 5.16)
+    .fromTo(s7t3, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.05, ease: "power3.out" }, 5.16)
+    .fromTo(s7t3, { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, 5.4)
     // Scene 8. The contact beats leave first; the footer beats arrive and
     // all stay, like a footer. Nothing exits: the journey ends in the light.
-    .fromTo(s7Head, { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, 5.4)
+    // (The head already left when the form arrived; the caveat leaves now.)
     .fromTo(s7ds[2], { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, 5.4)
     .fromTo(s8ds[0], { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.06, ease: "power3.out" }, 5.48)
     .fromTo(s8ds[1], { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.05, ease: "power3.out" }, 5.57)
