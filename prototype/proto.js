@@ -11,9 +11,12 @@
     travels to a phone showing the live Leo Ronald x Asnia invitation, a looping
     screen recording of the real site.
 
-    Scene 3 (timeline 1.8..TOTAL): the phone eases aside and the camera
+    Scene 3 (timeline 1.8..2.6): the phone eases aside and the camera
     travels to a material library - five tablets, one per discipline -
     dollying along the arc as each beat arrives.
+
+    Scene 4 (timeline 2.6..TOTAL): the arc sinks away and the camera rises
+    to four gold rings, one per principle, turning slowly as each beat arrives.
 
    ?capture   no loop, no loader, no intro; exposes window.__proto for
               deterministic frame capture (verification and video);
@@ -92,7 +95,7 @@ const PH_W = 1.22, PH_D = 0.13, PH_BEZEL = 0.052, PH_R = 0.17, PH_BEVEL = 0.03;
 const PH_SW = PH_W - 2 * PH_BEZEL, PH_SH = PH_SW / SCREEN_ASPECT, PH_H = PH_SH + 2 * PH_BEZEL;
 const PHONE_AT = { x: 5.6, y: 1.43, z: -0.4 };       // the settled card sits at (0, 1.43, 0.86)
 const PH_REST = { rx: 0.08, ry: -0.74, rz: -0.03 };  // three-quarter view, screen toward the text
-const TOTAL = 2.6; // timeline length: opening 0..1, scene 2 1..1.8, scene 3 1.8..2.6
+const TOTAL = 3.3; // opening 0..1, scene 2 1..1.8, scene 3 1.8..2.6, scene 4 2.6..3.3
 
 /* ---- Small math ---- */
 const clamp = (x, a, b) => Math.min(b, Math.max(a, x));
@@ -704,6 +707,9 @@ async function boot() {
   const s3El = document.querySelector(".s3");
   const s3Head = document.querySelector(".s3-head");
   const s3ds = [...document.querySelectorAll(".s3d")];
+  const s4El = document.querySelector(".s4");
+  const s4Head = document.querySelector(".s4-head");
+  const s4ds = [...document.querySelectorAll(".s4d")];
   const loaderFill = document.querySelector(".loader-fill");
   const setLoad = (p) => loaderFill && loaderFill.style.setProperty("--p", p.toFixed(3));
   const yieldUI = CAPTURE ? () => Promise.resolve() : () => wait(0);
@@ -1315,6 +1321,27 @@ async function boot() {
   const ARC_TGT = new THREE.Vector3(ARC.x, ARC.y, ARC.z);
   const ARC_RIM = new THREE.Vector3(ARC.x + 2.6, ARC.y + 1.4, ARC.z - 1.5);
 
+  /* ---- Scene 4: the ascent ----
+     Four champagne rings at increasing heights in a gentle spiral, one per
+     principle. Pure form, no text: the words live in the DOM beats. */
+  const S4 = { leave: 0, travel: 0, focus: 0 }; // owned by the timeline
+  const RINGS = { x: 6.0, y0: 0.7, dy: 0.9, z: -1.6, dx: 0.55 };
+  const s4 = new THREE.Group();
+  const s4rings = [];
+  {
+    for (let i = 0; i < 4; i++) {
+      const ring = new THREE.Mesh(new THREE.TorusGeometry(0.55, 0.05, 16, 100), champagneMat);
+      ring.position.set(RINGS.x + (i - 1.5) * RINGS.dx, RINGS.y0 + i * RINGS.dy, RINGS.z - i * 0.15);
+      ring.rotation.x = 0.45;
+      s4.add(ring);
+      s4rings.push(ring);
+    }
+  }
+  s4.visible = false;
+  scene.add(s4);
+  const RINGS_C = new THREE.Vector3(RINGS.x, RINGS.y0 + 1.5 * RINGS.dy, RINGS.z - 0.2);
+  const RINGS_RIM = new THREE.Vector3(RINGS.x + 2.2, RINGS.y0 + 1.5 * RINGS.dy + 1.2, RINGS.z - 1.2);
+
   /* ---- Lights ---- */
   const KEY_DIR = new THREE.Vector3(-0.62, 0.66, 0.42).normalize();
   const key = new THREE.DirectionalLight(cInk.clone().lerp(cGoldLift, 0.3), LIGHT.key);
@@ -1415,7 +1442,7 @@ async function boot() {
      Layout: screen rects (CSS px) that each beat's subject must fit.
      ============================================================ */
   const L = { vw: 1, vh: 1, aspect: 1, portrait: false, tiltK: 1 };
-  const F0 = {}, F1 = {}, F2 = {}, F3 = {}, FA = {}, FB = {}, FP = {}, FC = {}, FQ = {}, FD = {};
+  const F0 = {}, F1 = {}, F2 = {}, F3 = {}, FA = {}, FB = {}, FP = {}, FC = {}, FQ = {}, FD = {}, FR = {}, FE = {};
   const eul = new THREE.Euler(), m4 = new THREE.Matrix4(), v3 = new THREE.Vector3();
 
   function fit(rect, w, h, cx, cy, cz, out) {
@@ -1550,6 +1577,13 @@ async function boot() {
       ? { l: g, r: vw - g, t: header + vh * 0.012, b: s3R.top - vh * 0.03 }
       : { l: Math.max(vw * 0.42, s3R.right + vw * 0.05), r: vw - g, t: header + vh * 0.02, b: vh - g };
     fit(rQ, arc.w * (L.portrait ? 1.45 : 1.1), arc.h * 1.15, arc.cx, arc.cy, arc.cz, FQ);
+
+    // Scene 4: the rings right of the text (landscape) or above it (portrait).
+    const s4R = s4El.getBoundingClientRect();
+    const rR = L.portrait
+      ? { l: g, r: vw - g, t: header + vh * 0.012, b: s4R.top - vh * 0.03 }
+      : { l: Math.max(vw * 0.42, s4R.right + vw * 0.05), r: vw - g, t: header + vh * 0.02, b: vh - g };
+    fit(rR, 3.4, 4.1, RINGS_C.x, RINGS_C.y, RINGS_C.z, FR);
   }
 
   let needsResize = true;
@@ -1617,6 +1651,18 @@ async function boot() {
     .fromTo(s3ds[3], { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.05, ease: "power3.out" }, 2.3)
     .fromTo(s3ds[3], { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, 2.39)
     .fromTo(s3ds[4], { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.05, ease: "power3.out" }, 2.41)
+    // Scene 4. The arc's beats leave first; the section beat arrives and
+    // stays while the four principle beats cycle beneath it; the last stays.
+    .fromTo(s3Head, { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, 2.6)
+    .fromTo(s3ds[4], { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, 2.6)
+    .fromTo(s4Head, { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.06, ease: "power3.out" }, 2.68)
+    .fromTo(s4ds[0], { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.05, ease: "power3.out" }, 2.77)
+    .fromTo(s4ds[0], { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, 2.86)
+    .fromTo(s4ds[1], { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.05, ease: "power3.out" }, 2.88)
+    .fromTo(s4ds[1], { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, 2.97)
+    .fromTo(s4ds[2], { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.05, ease: "power3.out" }, 2.99)
+    .fromTo(s4ds[2], { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, 3.08)
+    .fromTo(s4ds[3], { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.05, ease: "power3.out" }, 3.1)
     .set({}, {}, TOTAL);
   tl.to(S2, { leave: 1, duration: 0.24, ease: "power2.inOut" }, 1.02)
     .to(S2, { travel: 1, duration: 0.3, ease: "power2.inOut" }, 1.03)
@@ -1624,6 +1670,9 @@ async function boot() {
   tl.to(S3, { leave: 1, duration: 0.24, ease: "power2.inOut" }, 1.82)
     .to(S3, { travel: 1, duration: 0.3, ease: "power2.inOut" }, 1.83)
     .to(S3, { focus: 4, duration: 0.6, ease: "none" }, 1.9);
+  tl.to(S4, { leave: 1, duration: 0.24, ease: "power2.inOut" }, 2.62)
+    .to(S4, { travel: 1, duration: 0.3, ease: "power2.inOut" }, 2.63)
+    .to(S4, { focus: 3, duration: 0.55, ease: "none" }, 2.7);
 
   /* ============================================================
      Render-loop mapping: state -> transforms. The only writer.
@@ -1696,16 +1745,20 @@ async function boot() {
     const F = tr > 0 ? mixFrame(FA, FP, tr, FC) : FA;
     // Scene 3. The camera pulls on to the arc, then pans along it with focus.
     const FV = S3.travel > 0 ? mixFrame(F, FQ, S3.travel, FD) : F;
-    const halfH = (VH1 * FV.d) / 2, halfW = halfH * L.aspect;
-    // Dolly along the arc, scaled to the frame so narrow screens pan less.
+    // Scene 4. The camera rises with the rings.
+    const st4 = S4.travel, fc4 = S4.focus;
+    const FV2 = st4 > 0 ? mixFrame(FV, FR, st4, FE) : FV;
+    const halfH = (VH1 * FV2.d) / 2, halfW = halfH * L.aspect;
+    // Dollies, scaled to the frame so narrow screens travel less.
     if (S3.travel > 0) FV.x += (S3.focus - 2) * halfW * 0.3;
-    camera.position.set(FV.x - FV.sx * halfW, FV.y - FV.sy * halfH, FV.z + FV.d);
+    if (st4 > 0) FV2.y += (fc4 - 1.5) * halfH * 0.17;
+    camera.position.set(FV2.x - FV2.sx * halfW, FV2.y - FV2.sy * halfH, FV2.z + FV2.d);
     camera.quaternion.identity();
     const par = PARALLAX ? Math.max(1 - p, tr) : 0;
     if (par > 0) {
       eOrbit.set(-ptr.y * 0.03 * par, ptr.x * 0.045 * par, 0, "YXZ");
       qOrbit.setFromEuler(eOrbit);
-      focus.set(FV.x, FV.y, FV.z);
+      focus.set(FV2.x, FV2.y, FV2.z);
       off.copy(camera.position).sub(focus).applyQuaternion(qOrbit);
       camera.position.copy(focus).add(off);
       camera.quaternion.copy(qOrbit);
@@ -1739,7 +1792,10 @@ async function boot() {
 
     // Scene 3 tablets: arc placement from layout, the visiting tablet lifts.
     const st = S3.travel, fc = S3.focus;
-    s3.visible = st > 0.001;
+    // Scene 4: the whole arc sinks away below as the rings arrive.
+    s3.position.y = -5 * S4.leave;
+    s3.position.z = -2 * S4.leave;
+    s3.visible = st > 0.001 && S4.leave < 0.999;
     if (s3.visible) {
       for (let i = 0; i < 5; i++) {
         const tb = s3tabs[i];
@@ -1750,6 +1806,19 @@ async function boot() {
       }
       ribbon.rotation.y = REDUCED ? 0.6 : t * 0.5;
       ribbon.rotation.x = 0.35;
+    }
+
+    // Scene 4 rings: rising spiral, the visiting ring swells gently.
+    s4.visible = st4 > 0.001;
+    if (s4.visible) {
+      for (let i = 0; i < 4; i++) {
+        const rg = s4rings[i];
+        const wgt = Math.max(0, 1 - Math.abs(fc4 - i));
+        const swell = wgt * wgt * (3 - 2 * wgt);
+        const sc = 1 + 0.14 * swell;
+        rg.scale.set(sc, sc, sc);
+        if (!REDUCED) rg.rotation.y = t * 0.3 + i * 1.7;
+      }
     }
 
     // The lights travel with the subject: the key's falloff and target, the gold rim.
@@ -1766,12 +1835,17 @@ async function boot() {
     key.target.position.lerp(ARC_TGT, st);
     key.position.copy(key.target.position).addScaledVector(KEY_DIR, 12);
     rim.position.lerp(ARC_RIM, st);
+    // Scene 4: lights ride on from the arc to the rings.
+    poolU.uPoolCentre.value.lerp(RINGS_C, st4);
+    key.target.position.lerp(RINGS_C, st4);
+    key.position.copy(key.target.position).addScaledVector(KEY_DIR, 12);
+    rim.position.lerp(RINGS_RIM, st4);
     const back = smooth(0, 1, tr); // scene 2 brings back the atmosphere the settled card cleared
 
     // Backdrop pool follows the subject on screen.
-    backdropU.uCenter.value.set(FV.sx, FV.sy);
+    backdropU.uCenter.value.set(FV2.sx, FV2.sy);
     backdropU.uAmt.value = lerp(1 - 0.45 * smooth(0.4, 1, p), 1, back); // quieter ground under the label at the end
-    dustU.uPoolNdc.value.set(FV.sx, FV.sy, L.aspect);
+    dustU.uPoolNdc.value.set(FV2.sx, FV2.sy, L.aspect);
 
     // Bloom swells as the flap opens, eases off as the card fills the frame.
     // Scene 2 keeps it off: the true-colour screen is pre-inverted into HDR and would flare.
@@ -1829,6 +1903,7 @@ async function boot() {
   update();
   phone.visible = true; // compile scene 2's programs now, not mid-scroll
   s3.visible = true; // same for scene 3
+  s4.visible = true; // same for scene 4
   renderer.initTexture(posterTex);
   if (renderer.extensions.has("KHR_parallel_shader_compile")) await renderer.compileAsync(scene, camera);
   else renderer.compile(scene, camera);
@@ -1862,7 +1937,8 @@ async function boot() {
     window.__proto.debug = { THREE, renderer, scene, camera, composer, bloom, finish, key, rim, hemi, innerLight,
       glowMat, spillMat, paperMat, linerMat, waxCapMat, waxBodyMat, foilMat, dustU, backdropU, cardU, S, I, L, LIGHT, rig, env, card, seal, pivot,
       S2, phone, handset, screenU, screenMat, glassMat, graphiteMat, champagneMat, FP,
-      S3, s3, s3tabs, ribbon, plinth, FQ };
+      S3, s3, s3tabs, ribbon, plinth, FQ,
+      S4, s4, s4rings, FR };
     window.__proto.info = () => ({
       dpr,
       samples: SAMPLES,
