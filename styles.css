@@ -1683,3 +1683,5 @@ body.menu-open{ overflow: hidden; }
   background: none;
 }
 .hero-visual:has(.envelope-open:focus-visible){ outline: 2px solid var(--gold); outline-offset: 3px; border-radius: var(--radius); }
+/* After the first envelope frame renders, the 3D envelope replaces the photo. */
+.envelope-ready .hero-visual img{ opacity: 0; transition: opacity var(--dur) var(--ease); }
