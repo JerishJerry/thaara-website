@@ -426,3 +426,4 @@ repeatable.
 - Handoff fix: `envelope-ready` now waits for 5 rendered frames past the hero overture, and the photo dissolves over `--dur-slow` (was firing mid-overture with a 0.4s fade, reading as a pop).
 - Superimposition fix: the canvas painted from its first frame over the still-visible photo; the stage now stays at opacity 0 until `envelope-ready`, so photo and envelope truly crossfade. (Envelope fills slot height, ~3/4 width by tilt perspective — the approved 1.05-margin prototype rest framing.)
 - Fast handoff: the 1.5s overture wait is gone — the swap starts at the second steady frame once the page is alive (the LCP gate already guarantees the photo painted). Photo phase is now just boot time.
+- Sequenced handoff: photo and envelope are different sizes, so any overlap reads as a ghost — the photo now leaves in 0.25s and the canvas fades in on its heels (0.4s + 0.25s delay), never both half-visible.

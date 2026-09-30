@@ -1674,7 +1674,7 @@ body.menu-open{ overflow: hidden; }
 .envelope-stage{ position: absolute; inset: 0; pointer-events: none; opacity: 0; }
 /* The canvas fades in as the photo fades out: a true crossfade, never a
    superimposition (the canvas paints from its first frame, long before). */
-.envelope-ready .envelope-stage{ opacity: 1; transition: opacity var(--dur-slow) var(--ease); }
+.envelope-ready .envelope-stage{ opacity: 1; transition: opacity var(--dur) var(--ease) var(--dur-fast); }
 .envelope-open{
   position: absolute;
   left: 0;
@@ -1690,9 +1690,10 @@ body.menu-open{ overflow: hidden; }
   background: none;
 }
 .hero-visual:has(.envelope-open:focus-visible){ outline: 2px solid var(--gold); outline-offset: 3px; border-radius: var(--radius); }
-/* After the first envelope frames render and the hero overture has finished,
-   the 3D envelope dissolves in over the photo (slow, so the swap never pops). */
-.envelope-ready .hero-visual img{ opacity: 0; transition: opacity var(--dur-slow) var(--ease); }
+/* Handoff: sequenced, never superimposed. The photo (full-bleed) and the
+   envelope (smaller, tilted) can't crossfade without a ghost phase, so the
+   photo leaves first and the canvas fades in on its heels. */
+.envelope-ready .hero-visual img{ opacity: 0; transition: opacity var(--dur-fast) var(--ease); }
 /* Flight lock: the page never scrolls mid-flight. The stable gutter stops
    the page jumping sideways when the scrollbar disappears. */
 html.envelope-lock{ overflow: hidden; scrollbar-gutter: stable; }
