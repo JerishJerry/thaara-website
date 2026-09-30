@@ -101,12 +101,26 @@
   --dur-hero: .9s;    /* the above-the-fold overture, slower than a scroll reveal */
   --stagger:  .12s;   /* one beat of the hero sequence */
 
+  /* ---- Services deck ---------------------------------------- */
+  --fs-display:   clamp(7rem, 18vw, 15rem);   /* the ghost numeral, and nothing else */
+  --ghost:        rgba(243,236,224,.05);      /* ghost numeral ink (a whisper of --ink) */
+  --deck-top:     calc(var(--nav-h) + var(--sp-5));
+  --deck-step:    var(--sp-3);                /* strip of each buried card left showing */
+  --deck-card-h:  clamp(17rem, 38vh, 23rem);  /* minimum card height */
+  --deck-persp:   1400px;
+  --deck-tilt:    3deg;                       /* lean-back once a card is fully buried */
+  --deck-shrink:  .035;                       /* scale lost per card laid on top */
+  --deck-dim:     .28;                        /* darkening per card laid on top */
+  --deck-dim-max: .7;
+  --shadow-deck:  0 -14px 36px rgba(0,0,0,.38);
+
   /* Fixed header height, referenced by anchor scroll offset. */
   --nav-h: 84px;
 }
 
 @media (max-width: 900px){ :root{ --nav-h: 76px; } }
 @media (max-width: 600px){ :root{ --nav-h: 68px; } }
+@media (max-width: 600px){ :root{ --deck-step: var(--sp-2); --deck-tilt: 2deg; } }
 
 
 /* ============================================================
@@ -1019,35 +1033,69 @@ body.menu-open{ overflow: hidden; }
 
 
 /* ============================================================
-   10  SERVICES
+   10  SERVICES — the deck
    ============================================================ */
 
-/* Lead service — Invitation Experiences, given its own block. */
-.service-lead{
+/* Five cards in a plain block (not grid or flex: the simplest possible
+   containing block for the sticky cards). Without script they are an
+   ordinary stack. js/services-deck.js adds .deck--pinned only when every
+   card fits the viewport, and sets --depth on each card as later cards
+   slide over it. */
+.deck{ padding-bottom: var(--sp-6); }
+.deck-card + .deck-card{ margin-top: var(--sp-6); }
+
+.deck-card{
+  --depth: 0;            /* 0 = on top; +1 per card laid over it; written by script */
+  position: relative;
   display: grid;
   grid-template-columns: 1fr;
-  gap: clamp(var(--sp-6), 4vw, var(--sp-8));
-  padding: clamp(var(--sp-7), 4vw, var(--sp-9));
+  gap: var(--sp-6);
+  align-content: center;
+  min-height: var(--deck-card-h);
+  padding: clamp(var(--sp-6), 4vw, var(--sp-9));
   border: 1px solid var(--line-firm);
   border-radius: var(--radius-lg);
   background: var(--bg-alt);
-  margin-bottom: clamp(var(--sp-8), 5vw, var(--sp-9));
+  overflow: hidden;
+  transform-origin: 50% 0;   /* lean back from the top edge, so the edge strip stays put */
 }
 @media (min-width: 900px){
-  .service-lead{ grid-template-columns: 1fr 1fr; gap: var(--sp-9); }
+  .deck-card{ grid-template-columns: 1fr 1fr; gap: var(--sp-9); align-items: center; }
 }
-.service-lead h3{ margin-bottom: var(--sp-5); }
-.service-lead .lead{ max-width: 44ch; }
 
-/* Only rendered for a service with a real project to point at. */
-.service-evidence{ margin-top: var(--sp-6); }
+/* Content sits above the ghost numeral and below the dimming veil. */
+.deck-main,
+.deck-card .capability-list,
+.deck-card .capability-inline{ position: relative; z-index: 1; }
 
-/* Capability list with gold ticks. */
-.capability-list{
-  display: grid;
-  gap: var(--sp-4);
-  align-content: start;
+.deck-main .index-num{ display: block; margin-bottom: var(--sp-4); }   /* block: inline spans can't transform */
+.deck-card h3{ margin-bottom: var(--sp-3); }
+.deck-card--lead h3{ margin-bottom: var(--sp-5); }
+.deck-card:not(.deck-card--lead) h3{ font-size: var(--fs-lg); font-weight: 400; }
+.deck-card .lead{ max-width: 44ch; }
+.deck-card .service-desc{ font-size: var(--fs-base); color: var(--ink-dim); max-width: 46ch; }
+.deck-card .service-evidence{ margin-top: var(--sp-6); }
+
+/* The ghost numeral: decoration only (aria-hidden), ink not gold, cropped by
+   the card's own overflow. */
+.deck-ghost{
+  position: absolute;
+  right: var(--sp-5);
+  bottom: 0;
+  z-index: 0;
+  transform: translateY(18%);
+  font-family: var(--serif);
+  font-size: var(--fs-display);
+  font-weight: 500;
+  line-height: .8;
+  font-variant-numeric: tabular-nums;
+  color: var(--ghost);
+  pointer-events: none;
+  user-select: none;
 }
+
+/* Capability list with gold ticks (unchanged from the old section). */
+.capability-list{ display: grid; gap: var(--sp-4); align-content: start; }
 .capability-list li{
   display: grid;
   grid-template-columns: auto 1fr;
@@ -1057,44 +1105,10 @@ body.menu-open{ overflow: hidden; }
   font-size: var(--fs-sm);
   color: var(--ink-dim);
 }
-.capability-list li::before{
-  content: "—";
-  color: var(--gold);
-  line-height: 1.65;
-}
+.capability-list li::before{ content: "—"; color: var(--gold); line-height: 1.65; }
 
-/* Remaining four services as an editorial ruled list. */
-.service-list{ border-top: 1px solid var(--line); }
-.service-item{
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: var(--sp-4) var(--sp-5);
-  padding-block: clamp(var(--sp-6), 3.5vw, var(--sp-7));
-  border-bottom: 1px solid var(--line);
-  transition: background-color var(--dur) var(--ease);
-}
-@media (min-width: 900px){
-  .service-item{
-    grid-template-columns: 4rem 1fr 1.1fr;
-    gap: var(--sp-7);
-    align-items: start;
-  }
-}
-.service-item h3{ font-size: var(--fs-lg); font-weight: 400; }
-.service-item .service-desc{
-  font-size: var(--fs-base);
-  color: var(--ink-dim);
-  max-width: 46ch;
-}
-.service-item .capability-inline{
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--sp-2) var(--sp-3);
-  grid-column: 1 / -1;
-}
-@media (min-width: 900px){
-  .service-item .capability-inline{ grid-column: 3; margin: 0; }
-}
+/* Inline pills (unchanged, minus the old grid-column placement). */
+.capability-inline{ display: flex; flex-wrap: wrap; gap: var(--sp-2) var(--sp-3); }
 .capability-inline li{
   padding: var(--sp-1) var(--sp-3);
   border: 1px solid var(--line);
@@ -1105,7 +1119,7 @@ body.menu-open{ overflow: hidden; }
   color: var(--ink-faint);
   transition: border-color var(--dur) var(--ease), color var(--dur) var(--ease);
 }
-.service-item:hover .capability-inline li{ border-color: var(--gold-soft); color: var(--ink-dim); }
+.deck-card:hover .capability-inline li{ border-color: var(--gold-soft); color: var(--ink-dim); }
 
 
 /* ============================================================
@@ -1160,7 +1174,8 @@ body.menu-open{ overflow: hidden; }
    ============================================================ */
 
 /* Horizontal progression, not another ruled list. This was previously the
-   same component as .service-item — identical grid, padding and hairline —
+   same component as the old Services ruled list — identical grid, padding
+   and hairline —
    so Services and Process read as one texture repeated twice. A process is
    the one thing on the page that genuinely moves left-to-right, and it is
    the least important section here, so it also runs far more compact. */
@@ -1638,7 +1653,7 @@ body.menu-open{ overflow: hidden; }
 @media (max-width: 480px){
   /* Boxed blocks lose most of a 320px screen to their own padding.
      Pull it in so the content keeps the width. */
-  .service-lead{ padding: var(--sp-6) var(--sp-5); }
+  .deck-card{ padding: var(--sp-6) var(--sp-5); }
   .slot{ padding: var(--sp-8) var(--sp-5); }
   .form-alert{ padding: var(--sp-4); }
   .proof-quote{ padding: var(--sp-6) var(--sp-4); }
