@@ -411,3 +411,4 @@ repeatable.
 
 - (nothing yet)
 - Step 1 done: mount point only (import map, `.envelope-stage` + hidden `#envelopeOpen` in `.hero-visual`, `boot.js` comment stub, styles.css section 16). Frozen hero 0 rows differ with/without JS at 1440x900 and 390x844; `boot.js` 200; 0 console errors.
+- Step 2 done: lazy boot (gate: reduced-motion/WebGL2/saveData/?static; load after `load` via idle-handle-or-hover; GSAP script tag then `envelope.js`) + transparent renderer frame in slot. Libs start after load (719/727/730 > loadEventEnd 499); LCP still hero IMG; ?static/reduced/no-WebGL2 = no canvas, no lib reqs; frozen hero 0 rows differ (390 needed em-overture freeze; old baseline had caught it mid-fade).
