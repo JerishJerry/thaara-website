@@ -1316,7 +1316,19 @@ export async function start() {
   }
 
   /* ---- Loop: render only while the hero is on screen and tab visible ---- */
-  let heroVisible = true, firstFrame = true;
+  let heroVisible = true, firstFrame = true, frames = 0, overtureOk = false;
+  // The photo must be fully seen before the dissolve: wait out the hero
+  // overture (--dur-hero plus stagger) once script.js starts it. Never trap
+  // readiness behind it.
+  (function whenOvertureDone() {
+    const wait = () => setTimeout(() => { overtureOk = true; }, 1500);
+    if (root.classList.contains("hero-ready")) { wait(); return; }
+    const mo = new MutationObserver(() => {
+      if (root.classList.contains("hero-ready")) { mo.disconnect(); wait(); }
+    });
+    mo.observe(root, { attributes: true, attributeFilter: ["class"] });
+    setTimeout(() => { mo.disconnect(); overtureOk = true; }, 8000);
+  })();
   const readyHandlers = {};
   const ready = new Promise((res) => (readyHandlers.resolve = res));
   if ("IntersectionObserver" in window) {
@@ -1347,10 +1359,13 @@ export async function start() {
       else if (!want && !video.paused) video.pause();
     }
     if (firstFrame) {
-      firstFrame = false;
-      root.classList.add("envelope-ready");
-      if (openBtn) openBtn.hidden = false;
-      readyHandlers.resolve(true);
+      frames++;
+      if (frames >= 5 && overtureOk) {
+        firstFrame = false;
+        root.classList.add("envelope-ready");
+        if (openBtn) openBtn.hidden = false;
+        readyHandlers.resolve(true);
+      }
     }
   }
 
