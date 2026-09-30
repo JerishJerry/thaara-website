@@ -3,6 +3,11 @@
    at all on reduced motion / no WebGL2 / saveData / ?static.
    Any failure: one console.warn, remove the canvas, leave the page as is. */
 (function () {
+  const root = document.documentElement;
+  // The photo stays hidden while this is set (see styles.css section 16).
+  // Every exit below clears it so the photo shows: fallbacks and failures
+  // always reveal the static hero.
+  function revealPhoto() { root.classList.remove('envelope-pending'); }
   function gated() {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return true;
     if (!document.createElement('canvas').getContext('webgl2')) return true;
@@ -16,16 +21,16 @@
     return new Promise((resolve) => window.addEventListener('load', resolve, { once: true }));
   }
 
-  // LCP gate: the hero IMG must have painted before heavy boot work starts,
-  // or texture generation + shader compile starve the hero overture and push
-  // LCP back by seconds (measured 1.7s -> 4.0s headless without it).
-  function afterLCP() {
+  // Paint gate: the hero must have painted (now the headline, since the photo
+  // stays hidden for JS visitors) before heavy boot work starts, or texture
+  // generation + shader compile starve the overture and push LCP back.
+  function afterFirstPaint() {
     return Promise.race([
       new Promise((resolve) => {
         try {
           const po = new PerformanceObserver((list) => {
             for (const e of list.getEntries()) {
-              if (e.element && e.element.tagName === 'IMG') { po.disconnect(); resolve(); return; }
+              if (e.element && (e.element.tagName === 'H1' || e.element.tagName === 'IMG')) { po.disconnect(); resolve(); return; }
             }
           });
           po.observe({ type: 'largest-contentful-paint', buffered: true });
@@ -58,17 +63,17 @@
 
   async function boot() {
     try {
-      if (gated()) return;
+      if (gated()) { revealPhoto(); return; }
       await afterLoad();
-      // An early hover is intent: skip the LCP queue and load straight away.
+      // An early hover is intent: skip the paint queue and load straight away.
       const slot = document.querySelector('.hero-visual');
       let hovered = false;
       const onHover = () => { hovered = true; };
       if (slot) slot.addEventListener('pointerenter', onHover, { once: true });
-      if (!hovered) await afterLCP();
+      if (!hovered) await afterFirstPaint();
       if (slot) slot.removeEventListener('pointerenter', onHover);
       await idleOrHover();
-      if (gated()) return;
+      if (gated()) { revealPhoto(); return; }
       await loadGSAP();
       const m = await import('./envelope.js');
       await m.start();
@@ -76,6 +81,7 @@
       console.warn('[envelope] boot skipped:', err);
       const canvas = document.querySelector('.envelope-stage canvas');
       if (canvas) canvas.remove();
+      revealPhoto();
     }
   }
 

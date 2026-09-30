@@ -1365,6 +1365,7 @@ export async function start() {
       if (frames >= 2 && pageAlive) {
         firstFrame = false;
         root.classList.add("envelope-ready");
+        root.classList.remove("envelope-pending"); // the photo stays hidden (ready rule); panel goes with it
         if (openBtn) openBtn.hidden = false;
         readyHandlers.resolve(true);
       }
