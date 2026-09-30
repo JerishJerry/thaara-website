@@ -1121,6 +1121,21 @@ body.menu-open{ overflow: hidden; }
 }
 .deck-card:hover .capability-inline li{ border-color: var(--gold-soft); color: var(--ink-dim); }
 
+/* Pinned deck. The script adds .deck--pinned only when each card, at its
+   sticky offset, fits above the bottom of the screen; otherwise a card taller
+   than the room would have its bottom unreachable. */
+.deck--pinned .deck-card{
+  position: sticky;
+  top: calc(var(--deck-top) + var(--i, 0) * var(--deck-step));
+  box-shadow: var(--shadow-deck);
+  will-change: transform;
+}
+.deck-card:nth-child(1){ --i: 0; }
+.deck-card:nth-child(2){ --i: 1; }
+.deck-card:nth-child(3){ --i: 2; }
+.deck-card:nth-child(4){ --i: 3; }
+.deck-card:nth-child(5){ --i: 4; }
+
 
 /* ============================================================
    11  WHY THAARA
