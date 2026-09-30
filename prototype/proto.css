@@ -87,7 +87,7 @@ p, h1, h2, figure{ margin: 0; }
   display: block;
   z-index: 0;
 }
-.track{ height: 2540vh; }   /* 100vh + 400vh per timeline unit: opening 0..1, scenes 2..8 to 6.1 */
+.track{ height: 2820vh; }   /* 100vh + 400vh per timeline unit: opening 0..1, products, fold, scenes 3..8 to 6.8 */
 
 
 /* ---- Header ------------------------------------------------- */

@@ -109,20 +109,23 @@ const PHONE_AT = { x: 5.6, y: 1.43, z: -0.4 };       // the settled card sits at
 const PH_REST = { rx: 0.08, ry: -0.74, rz: -0.03 };  // three-quarter view, screen toward the text
 /* ---- Product depot: everything after the opening derives from this list.
    Product 01 is the letter itself (fixed opening 0..1, never shifts).
-   Products 02..N take 0.8 slices from P2 on; S3 and every later scene start,
-   plus TOTAL, follow automatically. FOLD is the step-3 fold-back leg.
+   Products 02..N take 0.8 slices from P2 on; the fold leg, S3 and every
+   later scene start, plus TOTAL, follow automatically.
    To add product 03: append { id: "p3", len: 0.8 } (+ beats markup, bespoke
-   3D, and +280vh on the .track fallback in proto.css). ---- */
+   3D, move the previous product's exits to the new slice start, and +280vh
+   on the .track fallback in proto.css). S3.travel is deliberately delayed
+   past the fold release so the pull-back starts from clear space. ---- */
 const PRODUCTS = [
   { id: "p1", len: 1.0 },
   { id: "p2", len: 0.8 },
 ];
 const P2 = 1.0;
-const FOLD = 0;
-const O3 = +(P2 + PRODUCTS.slice(1).reduce((n, p) => n + p.len, 0) + FOLD).toFixed(2);
+const FOLD = 0.7; // fold-back leg: products return to the envelope, P_END..O3
+const P_END = +(P2 + PRODUCTS.slice(1).reduce((n, p) => n + p.len, 0)).toFixed(2); // products end: 1.8
+const O3 = +(P_END + FOLD).toFixed(2);
 const O4 = +(O3 + 0.8).toFixed(2), O5 = +(O4 + 0.7).toFixed(2), O6 = +(O5 + 0.7).toFixed(2),
   O7 = +(O6 + 0.7).toFixed(2), O8 = +(O7 + 0.7).toFixed(2);
-const TOTAL = +(O8 + 0.7).toFixed(2); // 6.1 today
+const TOTAL = +(O8 + 0.7).toFixed(2); // 6.8 today
 const TP = (b, o) => +(b + o).toFixed(2); // timeline position: exact decimals, no float drift
 
 /* ---- Small math ---- */
@@ -1621,6 +1624,7 @@ async function boot() {
      bobbing: the visitor's message-to-be. */
   const S7 = { leave: 0, travel: 0, focus: 0 }; // owned by the timeline
   const S8 = { leave: 0, travel: 0, focus: 0 }; // owned by the timeline
+  const SF = { back: 0 }; // fold-back: 0 journey, 1 loop rest (envelope home, states untouched)
   // Before the doorway and left of it, so the lit door rises behind the card.
   const CARD = { x: 5.6, y: 1.2, z: -14.3 };
   const s7 = new THREE.Group();
@@ -1745,7 +1749,7 @@ async function boot() {
      Layout: screen rects (CSS px) that each beat's subject must fit.
      ============================================================ */
   const L = { vw: 1, vh: 1, aspect: 1, portrait: false, tiltK: 1 };
-  const F0 = {}, F1 = {}, F2 = {}, F3 = {}, FA = {}, FB = {}, FP = {}, FC = {}, FQ = {}, FD = {}, FR = {}, FE = {}, FS = {}, FT = {}, FG = {}, FH = {}, FENTER = {};
+  const F0 = {}, F1 = {}, F2 = {}, F3 = {}, FA = {}, FB = {}, FP = {}, FC = {}, FQ = {}, FD = {}, FR = {}, FE = {}, FS = {}, FT = {}, FG = {}, FH = {}, FF = {}, FENTER = {};
   const DBG = {}; // scratchpad introspection: update() stashes the live camera frame here
   const eul = new THREE.Euler(), m4 = new THREE.Matrix4(), v3 = new THREE.Vector3();
 
@@ -1952,6 +1956,7 @@ async function boot() {
   const I = { exposure: CAPTURE ? 1 : 0, rise: CAPTURE ? 1 : 0, dust: CAPTURE ? 1 : 0 }; // owned by the intro
   const E = { enter: 0 }; // owned by the entry gate: the click-driven dive into the big envelope
   let entered = false, entering = false; // entry gate state (behavior wired in Inputs)
+  let headerWas = true; // header visibility cache (scrub-safe application below)
   let hover = 0, hoverT = 0; // envelope hover/focus lean, smoothed in frame()
 
   const tl = gsap.timeline({ paused: true, defaults: { ease: "none" } });
@@ -1981,9 +1986,9 @@ async function boot() {
     .fromTo(p2Link, { autoAlpha: 0, y: 16 }, { autoAlpha: 1, y: 0, duration: 0.06, ease: "power3.out" }, TP(P2, 0.39))
     // Scene 3. The phone's beats leave first; the section beat arrives and
     // stays while the five discipline beats cycle beneath it; the last stays.
-    .fromTo(p2Head, { opacity: 1, y: 0 }, { opacity: 0, y: -14, duration: 0.03, ease: "power2.in", immediateRender: false }, TP(O3, 0))
-    .fromTo(p2Lead, { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, TP(O3, 0))
-    .fromTo(p2Link, { autoAlpha: 1, y: 0 }, { autoAlpha: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, TP(O3, 0))
+    .fromTo(p2Head, { opacity: 1, y: 0 }, { opacity: 0, y: -14, duration: 0.03, ease: "power2.in", immediateRender: false }, TP(P_END, 0))
+    .fromTo(p2Lead, { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, TP(P_END, 0))
+    .fromTo(p2Link, { autoAlpha: 1, y: 0 }, { autoAlpha: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, TP(P_END, 0))
     .fromTo(s3Head, { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.06, ease: "power3.out" }, TP(O3, 0.08))
     .fromTo(s3ds[0], { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.05, ease: "power3.out" }, TP(O3, 0.17))
     .fromTo(s3ds[0], { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, TP(O3, 0.26))
@@ -2056,9 +2061,20 @@ async function boot() {
   tl.to(S2, { leave: 1, duration: 0.24, ease: "power2.inOut" }, TP(P2, 0.02))
     .to(S2, { travel: 1, duration: 0.3, ease: "power2.inOut" }, TP(P2, 0.03))
     .to(S2, { turn: 1, duration: 0.36, ease: "power2.inOut" }, TP(P2, 0.2));
+  // Fold-back: the products return to the envelope without touching S/S2
+  // (downstream scenes are choreographed on their end values). SF.back
+  // overrides envelope, flap, card, rig tilt and camera toward hero rest,
+  // then releases as services arrive — the envelope sinks aside again.
+  tl.to(SF, { back: 1, duration: 0.5, ease: "power2.inOut" }, TP(P_END, 0.02))
+    .to(SF, { back: 0, duration: 0.15, ease: "power2.inOut" }, TP(O3, 0));
+  // The hero title returns with the envelope so the loop rest is the hero;
+  // it leaves again as services arrive. immediateRender:false throughout:
+  // nothing may pre-apply at build.
+  tl.fromTo(heroIn, { opacity: 0, yPercent: -32 }, { opacity: 1, yPercent: 0, duration: 0.08, ease: "power3.out", immediateRender: false }, TP(P_END, 0.5))
+    .fromTo(heroIn, { opacity: 1, yPercent: 0 }, { opacity: 0, yPercent: -32, duration: 0.1, ease: "power2.in", immediateRender: false }, TP(O3, 0.02));
   tl.to(S3, { leave: 1, duration: 0.24, ease: "power2.inOut" }, TP(O3, 0.02))
-    .to(S3, { travel: 1, duration: 0.3, ease: "power2.inOut" }, TP(O3, 0.03))
-    .to(S3, { focus: 4, duration: 0.6, ease: "none" }, TP(O3, 0.1));
+    .to(S3, { travel: 1, duration: 0.2, ease: "power2.inOut" }, TP(O3, 0.2))
+    .to(S3, { focus: 4, duration: 0.45, ease: "none" }, TP(O3, 0.25));
   tl.to(S4, { leave: 1, duration: 0.24, ease: "power2.inOut" }, TP(O4, 0.02))
     .to(S4, { travel: 1, duration: 0.3, ease: "power2.inOut" }, TP(O4, 0.03))
     .to(S4, { focus: 3, duration: 0.55, ease: "none" }, TP(O4, 0.1));
@@ -2083,6 +2099,7 @@ async function boot() {
   const PARALLAX = FINE && !COARSE && !REDUCED && !CAPTURE;
   const qOrbit = new THREE.Quaternion(), eOrbit = new THREE.Euler(0, 0, 0, "YXZ");
   const focus = new THREE.Vector3(), off = new THREE.Vector3();
+  const HERO_TGT = new THREE.Vector3(); // fold scratch: hero key-target
 
   function update() {
     const { dolly: d, open: o, slide: s, away: a, push: p } = S;
@@ -2090,6 +2107,11 @@ async function boot() {
     const idle = REDUCED ? 0 : (1 - 0.72 * d) * (1 - p);
     const k = L.tiltK * (1 - d);
     const rise = 1 - I.rise;
+    // Fold-back override: SF.back eases envelope, flap, card, rig tilt and
+    // camera back to hero rest without touching S/S2 (downstream scenes are
+    // choreographed on their end values). oe/ae/se are the effective states.
+    const be = SF.back;
+    const oe = o * (1 - be), ae = a * (1 - be), se = s * (1 - be);
 
     // Rig: rest tilt -> facing the camera, idle float, intro rise.
     rig.rotation.set(
@@ -2098,6 +2120,20 @@ async function boot() {
       REST.rz * k + idle * 0.018 * Math.sin(t * 0.52 + 2.1)
     );
     rig.position.set(0, idle * 0.07 * Math.sin(t * 0.83) - rise * 1.15, 0);
+    if (be > 0) {
+      // Blend the rig back to its hero-rest pose (d=0, idle full).
+      const ih = REDUCED ? 0 : 1;
+      rig.rotation.set(
+        lerp(rig.rotation.x, REST.rx * L.tiltK + ih * 0.035 * Math.sin(t * 0.61 + 0.7), be),
+        lerp(rig.rotation.y, REST.ry * L.tiltK + ih * 0.06 * Math.sin(t * 0.43), be),
+        lerp(rig.rotation.z, REST.rz * L.tiltK + ih * 0.018 * Math.sin(t * 0.52 + 2.1), be)
+      );
+      rig.position.set(
+        lerp(rig.position.x, 0, be),
+        lerp(rig.position.y, ih * 0.07 * Math.sin(t * 0.83), be),
+        lerp(rig.position.z, 0, be)
+      );
+    }
     // Entry beckon: the closed envelope rocks gently until entered. Live
     // only — capture never enters, so approved pixels are untouched.
     const beckon = (!CAPTURE && !entered) ? 1 : 0;
@@ -2108,27 +2144,27 @@ async function boot() {
     // Top flap and its hinge.
     // Once the envelope starts to fall away, the unsupported flap flops back
     // behind it instead of standing up into the frame on its own.
-    pivot.rotation.x = FLAP_OPEN * o - 1.45 * smooth(0.05, 0.5, a);
-    pivot.position.z = lerp(Z_TOP, Z_TOP_OPEN, smooth(0.35, 0.9, o));
+    pivot.rotation.x = FLAP_OPEN * oe - 1.45 * smooth(0.05, 0.5, ae);
+    pivot.position.z = lerp(Z_TOP, Z_TOP_OPEN, smooth(0.35, 0.9, oe));
     topFold.scale.y = Math.max(0.0005, pivot.position.z - Z_BACK); // the top fold rolls with the hinge
     topFold.position.z = (pivot.position.z + Z_BACK) / 2;
-    topShadowMat.opacity = 0.55 * (1 - smooth(0, 0.12, o));
+    topShadowMat.opacity = 0.55 * (1 - smooth(0, 0.12, oe));
 
     // Light spill.
-    const lit = smooth(0.08, 0.7, o);
-    glowMat.opacity = lit * (1 - 0.6 * a);
+    const lit = smooth(0.08, 0.7, oe);
+    glowMat.opacity = lit * (1 - 0.6 * ae);
     spillMat.opacity = lit * (1 - smooth(0.05, 0.55, p));
     innerLight.intensity = lit * LIGHT.inner * (1 - smooth(0, 0.6, a));
 
     // Card: half out, then forward once the envelope has dropped clear.
-    card.position.set(0, -0.12 + SLIDE_UP * s + 0.28 * a, Z_CARD + 0.85 * smooth(0.32, 1, a));
-    card.rotation.x = -0.1 * Math.sin(Math.PI * smooth(0.32, 1, a));
+    card.position.set(0, -0.12 + SLIDE_UP * se + 0.28 * ae, Z_CARD + 0.85 * smooth(0.32, 1, ae));
+    card.rotation.x = -0.1 * Math.sin(Math.PI * smooth(0.32, 1, ae));
 
     // Envelope leaves: straight down first (the card slides out of the pocket),
     // then back and tilting away into the fog.
-    env.position.set(0, -5.5 * Math.pow(a, 1.5), -2.2 * Math.pow(smooth(0.28, 1, a), 1.2));
-    env.rotation.set(-0.95 * smooth(0.28, 1, a), 0, 0.14 * smooth(0.28, 1, a));
-    env.visible = a < 0.999;
+    env.position.set(0, -5.5 * Math.pow(ae, 1.5), -2.2 * Math.pow(smooth(0.28, 1, ae), 1.2));
+    env.rotation.set(-0.95 * smooth(0.28, 1, ae), 0, 0.14 * smooth(0.28, 1, ae));
+    env.visible = ae < 0.999 || be > 0.001;
 
     // Camera: blend the four framings, travel on to the phone, then a small orbit
     // for pointer parallax.
@@ -2140,9 +2176,25 @@ async function boot() {
     mixFrame(FA, F2, s2, FB);
     mixFrame(FB, F3, p, FA);
     // Entry: the click-driven dive hands off to the scroll-driven dolly.
-    // Exact no-op until entered (and in capture, always).
-    const eT = E.enter * (1 - smooth(0, 1, d));
+    // Exact no-op until entered (and in capture, always). The timeline gate
+    // keeps later timeline positions from re-applying the dive.
+    const eT = E.enter * (1 - smooth(0, 1, d)) * (1 - smooth(0.1, 0.5, tl.time()));
     if (eT > 0) mixFrame(FA, FENTER, eT, FA);
+    // Immersive header: visible pre-entry, dives with E.enter, returns
+    // across the fold, leaves again past it. Scrub-symmetric; in capture
+    // entered never sets, so this is an exact no-op there.
+    let headerOp = 1;
+    if (entering) headerOp = 1 - E.enter;
+    else if (entered) headerOp = smooth(TP(P_END, 0.48), TP(P_END, 0.63), tl.time()) * (1 - smooth(TP(O3, 0.05), TP(O3, 0.2), tl.time()));
+    headerEl.style.opacity = headerOp.toFixed(3);
+    const hv = headerOp > 0.02;
+    if (hv !== headerWas) {
+      headerWas = hv;
+      headerEl.style.visibility = hv ? "" : "hidden";
+      headerEl.style.pointerEvents = hv ? "" : "none";
+      if (hv) headerEl.removeAttribute("aria-hidden");
+      else headerEl.setAttribute("aria-hidden", "true");
+    }
 
     // Scene 2. F3 stays on the settled card's place while the card itself eases
     // back and drifts aside into the dark: the previous piece.
@@ -2153,9 +2205,23 @@ async function boot() {
     card.rotation.y = 0.5 * lv;
     card.rotation.z = 0.035 * lv;
     card.visible = lv < 0.999;
+    if (be > 0) {
+      // Fold-back: cancel the aside drift so the card pockets with the
+      // envelope. It stays visible through the fold; the pocket occludes
+      // the visibility pop on the way back out.
+      card.position.x += 2.9 * lv * be;
+      card.position.y -= 0.2 * lv * be;
+      card.position.z += 3.4 * lv * be;
+      card.rotation.y = 0.5 * lv * (1 - be);
+      card.rotation.z = 0.035 * lv * (1 - be);
+      card.visible = true;
+    }
     const F = tr > 0 ? mixFrame(FA, FP, tr, FC) : FA;
+    // Fold-back: the camera returns to hero rest while SF.back holds, then
+    // releases with it. Fresh scratch (FF): F may alias FA/FC.
+    const FVF = be > 0 ? mixFrame(F, F0, be, FF) : F;
     // Scene 3. The camera pulls on to the arc, then pans along it with focus.
-    const FV = S3.travel > 0 ? mixFrame(F, FQ, S3.travel, FD) : F;
+    const FV = S3.travel > 0 ? mixFrame(FVF, FQ, S3.travel, FD) : FVF;
     // Scene 4. The camera rises with the rings.
     const st4 = S4.travel, fc4 = S4.focus;
     const FV2 = st4 > 0 ? mixFrame(FV, FR, st4, FE) : FV;
@@ -2356,6 +2422,18 @@ async function boot() {
     key.target.position.lerp(CARD_C, st7);
     key.position.copy(key.target.position).addScaledVector(KEY_DIR, 12);
     rim.position.lerp(CARD_RIM, st7);
+    if (be > 0) {
+      // Fold-back: the key target, pool centre and rim all carry scene-2's
+      // rest values (S/S2 stay there); blend them home so the loop rest
+      // lights exactly like the hero. Reference values use s=0 (true hero).
+      HERO_TGT.set(0, rig.position.y * 0.5, 0);
+      key.target.position.lerp(HERO_TGT, be);
+      key.position.copy(key.target.position).addScaledVector(KEY_DIR, 12);
+      HERO_TGT.set(-1.05, rig.position.y + 0.85, 0.6);
+      poolU.uPoolCentre.value.lerp(HERO_TGT, be);
+      HERO_TGT.set(3.6, 1.5, -0.9);
+      rim.position.lerp(HERO_TGT, be);
+    }
     const back = smooth(0, 1, tr); // scene 2 brings back the atmosphere the settled card cleared
 
     // Backdrop pool follows the subject on screen.
@@ -2365,7 +2443,7 @@ async function boot() {
 
     // Bloom swells as the flap opens, eases off as the card fills the frame.
     // Scene 2 keeps it off: the true-colour screen is pre-inverted into HDR and would flare.
-    bloom.strength = (LIGHT.bloom[0] + LIGHT.bloom[1] * lit) * (1 - smooth(0.15, 0.72, p)) * (1 + 0.12 * smooth(0, 2, fc8));
+    bloom.strength = (LIGHT.bloom[0] + LIGHT.bloom[1] * lit) * (1 - smooth(0.15, 0.72, p * (1 - be))) * (1 + 0.12 * smooth(0, 2, fc8));
     bloom.enabled = bloom.strength > 0.004;
     fxaa.enabled = p < 0.97 || tr > 0.02; // the settled card is screen-aligned and must stay pixel-crisp
 
@@ -2377,7 +2455,7 @@ async function boot() {
 
     // Dust focuses on the subject and clears for the card.
     dustU.uTime.value = t;
-    dustU.uFocus.value = F.d;
+    dustU.uFocus.value = FVF.d; // fold-aware base: F aliases FA/FC, whose .d differs post-fold
     dustU.uFade.value = I.dust * Math.max(1 - smooth(0.3, 0.85, p), back);
 
     finish.uniforms.uTime.value = t;
@@ -2415,24 +2493,6 @@ async function boot() {
        scroll. Scroll stays locked until the dive completes; the header fades
        for the immersive journey (step 3 restores it at the fold-back). ---- */
     const enterProxy = document.getElementById("enterProxy");
-    let headerShown = true; // step 3 restores the header at the fold-back
-    const setHeaderVisible = (v) => {
-      headerShown = v;
-      if (v) {
-        headerEl.style.visibility = "";
-        headerEl.style.pointerEvents = "";
-        headerEl.removeAttribute("aria-hidden");
-        gsap.to(headerEl, { opacity: 1, duration: REDUCED ? 0.01 : 0.9, ease: "power2.out", overwrite: "auto" });
-      } else {
-        headerEl.setAttribute("aria-hidden", "true");
-        gsap.to(headerEl, { opacity: 0, duration: REDUCED ? 0.01 : 0.9, ease: "power2.in", overwrite: "auto",
-          onComplete: () => { if (!headerShown) { headerEl.style.visibility = "hidden"; headerEl.style.pointerEvents = "none"; } } });
-      }
-    };
-    const releaseLock = () => {
-      removeEventListener("wheel", lockScroll);
-      removeEventListener("touchmove", lockScroll);
-    };
     function enter() {
       if (entered || entering || CAPTURE) return;
       if (root.dataset.scene !== "ready") return; // loader/intro still playing
@@ -2445,8 +2505,23 @@ async function boot() {
       hoverT = 0;
       canvas.style.cursor = "";
       gsap.to(E, { enter: 1, duration: REDUCED ? 0.01 : 1.4, ease: "power2.inOut",
-        onComplete: () => { entered = true; entering = false; releaseLock(); } });
-      setHeaderVisible(false);
+        onComplete: () => { entered = true; entering = false; } });
+    }
+    // Replay: only when the envelope sits closed at the loop rest (SF.back
+    // holds). The exposure dips to mask the invisible seek (dust/bob phases
+    // jump), the page resets to hero, and the normal entry path replays.
+    function replay() {
+      if (!entered || entering) return;
+      if (SF.back < 0.95) return;
+      const t = tl.time();
+      if (t < TP(P_END, 0.6) || t > TP(O3, 0.2)) return;
+      gsap.to(I, { exposure: 0.3, duration: 0.18, ease: "power1.in", overwrite: "auto",
+        onComplete: () => {
+          window.scrollTo(0, 0);
+          E.enter = 0; entered = false;
+          enter();
+          gsap.to(I, { exposure: 1, duration: 0.8, ease: "power2.out", overwrite: "auto" });
+        } });
     }
     const lockScroll = (e) => { if (!entered) e.preventDefault(); };
     addEventListener("wheel", lockScroll, { passive: false });
@@ -2469,9 +2544,11 @@ async function boot() {
     let downX = 0, downY = 0;
     canvas.addEventListener("pointerdown", (e) => { downX = e.clientX; downY = e.clientY; });
     canvas.addEventListener("pointerup", (e) => {
-      if (entered || entering) return;
+      if (entering) return;
       if (Math.hypot(e.clientX - downX, e.clientY - downY) > 8) return;
-      if (pickEnv(e)) enter();
+      if (!pickEnv(e)) return;
+      if (!entered) enter();
+      else replay(); // keyboard replay stays out: the proxy is inert after entry
     });
     canvas.addEventListener("pointermove", (e) => {
       if (entered || entering || e.pointerType === "touch") { hoverT = 0; canvas.style.cursor = ""; return; }
