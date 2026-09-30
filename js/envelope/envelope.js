@@ -1341,6 +1341,7 @@ export async function start() {
   }
   let last = 0;
   function frame(now) {
+    if (root.dataset.boot === "timeout") return; // boot gave up: stay dead, photo is showing
     requestAnimationFrame(frame);
     const dt = Math.min(0.05, Math.max(0, (now - last) / 1000));
     last = now;

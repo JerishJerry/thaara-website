@@ -1677,6 +1677,15 @@ body.menu-open{ overflow: hidden; }
    class reveals the photo: every fallback path does that. */
 .js.envelope-pending .hero-visual img{ visibility: hidden; }
 .js.envelope-pending .hero-visual{ background: var(--bg-raise); border: 1px solid var(--line); border-radius: var(--radius); }
+/* Waiting shimmer: a slow gold breath over the panel, so a long boot reads
+   as loading, never as broken. Opacity only; the global reduced-motion rules
+   already flatten it. */
+.js.envelope-pending .hero-visual::after{
+  content: ""; position: absolute; inset: 0; border-radius: inherit;
+  background: var(--gold-haze);
+  animation: envelope-breathe 1.6s var(--ease) infinite;
+}
+@keyframes envelope-breathe{ 0%, 100%{ opacity: 0; } 50%{ opacity: 1; } }
 .envelope-stage{ position: absolute; inset: 0; pointer-events: none; opacity: 0; }
 /* The canvas fades in once it has steady frames. The photo never comes back
    on this path (visibility stays hidden); fallbacks remove both classes. */

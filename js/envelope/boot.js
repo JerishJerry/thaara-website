@@ -74,11 +74,20 @@
       if (slot) slot.removeEventListener('pointerenter', onHover);
       await idleOrHover();
       if (gated()) { revealPhoto(); return; }
-      await loadGSAP();
-      const m = await import('./envelope.js');
-      await m.start();
+      // Bounded boot: if the envelope isn't rendering within TIMEOUT_MS
+      // (stalled texture fetch, hung shader compile — neither throws), give
+      // up to the photo instead of sitting on the panel forever.
+      const TIMEOUT_MS = 12000;
+      const timedOut = new Promise((_, reject) => setTimeout(() => reject(new Error('boot timeout')), TIMEOUT_MS));
+      const load = (async () => {
+        await loadGSAP();
+        const m = await import('./envelope.js');
+        await m.start();
+      })();
+      await Promise.race([load, timedOut]);
     } catch (err) {
       console.warn('[envelope] boot skipped:', err);
+      root.dataset.boot = 'timeout'; // the scene loop checks this and stays dead
       const canvas = document.querySelector('.envelope-stage canvas');
       if (canvas) canvas.remove();
       revealPhoto();
