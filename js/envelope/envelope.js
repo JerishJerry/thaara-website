@@ -1157,9 +1157,12 @@ export async function start() {
     renderer.render(scene, camera);
   }
 
-  /* ---- The flight: one paused timeline, played by its own clock ---- */
-  const tl = window.gsap.timeline({ paused: true, onComplete: doLanding });
-  {
+  /* ---- The flight: one paused timeline, rebuilt on every click so the
+     Nth replay is identical to the first. Scrubbed, never clock-played. ---- */
+  let tl = null;
+  function buildTimeline() {
+    if (tl) tl.kill();
+    tl = window.gsap.timeline({ paused: true, onComplete: doLanding });
     tl.to(WIN, { w: 1, duration: BEATS.expand, ease: "power2.inOut" }, 0)
       .to(B, { b: 0.92, duration: BEATS.expand, ease: "power2.inOut" }, 0)
       .to(S, { dolly: 1, duration: BEATS.pushPast, ease: "power2.inOut" }, BEATS.expand)
@@ -1173,7 +1176,9 @@ export async function start() {
       .to(SF, { back: 1, duration: BEATS.flapCard, ease: "power2.inOut" }, T3)
       .to(WIN, { w: 0, duration: BEATS.foldBack, ease: "power2.inOut" }, T4)
       .to(B, { b: 0, duration: BEATS.foldBack, ease: "power2.inOut" }, T4);
+    return tl;
   }
+  buildTimeline();
 
   /* ---- Inputs: click to enter, scroll/drag/keys to scrub ---- */
   function scrubBy(dx) {
@@ -1357,7 +1362,7 @@ export async function start() {
   update();
   requestAnimationFrame(frame);
 
-  /* ---- Debug hook (only with ?debug): repeatable screenshots ---- */
+  /* scrubTarget/scrubCurrent/upAcc reset in doLanding; rebuild in startFlight */
   if (DEBUG) {
     window.__envelope = {
       ready,
@@ -1373,6 +1378,9 @@ export async function start() {
         update();
       },
       duration: tl.duration(),
+      // Debug-only extras (the checks need them; never in production shape):
+      info: () => ({ geometries: renderer.info.memory.geometries, textures: renderer.info.memory.textures }),
+      videoEl: () => video,
     };
   }
   return ready;
