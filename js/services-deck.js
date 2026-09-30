@@ -46,7 +46,30 @@
   };
 
   /* ---------- Depth: filled in during Step 3 ---------- */
-  var update = function () {};
+  var update = function () {
+    if (!deck.classList.contains("deck--pinned")) { return; }
+
+    var box = deck.getBoundingClientRect();
+    if (box.bottom < 0 || box.top > window.innerHeight) { return; }
+
+    // How far card j has travelled from "just below card j-1" to "pinned over it".
+    var nowTops = cards.map(function (c) { return c.getBoundingClientRect().top; });   // reads first…
+    var cover = [0];
+    for (var j = 1; j < cards.length; j += 1) {
+      var start = tops[j - 1] + heights[j - 1] + gap;
+      cover.push(clamp01((start - nowTops[j]) / (start - tops[j])));
+    }
+
+    // …writes after. A card's depth is how many cards are (partly) laid over it.
+    for (var i = 0; i < cards.length; i += 1) {
+      var depth = 0;
+      for (var k = i + 1; k < cards.length; k += 1) { depth += cover[k]; }
+      if (Math.abs(depth - last[i]) > 0.002) {
+        last[i] = depth;
+        cards[i].style.setProperty("--depth", depth.toFixed(3));
+      }
+    }
+  };
 
   var lastWidth = window.innerWidth;
   var resizeTimer = 0;
@@ -60,6 +83,11 @@
   });
   if (narrow.addEventListener) { narrow.addEventListener("change", measure); }
   if (document.fonts && document.fonts.ready) { document.fonts.ready.then(measure); }
+
+  // A direct scroll handler, not requestAnimationFrame: rAF never runs in a tab
+  // that isn't being composited (CLAUDE.md trap 4), and five rect reads per
+  // scroll event are cheap.
+  window.addEventListener("scroll", update, { passive: true });
 
   measure();
 }());

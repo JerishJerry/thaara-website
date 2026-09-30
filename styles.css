@@ -1135,6 +1135,23 @@ body.menu-open{ overflow: hidden; }
 .deck-card:nth-child(3){ --i: 2; }
 .deck-card:nth-child(4){ --i: 3; }
 .deck-card:nth-child(5){ --i: 4; }
+.deck--pinned .deck-card{
+  transform:
+    perspective(var(--deck-persp))
+    rotateX(calc(min(var(--depth), 1) * var(--deck-tilt) * -1))
+    scale(calc(1 - var(--depth) * var(--deck-shrink)));
+}
+/* A veil in the page colour; opacity only. */
+.deck--pinned .deck-card::after{
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: inherit;
+  background: var(--bg);
+  opacity: min(calc(var(--depth) * var(--deck-dim)), var(--deck-dim-max));
+  pointer-events: none;
+}
 
 
 /* ============================================================
