@@ -1671,7 +1671,10 @@ body.menu-open{ overflow: hidden; }
    keyboard/SR path, always visually hidden like prototype .enter-proxy.
    ============================================================ */
 .hero-visual{ position: relative; }
-.envelope-stage{ position: absolute; inset: 0; pointer-events: none; }
+.envelope-stage{ position: absolute; inset: 0; pointer-events: none; opacity: 0; }
+/* The canvas fades in as the photo fades out: a true crossfade, never a
+   superimposition (the canvas paints from its first frame, long before). */
+.envelope-ready .envelope-stage{ opacity: 1; transition: opacity var(--dur-slow) var(--ease); }
 .envelope-open{
   position: absolute;
   left: 0;
