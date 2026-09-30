@@ -1153,6 +1153,47 @@ body.menu-open{ overflow: hidden; }
   pointer-events: none;
 }
 
+/* Entry choreography. */
+.deck-ghost,
+.deck-main .index-num,
+.deck-card .lead,
+.deck-card .service-desc,
+.deck-card .service-evidence,
+.capability-list li{
+  transition:
+    opacity   var(--dur-slow) var(--ease-out),
+    transform var(--dur-slow) var(--ease-out);
+}
+.capability-inline li{
+  transition:
+    border-color var(--dur) var(--ease),
+    color        var(--dur) var(--ease),
+    opacity      var(--dur-slow) var(--ease-out),
+    transform    var(--dur-slow) var(--ease-out);
+}
+.deck--armed .deck-card:not(.is-in) .deck-ghost{ opacity: 0; transform: translateY(45%); }
+.deck--armed .deck-card:not(.is-in) .index-num,
+.deck--armed .deck-card:not(.is-in) .lead,
+.deck--armed .deck-card:not(.is-in) .service-desc,
+.deck--armed .deck-card:not(.is-in) .service-evidence{ opacity: 0; transform: translateY(var(--sp-4)); }
+.deck--armed .deck-card:not(.is-in) .capability-list li{ opacity: 0; transform: translateX(calc(var(--sp-4) * -1)); }
+.deck--armed .deck-card:not(.is-in) .capability-inline li{ opacity: 0; transform: translateY(var(--sp-3)); }
+
+/* Title words rise out of a mask. .w / .w-i only exist after the script splits the h3. */
+.w{ display: inline-block; overflow: hidden; vertical-align: top; padding: 0 .06em .12em 0; margin: 0 -.06em -.12em 0; }
+.w-i{
+  display: inline-block;
+  transition: transform var(--dur-slow) var(--ease-out);
+  transition-delay: calc(var(--stagger) * .5 * var(--w, 0));
+}
+.deck--armed .deck-card:not(.is-in) .w-i{ transform: translateY(110%); }
+
+/* Stagger (document order) for list items and pills. */
+.deck-card .capability-list li:nth-child(2), .deck-card .capability-inline li:nth-child(2){ transition-delay: calc(var(--stagger) * 1); }
+.deck-card .capability-list li:nth-child(3), .deck-card .capability-inline li:nth-child(3){ transition-delay: calc(var(--stagger) * 2); }
+.deck-card .capability-list li:nth-child(4){ transition-delay: calc(var(--stagger) * 3); }
+.deck-card .capability-list li:nth-child(5){ transition-delay: calc(var(--stagger) * 4); }
+
 
 /* ============================================================
    11  WHY THAARA

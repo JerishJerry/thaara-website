@@ -22,6 +22,50 @@
 
   var clamp01 = function (v) { return v < 0 ? 0 : (v > 1 ? 1 : v); };
 
+  /* ---------- Entry: each card's contents arrive once, as it comes into view ---------- */
+
+  // Wrap every word of a heading in a mask + inner span so it can rise out of it.
+  // Text is preserved (whitespace nodes stay between the words), <em> stays an <em>.
+  var splitWords = function (root) {
+    var n = 0;
+    (function walk(node) {
+      Array.prototype.slice.call(node.childNodes).forEach(function (child) {
+        if (child.nodeType === 1) { walk(child); return; }
+        if (child.nodeType !== 3) { return; }
+        var frag = document.createDocumentFragment();
+        child.nodeValue.split(/(\s+)/).forEach(function (part) {
+          if (!part) { return; }
+          if (/^\s+$/.test(part)) { frag.appendChild(document.createTextNode(part)); return; }
+          var outer = document.createElement("span");
+          var inner = document.createElement("span");
+          outer.className = "w";
+          inner.className = "w-i";
+          inner.style.setProperty("--w", n);
+          n += 1;
+          inner.textContent = part;
+          outer.appendChild(inner);
+          frag.appendChild(outer);
+        });
+        node.replaceChild(frag, child);
+      });
+    }(root));
+  };
+
+  if ("IntersectionObserver" in window) {
+    cards.forEach(function (card) { splitWords(card.querySelector("h3")); });
+    deck.classList.add("deck--armed");      // start states live behind this class
+
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("is-in");
+          io.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.2 });
+    cards.forEach(function (card) { io.observe(card); });
+  }
+
   /* ---------- Pinning: only when every card fits ---------- */
 
   var tops = [];      // each card's sticky offset, in px (measured from the pinned layout)
