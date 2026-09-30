@@ -1316,18 +1316,20 @@ export async function start() {
   }
 
   /* ---- Loop: render only while the hero is on screen and tab visible ---- */
-  let heroVisible = true, firstFrame = true, frames = 0, overtureOk = false;
-  // The photo must be fully seen before the dissolve: wait out the hero
-  // overture (--dur-hero plus stagger) once script.js starts it. Never trap
-  // readiness behind it.
-  (function whenOvertureDone() {
-    const wait = () => setTimeout(() => { overtureOk = true; }, 1500);
-    if (root.classList.contains("hero-ready")) { wait(); return; }
+  let heroVisible = true, firstFrame = true, frames = 0, pageAlive = false;
+  // The handoff starts as soon as the page is alive (script.js has begun the
+  // overture) and the canvas has steady frames — no long photo phase. The
+  // LCP gate in boot.js already guarantees the photo painted first, and the
+  // hidden stage + slow dissolve keep the swap smooth whenever it starts.
+  // Never trap readiness behind this.
+  (function whenPageAlive() {
+    const done = () => { pageAlive = true; };
+    if (root.classList.contains("hero-ready")) { done(); return; }
     const mo = new MutationObserver(() => {
-      if (root.classList.contains("hero-ready")) { mo.disconnect(); wait(); }
+      if (root.classList.contains("hero-ready")) { mo.disconnect(); done(); }
     });
     mo.observe(root, { attributes: true, attributeFilter: ["class"] });
-    setTimeout(() => { mo.disconnect(); overtureOk = true; }, 8000);
+    setTimeout(() => { mo.disconnect(); done(); }, 8000);
   })();
   const readyHandlers = {};
   const ready = new Promise((res) => (readyHandlers.resolve = res));
@@ -1360,7 +1362,7 @@ export async function start() {
     }
     if (firstFrame) {
       frames++;
-      if (frames >= 5 && overtureOk) {
+      if (frames >= 2 && pageAlive) {
         firstFrame = false;
         root.classList.add("envelope-ready");
         if (openBtn) openBtn.hidden = false;
