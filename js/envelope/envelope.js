@@ -837,6 +837,8 @@ export async function start() {
 
   /* ---- Rest pose + beckon idle (3D transforms only) ---- */
   let time = 0, debugTime = null;
+  const FL = { lift: 0 }; // stub flight state (step 4); the real beats arrive in step 5
+  let flying = false, stubTl = null, scrollY0 = 0;
   function update() {
     const t = debugTime == null ? time : debugTime;
     const k = L.tiltK;
@@ -846,7 +848,7 @@ export async function start() {
       REST.ry * k + idle * 0.06 * Math.sin(t * 0.43),
       REST.rz * k + idle * 0.018 * Math.sin(t * 0.52 + 2.1) + 0.012 * Math.sin(t * 0.9)
     );
-    rig.position.set(0, idle * 0.07 * Math.sin(t * 0.83) + 0.03 * Math.sin(t * 1.1 + 1), 0);
+    rig.position.set(0, idle * 0.07 * Math.sin(t * 0.83) + 0.03 * Math.sin(t * 1.1 + 1) + FL.lift, 0);
     pivot.rotation.x = 0;
     pivot.position.z = Z_TOP;
     topFold.scale.y = Math.max(0.0005, Z_TOP - Z_BACK);
@@ -902,6 +904,48 @@ export async function start() {
     }
   }
 
+  /* ---- Inputs, scroll lock, stub flight ---- */
+  const swallow = (e) => e.preventDefault();
+  function swallowKeys(e) {
+    const tag = (e.target && e.target.tagName) || "";
+    if (/^(INPUT|TEXTAREA|SELECT|BUTTON|A)$/.test(tag)) return;
+    if (e.key === " " || e.key === "ArrowUp" || e.key === "ArrowDown" ||
+        e.key === "PageUp" || e.key === "PageDown" || e.key === "Home" || e.key === "End") e.preventDefault();
+  }
+  function lock() {
+    scrollY0 = window.scrollY;
+    root.classList.add("envelope-lock");
+    window.addEventListener("wheel", swallow, { passive: false });
+    window.addEventListener("touchmove", swallow, { passive: false });
+    window.addEventListener("keydown", swallowKeys);
+  }
+  function unlock() {
+    window.removeEventListener("wheel", swallow);
+    window.removeEventListener("touchmove", swallow);
+    window.removeEventListener("keydown", swallowKeys);
+    root.classList.remove("envelope-lock");
+    if (window.scrollY !== scrollY0) window.scrollTo(0, scrollY0);
+  }
+  function startFlight() {
+    if (flying || !window.gsap) return;
+    flying = true;
+    lock();
+    stubTl = window.gsap.timeline({ onComplete: () => {
+      unlock();
+      flying = false;
+      if (openBtn) openBtn.focus({ preventScroll: true });
+    } });
+    stubTl.to(FL, { lift: 0.55, duration: 0.6, ease: "power2.out" })
+      .to(FL, { lift: 0, duration: 0.6, ease: "power2.inOut" });
+  }
+  let downX = 0, downY = 0;
+  slot.addEventListener("pointerdown", (e) => { downX = e.clientX; downY = e.clientY; });
+  slot.addEventListener("pointerup", (e) => {
+    if (Math.hypot(e.clientX - downX, e.clientY - downY) > 8) return;
+    startFlight();
+  });
+  if (openBtn) openBtn.addEventListener("click", startFlight);
+
   resize();
   update();
   if (renderer.extensions.has("KHR_parallel_shader_compile") && renderer.compileAsync) {
@@ -916,7 +960,7 @@ export async function start() {
   if (/[?&]debug(=|&|$)/.test(location.search)) {
     window.__envelope = {
       ready,
-      state: () => ({ mode: "rest", locked: false, flying: false, progress: 0, scrollY }),
+      state: () => ({ mode: flying ? "flight" : "rest", locked: root.classList.contains("envelope-lock"), flying, progress: stubTl ? stubTl.progress() : 0, scrollY }),
       setTime: (s) => { debugTime = +s; update(); },
       seek: () => update(),
       duration: 0,

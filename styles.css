@@ -1685,3 +1685,6 @@ body.menu-open{ overflow: hidden; }
 .hero-visual:has(.envelope-open:focus-visible){ outline: 2px solid var(--gold); outline-offset: 3px; border-radius: var(--radius); }
 /* After the first envelope frame renders, the 3D envelope replaces the photo. */
 .envelope-ready .hero-visual img{ opacity: 0; transition: opacity var(--dur) var(--ease); }
+/* Flight lock: the page never scrolls mid-flight. The stable gutter stops
+   the page jumping sideways when the scrollbar disappears. */
+html.envelope-lock{ overflow: hidden; scrollbar-gutter: stable; }
