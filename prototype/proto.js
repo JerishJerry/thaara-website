@@ -1729,7 +1729,7 @@ async function boot() {
      Layout: screen rects (CSS px) that each beat's subject must fit.
      ============================================================ */
   const L = { vw: 1, vh: 1, aspect: 1, portrait: false, tiltK: 1 };
-  const F0 = {}, F1 = {}, F2 = {}, F3 = {}, FA = {}, FB = {}, FP = {}, FC = {}, FQ = {}, FD = {}, FR = {}, FE = {}, FS = {}, FT = {}, FG = {}, FH = {};
+  const F0 = {}, F1 = {}, F2 = {}, F3 = {}, FA = {}, FB = {}, FP = {}, FC = {}, FQ = {}, FD = {}, FR = {}, FE = {}, FS = {}, FT = {}, FG = {}, FH = {}, FENTER = {};
   const DBG = {}; // scratchpad introspection: update() stashes the live camera frame here
   const eul = new THREE.Euler(), m4 = new THREE.Matrix4(), v3 = new THREE.Vector3();
 
@@ -1840,6 +1840,11 @@ async function boot() {
     fitTilted(r0, L.tiltK, 1.05, F0);
     fit(r1, W * 1.04, 3.2, 0, 0.45, 0, F1); // headroom above for the flap as it swings open
     fit(r2, W * 1.02, 3.66, 0, 0.66, 0, F2);
+    // Entry: the big envelope. Full frame below the header, fit tighter
+    // than the dolly start so the click dives inward, handing off to the
+    // scroll-driven dolly as it begins.
+    const rE = { l: g, r: vw - g, t: header + vh * 0.02, b: vh - g };
+    fit(rE, W * 0.9, 2.62, 0, 0.12, 0, FENTER);
 
     // Where the card lands on screen, for the label and CTA beneath it.
     const rw = r3.r - r3.l, rh = r3.b - r3.t;
@@ -1929,6 +1934,9 @@ async function boot() {
   const S = { dolly: 0, open: 0, slide: 0, away: 0, push: 0 }; // owned by the timeline
   const S2 = { leave: 0, travel: 0, turn: 0 };                  // scene 2, also the timeline's
   const I = { exposure: CAPTURE ? 1 : 0, rise: CAPTURE ? 1 : 0, dust: CAPTURE ? 1 : 0 }; // owned by the intro
+  const E = { enter: 0 }; // owned by the entry gate: the click-driven dive into the big envelope
+  let entered = false, entering = false; // entry gate state (behavior wired in Inputs)
+  let hover = 0, hoverT = 0; // envelope hover/focus lean, smoothed in frame()
 
   const tl = gsap.timeline({ paused: true, defaults: { ease: "none" } });
   tl.to(S, { dolly: 1, duration: 0.2, ease: "power2.inOut" }, 0.1)
@@ -2074,6 +2082,12 @@ async function boot() {
       REST.rz * k + idle * 0.018 * Math.sin(t * 0.52 + 2.1)
     );
     rig.position.set(0, idle * 0.07 * Math.sin(t * 0.83) - rise * 1.15, 0);
+    // Entry beckon: the closed envelope rocks gently until entered. Live
+    // only — capture never enters, so approved pixels are untouched.
+    const beckon = (!CAPTURE && !entered) ? 1 : 0;
+    rig.rotation.z += beckon * 0.012 * Math.sin(t * 0.9);
+    rig.position.y += beckon * 0.03 * Math.sin(t * 1.1 + 1);
+    rig.position.z += hover * 0.18; // lean toward the visitor on hover/focus
 
     // Top flap and its hinge.
     // Once the envelope starts to fall away, the unsupported flap flops back
@@ -2109,6 +2123,10 @@ async function boot() {
     mixFrame(F0, F1, d, FA);
     mixFrame(FA, F2, s2, FB);
     mixFrame(FB, F3, p, FA);
+    // Entry: the click-driven dive hands off to the scroll-driven dolly.
+    // Exact no-op until entered (and in capture, always).
+    const eT = E.enter * (1 - smooth(0, 1, d));
+    if (eT > 0) mixFrame(FA, FENTER, eT, FA);
 
     // Scene 2. F3 stays on the settled card's place while the card itself eases
     // back and drifts aside into the dark: the previous piece.
@@ -2376,6 +2394,80 @@ async function boot() {
         ptrT.y = (e.clientY / innerHeight) * 2 - 1;
       }, { passive: true });
     }
+
+    /* ---- Entry gate: the hero envelope opens on click/tap/Enter, never on
+       scroll. Scroll stays locked until the dive completes; the header fades
+       for the immersive journey (step 3 restores it at the fold-back). ---- */
+    const enterProxy = document.getElementById("enterProxy");
+    let headerShown = true; // step 3 restores the header at the fold-back
+    const setHeaderVisible = (v) => {
+      headerShown = v;
+      if (v) {
+        headerEl.style.visibility = "";
+        headerEl.style.pointerEvents = "";
+        headerEl.removeAttribute("aria-hidden");
+        gsap.to(headerEl, { opacity: 1, duration: REDUCED ? 0.01 : 0.9, ease: "power2.out", overwrite: "auto" });
+      } else {
+        headerEl.setAttribute("aria-hidden", "true");
+        gsap.to(headerEl, { opacity: 0, duration: REDUCED ? 0.01 : 0.9, ease: "power2.in", overwrite: "auto",
+          onComplete: () => { if (!headerShown) { headerEl.style.visibility = "hidden"; headerEl.style.pointerEvents = "none"; } } });
+      }
+    };
+    const releaseLock = () => {
+      removeEventListener("wheel", lockScroll);
+      removeEventListener("touchmove", lockScroll);
+    };
+    function enter() {
+      if (entered || entering || CAPTURE) return;
+      if (root.dataset.scene !== "ready") return; // loader/intro still playing
+      entering = true;
+      if (enterProxy) {
+        enterProxy.setAttribute("tabindex", "-1");
+        enterProxy.setAttribute("aria-hidden", "true");
+        if (document.activeElement === enterProxy) enterProxy.blur();
+      }
+      hoverT = 0;
+      canvas.style.cursor = "";
+      gsap.to(E, { enter: 1, duration: REDUCED ? 0.01 : 1.4, ease: "power2.inOut",
+        onComplete: () => { entered = true; entering = false; releaseLock(); } });
+      setHeaderVisible(false);
+    }
+    const lockScroll = (e) => { if (!entered) e.preventDefault(); };
+    addEventListener("wheel", lockScroll, { passive: false });
+    addEventListener("touchmove", lockScroll, { passive: false });
+    addEventListener("keydown", (e) => {
+      if (entered) return;
+      // Let focused controls keep their keys: Space on the entry proxy
+      // itself must still activate it.
+      const tag = (e.target && e.target.tagName) || "";
+      if (/^(INPUT|TEXTAREA|SELECT|BUTTON|A)$/.test(tag)) return;
+      if (e.key === " " || e.key === "ArrowUp" || e.key === "ArrowDown" ||
+          e.key === "PageUp" || e.key === "PageDown" || e.key === "Home" || e.key === "End") e.preventDefault();
+    });
+    const pickRay = new THREE.Raycaster(), pickNdc = new THREE.Vector2();
+    const pickEnv = (e) => {
+      pickNdc.set((e.clientX / innerWidth) * 2 - 1, -(e.clientY / innerHeight) * 2 + 1);
+      pickRay.setFromCamera(pickNdc, camera);
+      return pickRay.intersectObject(rig, true).length > 0;
+    };
+    let downX = 0, downY = 0;
+    canvas.addEventListener("pointerdown", (e) => { downX = e.clientX; downY = e.clientY; });
+    canvas.addEventListener("pointerup", (e) => {
+      if (entered || entering) return;
+      if (Math.hypot(e.clientX - downX, e.clientY - downY) > 8) return;
+      if (pickEnv(e)) enter();
+    });
+    canvas.addEventListener("pointermove", (e) => {
+      if (entered || entering || e.pointerType === "touch") { hoverT = 0; canvas.style.cursor = ""; return; }
+      const hit = pickEnv(e);
+      hoverT = hit ? 1 : 0;
+      canvas.style.cursor = hit ? "pointer" : "";
+    });
+    if (enterProxy) {
+      enterProxy.addEventListener("click", enter);
+      enterProxy.addEventListener("focus", () => { if (!entered) hoverT = 1; });
+      enterProxy.addEventListener("blur", () => { hoverT = 0; });
+    }
   } else {
     addEventListener("resize", () => resize());
   }
@@ -2481,6 +2573,7 @@ async function boot() {
     const kp = 1 - Math.exp(-dt * 2.6);
     ptr.x += (ptrT.x - ptr.x) * kp;
     ptr.y += (ptrT.y - ptr.y) * kp;
+    hover += (hoverT - hover) * kp;
     update();
     if (tl.time() > 0.7) askVideo();
     if (videoOk) {
