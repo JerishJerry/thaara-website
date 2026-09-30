@@ -107,7 +107,23 @@ const PH_W = 1.22, PH_D = 0.13, PH_BEZEL = 0.052, PH_R = 0.17, PH_BEVEL = 0.03;
 const PH_SW = PH_W - 2 * PH_BEZEL, PH_SH = PH_SW / SCREEN_ASPECT, PH_H = PH_SH + 2 * PH_BEZEL;
 const PHONE_AT = { x: 5.6, y: 1.43, z: -0.4 };       // the settled card sits at (0, 1.43, 0.86)
 const PH_REST = { rx: 0.08, ry: -0.74, rz: -0.03 };  // three-quarter view, screen toward the text
-const TOTAL = 6.1; // opening 0..1, scenes 2..8 to 6.1 (0.7 each after the opening)
+/* ---- Product depot: everything after the opening derives from this list.
+   Product 01 is the letter itself (fixed opening 0..1, never shifts).
+   Products 02..N take 0.8 slices from P2 on; S3 and every later scene start,
+   plus TOTAL, follow automatically. FOLD is the step-3 fold-back leg.
+   To add product 03: append { id: "p3", len: 0.8 } (+ beats markup, bespoke
+   3D, and +280vh on the .track fallback in proto.css). ---- */
+const PRODUCTS = [
+  { id: "p1", len: 1.0 },
+  { id: "p2", len: 0.8 },
+];
+const P2 = 1.0;
+const FOLD = 0;
+const O3 = +(P2 + PRODUCTS.slice(1).reduce((n, p) => n + p.len, 0) + FOLD).toFixed(2);
+const O4 = +(O3 + 0.8).toFixed(2), O5 = +(O4 + 0.7).toFixed(2), O6 = +(O5 + 0.7).toFixed(2),
+  O7 = +(O6 + 0.7).toFixed(2), O8 = +(O7 + 0.7).toFixed(2);
+const TOTAL = +(O8 + 0.7).toFixed(2); // 6.1 today
+const TP = (b, o) => +(b + o).toFixed(2); // timeline position: exact decimals, no float drift
 
 /* ---- Small math ---- */
 const clamp = (x, a, b) => Math.min(b, Math.max(a, x));
@@ -1955,109 +1971,109 @@ async function boot() {
     .fromTo(outroCta, { autoAlpha: 0, y: 18 }, { autoAlpha: 1, y: 0, duration: 0.06, ease: "power3.out" }, 0.83)
     // Scene 2. The label and the gold CTA leave first, the header's CTA returns
     // (never two CTAs at once), and the second project's beats arrive with the phone.
-    .fromTo(projectEl, { opacity: 1, y: 0 }, { opacity: 0, y: -14, duration: 0.035, ease: "power2.in", immediateRender: false }, 1)
-    .fromTo(outroCta, { autoAlpha: 1, y: 0 }, { autoAlpha: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, 1)
-    .fromTo(topCta, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.05, ease: "power3.out", immediateRender: false }, 1.07)
-    .fromTo(workIn, { opacity: 0, yPercent: 12 }, { opacity: 1, yPercent: 0, duration: 0.06, ease: "power3.out" }, 1.1)
-    .fromTo(workIn, { opacity: 1, yPercent: 0 }, { opacity: 0, yPercent: -8, duration: 0.035, ease: "power2.in", immediateRender: false }, 1.25)
-    .fromTo(p2Head, { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.06, ease: "power3.out" }, 1.33)
-    .fromTo(p2Lead, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.06, ease: "power3.out" }, 1.36)
-    .fromTo(p2Link, { autoAlpha: 0, y: 16 }, { autoAlpha: 1, y: 0, duration: 0.06, ease: "power3.out" }, 1.39)
+    .fromTo(projectEl, { opacity: 1, y: 0 }, { opacity: 0, y: -14, duration: 0.035, ease: "power2.in", immediateRender: false }, TP(P2, 0))
+    .fromTo(outroCta, { autoAlpha: 1, y: 0 }, { autoAlpha: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, TP(P2, 0))
+    .fromTo(topCta, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.05, ease: "power3.out", immediateRender: false }, TP(P2, 0.07))
+    .fromTo(workIn, { opacity: 0, yPercent: 12 }, { opacity: 1, yPercent: 0, duration: 0.06, ease: "power3.out" }, TP(P2, 0.1))
+    .fromTo(workIn, { opacity: 1, yPercent: 0 }, { opacity: 0, yPercent: -8, duration: 0.035, ease: "power2.in", immediateRender: false }, TP(P2, 0.25))
+    .fromTo(p2Head, { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.06, ease: "power3.out" }, TP(P2, 0.33))
+    .fromTo(p2Lead, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.06, ease: "power3.out" }, TP(P2, 0.36))
+    .fromTo(p2Link, { autoAlpha: 0, y: 16 }, { autoAlpha: 1, y: 0, duration: 0.06, ease: "power3.out" }, TP(P2, 0.39))
     // Scene 3. The phone's beats leave first; the section beat arrives and
     // stays while the five discipline beats cycle beneath it; the last stays.
-    .fromTo(p2Head, { opacity: 1, y: 0 }, { opacity: 0, y: -14, duration: 0.03, ease: "power2.in", immediateRender: false }, 1.8)
-    .fromTo(p2Lead, { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, 1.8)
-    .fromTo(p2Link, { autoAlpha: 1, y: 0 }, { autoAlpha: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, 1.8)
-    .fromTo(s3Head, { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.06, ease: "power3.out" }, 1.88)
-    .fromTo(s3ds[0], { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.05, ease: "power3.out" }, 1.97)
-    .fromTo(s3ds[0], { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, 2.06)
-    .fromTo(s3ds[1], { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.05, ease: "power3.out" }, 2.08)
-    .fromTo(s3ds[1], { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, 2.17)
-    .fromTo(s3ds[2], { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.05, ease: "power3.out" }, 2.19)
-    .fromTo(s3ds[2], { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, 2.28)
-    .fromTo(s3ds[3], { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.05, ease: "power3.out" }, 2.3)
-    .fromTo(s3ds[3], { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, 2.39)
-    .fromTo(s3ds[4], { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.05, ease: "power3.out" }, 2.41)
+    .fromTo(p2Head, { opacity: 1, y: 0 }, { opacity: 0, y: -14, duration: 0.03, ease: "power2.in", immediateRender: false }, TP(O3, 0))
+    .fromTo(p2Lead, { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, TP(O3, 0))
+    .fromTo(p2Link, { autoAlpha: 1, y: 0 }, { autoAlpha: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, TP(O3, 0))
+    .fromTo(s3Head, { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.06, ease: "power3.out" }, TP(O3, 0.08))
+    .fromTo(s3ds[0], { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.05, ease: "power3.out" }, TP(O3, 0.17))
+    .fromTo(s3ds[0], { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, TP(O3, 0.26))
+    .fromTo(s3ds[1], { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.05, ease: "power3.out" }, TP(O3, 0.28))
+    .fromTo(s3ds[1], { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, TP(O3, 0.37))
+    .fromTo(s3ds[2], { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.05, ease: "power3.out" }, TP(O3, 0.39))
+    .fromTo(s3ds[2], { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, TP(O3, 0.48))
+    .fromTo(s3ds[3], { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.05, ease: "power3.out" }, TP(O3, 0.5))
+    .fromTo(s3ds[3], { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, TP(O3, 0.59))
+    .fromTo(s3ds[4], { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.05, ease: "power3.out" }, TP(O3, 0.61))
     // Scene 4. The arc's beats leave first; the section beat arrives and
     // stays while the four principle beats cycle beneath it; the last stays.
-    .fromTo(s3Head, { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, 2.6)
-    .fromTo(s3ds[4], { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, 2.6)
-    .fromTo(s4Head, { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.06, ease: "power3.out" }, 2.68)
-    .fromTo(s4ds[0], { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.05, ease: "power3.out" }, 2.77)
-    .fromTo(s4ds[0], { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, 2.86)
-    .fromTo(s4ds[1], { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.05, ease: "power3.out" }, 2.88)
-    .fromTo(s4ds[1], { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, 2.97)
-    .fromTo(s4ds[2], { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.05, ease: "power3.out" }, 2.99)
-    .fromTo(s4ds[2], { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, 3.08)
-    .fromTo(s4ds[3], { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.05, ease: "power3.out" }, 3.1)
+    .fromTo(s3Head, { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, TP(O4, 0))
+    .fromTo(s3ds[4], { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, TP(O4, 0))
+    .fromTo(s4Head, { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.06, ease: "power3.out" }, TP(O4, 0.08))
+    .fromTo(s4ds[0], { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.05, ease: "power3.out" }, TP(O4, 0.17))
+    .fromTo(s4ds[0], { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, TP(O4, 0.26))
+    .fromTo(s4ds[1], { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.05, ease: "power3.out" }, TP(O4, 0.28))
+    .fromTo(s4ds[1], { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, TP(O4, 0.37))
+    .fromTo(s4ds[2], { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.05, ease: "power3.out" }, TP(O4, 0.39))
+    .fromTo(s4ds[2], { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, TP(O4, 0.48))
+    .fromTo(s4ds[3], { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.05, ease: "power3.out" }, TP(O4, 0.5))
     // Scene 5. The rings' beats leave first; the section beat arrives and
     // stays while the four stage beats cycle beneath it; the last stays.
-    .fromTo(s4Head, { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, 3.3)
-    .fromTo(s4ds[3], { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, 3.3)
-    .fromTo(s5Head, { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.06, ease: "power3.out" }, 3.38)
-    .fromTo(s5ds[0], { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.05, ease: "power3.out" }, 3.47)
-    .fromTo(s5ds[0], { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, 3.56)
-    .fromTo(s5ds[1], { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.05, ease: "power3.out" }, 3.58)
-    .fromTo(s5ds[1], { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, 3.67)
-    .fromTo(s5ds[2], { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.05, ease: "power3.out" }, 3.69)
-    .fromTo(s5ds[2], { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, 3.78)
-    .fromTo(s5ds[3], { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.05, ease: "power3.out" }, 3.8)
+    .fromTo(s4Head, { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, TP(O5, 0))
+    .fromTo(s4ds[3], { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, TP(O5, 0))
+    .fromTo(s5Head, { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.06, ease: "power3.out" }, TP(O5, 0.08))
+    .fromTo(s5ds[0], { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.05, ease: "power3.out" }, TP(O5, 0.17))
+    .fromTo(s5ds[0], { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, TP(O5, 0.26))
+    .fromTo(s5ds[1], { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.05, ease: "power3.out" }, TP(O5, 0.28))
+    .fromTo(s5ds[1], { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, TP(O5, 0.37))
+    .fromTo(s5ds[2], { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.05, ease: "power3.out" }, TP(O5, 0.39))
+    .fromTo(s5ds[2], { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, TP(O5, 0.48))
+    .fromTo(s5ds[3], { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.05, ease: "power3.out" }, TP(O5, 0.5))
     // Scene 6. The path's beats leave first; the section beat arrives and
     // stays while the two body beats and the fact list arrive beneath it;
     // the facts stay.
-    .fromTo(s5Head, { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, 4.0)
-    .fromTo(s5ds[3], { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, 4.0)
-    .fromTo(s6Head, { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.06, ease: "power3.out" }, 4.08)
-    .fromTo(s6ds[0], { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.05, ease: "power3.out" }, 4.17)
-    .fromTo(s6ds[0], { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, 4.26)
-    .fromTo(s6ds[1], { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.05, ease: "power3.out" }, 4.28)
-    .fromTo(s6ds[1], { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, 4.37)
-    .fromTo(s6ds[2], { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.05, ease: "power3.out" }, 4.39)
+    .fromTo(s5Head, { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, TP(O6, 0))
+    .fromTo(s5ds[3], { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, TP(O6, 0))
+    .fromTo(s6Head, { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.06, ease: "power3.out" }, TP(O6, 0.08))
+    .fromTo(s6ds[0], { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.05, ease: "power3.out" }, TP(O6, 0.17))
+    .fromTo(s6ds[0], { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, TP(O6, 0.26))
+    .fromTo(s6ds[1], { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.05, ease: "power3.out" }, TP(O6, 0.28))
+    .fromTo(s6ds[1], { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, TP(O6, 0.37))
+    .fromTo(s6ds[2], { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.05, ease: "power3.out" }, TP(O6, 0.39))
     // Scene 7. The door's beats leave first; the section beat arrives and
     // stays while the two route beats and the caveat arrive beneath it;
     // the caveat stays.
-    .fromTo(s6Head, { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, 4.7)
-    .fromTo(s6ds[2], { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, 4.7)
-    .fromTo(s7Head, { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.06, ease: "power3.out" }, 4.78)
-    .fromTo(s7ds[0], { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.05, ease: "power3.out" }, 4.87)
-    .fromTo(s7ds[0], { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, 4.96)
-    .fromTo(s7ds[1], { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.05, ease: "power3.out" }, 4.98)
-    .fromTo(s7ds[1], { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, 5.07)
-    .fromTo(s7ds[2], { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.05, ease: "power3.out" }, 5.09)
+    .fromTo(s6Head, { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, TP(O7, 0))
+    .fromTo(s6ds[2], { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, TP(O7, 0))
+    .fromTo(s7Head, { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.06, ease: "power3.out" }, TP(O7, 0.08))
+    .fromTo(s7ds[0], { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.05, ease: "power3.out" }, TP(O7, 0.17))
+    .fromTo(s7ds[0], { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, TP(O7, 0.26))
+    .fromTo(s7ds[1], { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.05, ease: "power3.out" }, TP(O7, 0.28))
+    .fromTo(s7ds[1], { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, TP(O7, 0.37))
+    .fromTo(s7ds[2], { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.05, ease: "power3.out" }, TP(O7, 0.39))
     // The enquiry arrives last in scene 7 and stays with the caveat; the
     // head leaves to give it room. Both exit when scene 8 arrives.
-    .fromTo(s7Head, { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, 5.16)
-    .fromTo(s7t3, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.05, ease: "power3.out" }, 5.16)
-    .fromTo(s7t3, { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, 5.4)
+    .fromTo(s7Head, { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, TP(O7, 0.46))
+    .fromTo(s7t3, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.05, ease: "power3.out" }, TP(O7, 0.46))
+    .fromTo(s7t3, { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, TP(O8, 0))
     // Scene 8. The contact beats leave first; the footer beats arrive and
     // all stay, like a footer. Nothing exits: the journey ends in the light.
     // (The head already left when the form arrived; the caveat leaves now.)
-    .fromTo(s7ds[2], { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, 5.4)
-    .fromTo(s8ds[0], { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.06, ease: "power3.out" }, 5.48)
-    .fromTo(s8ds[1], { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.05, ease: "power3.out" }, 5.57)
-    .fromTo(s8ds[2], { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.05, ease: "power3.out" }, 5.66)
+    .fromTo(s7ds[2], { opacity: 1, y: 0 }, { opacity: 0, y: -10, duration: 0.03, ease: "power2.in", immediateRender: false }, TP(O8, 0))
+    .fromTo(s8ds[0], { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.06, ease: "power3.out" }, TP(O8, 0.08))
+    .fromTo(s8ds[1], { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.05, ease: "power3.out" }, TP(O8, 0.17))
+    .fromTo(s8ds[2], { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.05, ease: "power3.out" }, TP(O8, 0.26))
     .set({}, {}, TOTAL);
-  tl.to(S2, { leave: 1, duration: 0.24, ease: "power2.inOut" }, 1.02)
-    .to(S2, { travel: 1, duration: 0.3, ease: "power2.inOut" }, 1.03)
-    .to(S2, { turn: 1, duration: 0.36, ease: "power2.inOut" }, 1.2);
-  tl.to(S3, { leave: 1, duration: 0.24, ease: "power2.inOut" }, 1.82)
-    .to(S3, { travel: 1, duration: 0.3, ease: "power2.inOut" }, 1.83)
-    .to(S3, { focus: 4, duration: 0.6, ease: "none" }, 1.9);
-  tl.to(S4, { leave: 1, duration: 0.24, ease: "power2.inOut" }, 2.62)
-    .to(S4, { travel: 1, duration: 0.3, ease: "power2.inOut" }, 2.63)
-    .to(S4, { focus: 3, duration: 0.55, ease: "none" }, 2.7);
-  tl.to(S5, { leave: 1, duration: 0.24, ease: "power2.inOut" }, 3.32)
-    .to(S5, { travel: 1, duration: 0.3, ease: "power2.inOut" }, 3.33)
-    .to(S5, { focus: 3, duration: 0.5, ease: "none" }, 3.4);
-  tl.to(S6, { leave: 1, duration: 0.24, ease: "power2.inOut" }, 4.02)
-    .to(S6, { travel: 1, duration: 0.3, ease: "power2.inOut" }, 4.03)
-    .to(S6, { focus: 2, duration: 0.5, ease: "none" }, 4.1);
-  tl.to(S7, { leave: 1, duration: 0.24, ease: "power2.inOut" }, 4.72)
-    .to(S7, { travel: 1, duration: 0.3, ease: "power2.inOut" }, 4.73)
-    .to(S7, { focus: 2, duration: 0.5, ease: "none" }, 4.8);
-  tl.to(S8, { leave: 1, duration: 0.24, ease: "power2.inOut" }, 5.42)
-    .to(S8, { travel: 1, duration: 0.3, ease: "power2.inOut" }, 5.43)
-    .to(S8, { focus: 2, duration: 0.5, ease: "none" }, 5.5);
+  tl.to(S2, { leave: 1, duration: 0.24, ease: "power2.inOut" }, TP(P2, 0.02))
+    .to(S2, { travel: 1, duration: 0.3, ease: "power2.inOut" }, TP(P2, 0.03))
+    .to(S2, { turn: 1, duration: 0.36, ease: "power2.inOut" }, TP(P2, 0.2));
+  tl.to(S3, { leave: 1, duration: 0.24, ease: "power2.inOut" }, TP(O3, 0.02))
+    .to(S3, { travel: 1, duration: 0.3, ease: "power2.inOut" }, TP(O3, 0.03))
+    .to(S3, { focus: 4, duration: 0.6, ease: "none" }, TP(O3, 0.1));
+  tl.to(S4, { leave: 1, duration: 0.24, ease: "power2.inOut" }, TP(O4, 0.02))
+    .to(S4, { travel: 1, duration: 0.3, ease: "power2.inOut" }, TP(O4, 0.03))
+    .to(S4, { focus: 3, duration: 0.55, ease: "none" }, TP(O4, 0.1));
+  tl.to(S5, { leave: 1, duration: 0.24, ease: "power2.inOut" }, TP(O5, 0.02))
+    .to(S5, { travel: 1, duration: 0.3, ease: "power2.inOut" }, TP(O5, 0.03))
+    .to(S5, { focus: 3, duration: 0.5, ease: "none" }, TP(O5, 0.1));
+  tl.to(S6, { leave: 1, duration: 0.24, ease: "power2.inOut" }, TP(O6, 0.02))
+    .to(S6, { travel: 1, duration: 0.3, ease: "power2.inOut" }, TP(O6, 0.03))
+    .to(S6, { focus: 2, duration: 0.5, ease: "none" }, TP(O6, 0.1));
+  tl.to(S7, { leave: 1, duration: 0.24, ease: "power2.inOut" }, TP(O7, 0.02))
+    .to(S7, { travel: 1, duration: 0.3, ease: "power2.inOut" }, TP(O7, 0.03))
+    .to(S7, { focus: 2, duration: 0.5, ease: "none" }, TP(O7, 0.1));
+  tl.to(S8, { leave: 1, duration: 0.24, ease: "power2.inOut" }, TP(O8, 0.02))
+    .to(S8, { travel: 1, duration: 0.3, ease: "power2.inOut" }, TP(O8, 0.03))
+    .to(S8, { focus: 2, duration: 0.5, ease: "none" }, TP(O8, 0.1));
 
   /* ============================================================
      Render-loop mapping: state -> transforms. The only writer.
