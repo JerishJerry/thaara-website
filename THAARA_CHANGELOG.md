@@ -14,6 +14,47 @@ typography, animation timing, minor visual detail).
 
 ---
 
+## 2026-10-01 — Hero envelope flight (scroll-scrubbed 3D invitation) · Important
+
+**Issue**
+The owner approved bringing the prototype's envelope animation onto the live page: the hero's
+invitation image becomes a 3D envelope that opens on click and plays through both Work projects,
+then lands back in the hero — and later asked for scrolling (not a clock) to drive it, forward
+and back.
+
+**Change**
+- The invitation `<picture>` in `.hero-visual` stays as the LCP element and the no-JS fallback.
+  With WebGL2 (and no reduced-motion/saveData/`?static`), a transparent canvas renders the
+  prototype's closed envelope in its place; clicking (or Enter on the SR-only "Open the envelope"
+  button) moves the canvas fullscreen and scrolling scrubs a ~7.8 s timeline: expand, face-on
+  dolly, flap opens and the Nivin × Dhiya card rises, card aside and the Leo Ronald × Asnia phone
+  with its playing screen recording, fold-back, land pixel-identical in the slot. End auto-lands;
+  overscroll up at 0 backs out. Every click rebuilds the timeline, so replays are frame-identical.
+- Scroll stays locked throughout (page pinned at hero); wheel, touch-drag and keys become scrub
+  input. No bloom and no 3D dust in this build; colours read from `styles.css` tokens at runtime.
+- Boot is lazy (after `load`, and after the hero IMG paints so LCP is untouched) with a one-`warn`
+  fallback to the static picture. `html` reserves the scrollbar gutter up front so the lock never
+  shifts the page sideways.
+- Full plan and per-step verification at `ENVELOPE_FLIGHT_PLAN.md`, on branch `hero-envelope`
+  (from `3d-redesign`). `main` and the live site untouched; nothing pushed.
+
+**Files**
+`index.html`, `styles.css`, `js/envelope/boot.js`, `js/envelope/envelope.js`,
+`ENVELOPE_FLIGHT_PLAN.md`, `CLAUDE.md`
+
+**Reason**
+The flight reuses the approved prototype look and choreography (copied, never imported) with a
+slot-window canvas switch, so the first and last frames are the rest frame by construction.
+
+**Verified**
+1440×900 / 390×844 / 768×1024 / 1920×1080; no overflow at 320/1920; reduced-motion, `?static`,
+blocked WebGL2 and JS-off all give the static picture with no canvas and no lib requests; LCP
+element still the hero IMG at +4.5% vs `main` (within the 10% budget); first/last vs rest <0.5%,
+cross-replay diffs 0 pixels, geometries/textures flat; anchors clear the header; 0 console
+errors or warnings, 0 failed requests.
+
+---
+
 ## Phase 7 v2: full 3D redesign, on branch `3d-redesign` (resume here)
 
 2026-09-29. The owner rejected the first attempt as not a redesign, and it was deleted. That attempt

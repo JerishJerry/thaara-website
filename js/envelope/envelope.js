@@ -487,9 +487,13 @@ export async function start() {
   }
 
   const TEX = COARSE ? 512 : 1024;
+  const yieldUI = () => new Promise((r) => setTimeout(r, 0));
   const paper = makePaper(TEX, aniso);
+  await yieldUI();
   const gold = makeGold(TEX, aniso);
+  await yieldUI();
   const wax = makeWaxCap(512, logoImg, aniso);
+  await yieldUI();
   const waxNoise = makeWaxNoise(256, aniso);
   const glowTex = canvasTex(
     radialCanvas(512, 347, 0.5, 0.36, 0.5, [[0, 1], [0.18, 0.62], [0.4, 0.25], [0.7, 0.06], [1, 0]]), false, aniso, 0);

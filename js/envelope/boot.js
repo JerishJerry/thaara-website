@@ -16,6 +16,25 @@
     return new Promise((resolve) => window.addEventListener('load', resolve, { once: true }));
   }
 
+  // LCP gate: the hero IMG must have painted before heavy boot work starts,
+  // or texture generation + shader compile starve the hero overture and push
+  // LCP back by seconds (measured 1.7s -> 4.0s headless without it).
+  function afterLCP() {
+    return Promise.race([
+      new Promise((resolve) => {
+        try {
+          const po = new PerformanceObserver((list) => {
+            for (const e of list.getEntries()) {
+              if (e.element && e.element.tagName === 'IMG') { po.disconnect(); resolve(); return; }
+            }
+          });
+          po.observe({ type: 'largest-contentful-paint', buffered: true });
+        } catch (err) { resolve(); }
+      }),
+      new Promise((r) => setTimeout(r, 5000)),
+    ]);
+  }
+
   function idleOrHover() {
     return new Promise((resolve) => {
       let done = false;
@@ -41,6 +60,13 @@
     try {
       if (gated()) return;
       await afterLoad();
+      // An early hover is intent: skip the LCP queue and load straight away.
+      const slot = document.querySelector('.hero-visual');
+      let hovered = false;
+      const onHover = () => { hovered = true; };
+      if (slot) slot.addEventListener('pointerenter', onHover, { once: true });
+      if (!hovered) await afterLCP();
+      if (slot) slot.removeEventListener('pointerenter', onHover);
       await idleOrHover();
       if (gated()) return;
       await loadGSAP();
