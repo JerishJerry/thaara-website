@@ -14,6 +14,56 @@ typography, animation timing, minor visual detail).
 
 ---
 
+## 2026-10-01 — Services section: stacking deck · Important
+
+**Issue**
+Owner asked to make the Services section ("What We Create", five disciplines) livelier — 3D /
+scroll effects, "anything that looks awesome" — and chose "The Deck": each discipline becomes a
+full-width card, cards pin just under the header and stack as you scroll, and each buried card
+recedes in 3D as the next slides over it.
+
+**Change**
+- `#services` list markup replaced with a five-card deck (`#serviceDeck`). Card 01 keeps its
+  capability list and "See this work" link; 02–05 keep their pills. Every string
+  character-identical; ghost numerals 01–05 added as `aria-hidden` decoration only.
+- Cards pin via `position: sticky` under the header (`--deck-top` + `--deck-step` per card), but
+  only when every card fits the viewport at its sticky offset — otherwise a plain stack.
+- Scroll-linked depth (`--depth` per card, transform/opacity only): buried cards lean back
+  (`--deck-tilt`), shrink (`--deck-shrink`) and dim under a page-colour veil (`--deck-dim`,
+  capped at `--deck-dim-max`).
+- Entry choreography, once per card via `IntersectionObserver`: numeral/text/pills rise in,
+  title words rise out of masks with stagger. All hidden start states live behind `.deck--armed`,
+  a class only the script adds, so without JS nothing is ever hidden.
+- New tokens only (`--fs-display`, `--ghost`, `--deck-*`, `--shadow-deck`). `script.js`, the
+  contact form, JSON-LD, images, `vendor/`, `prototype/` untouched.
+
+**Files**
+`index.html`, `styles.css`, `js/services-deck.js` (new), `THAARA_CHANGELOG.md`,
+`SERVICES_DECK_PLAN.md`, `CLAUDE.md`
+
+**Reason**
+Owner explicitly approved this animation work for the Services section, overriding the Phase 6
+"don't add animations" rule and the no-depth rule in this one place. Sticky plus one
+137-line plain-JS file needs no library, no build step, no dependency; reduced-motion, JS-off
+and too-short viewports fall back to the same clean stack.
+
+**Verified**
+Cold-cache pass on a fresh port at 1936×1246: console 0 errors/warnings from our files,
+0 failed requests, `js/services-deck.js` 200; no horizontal overflow (`scrollWidth` 1921 ≤
+`innerWidth` 1936); `#services` / `#work` / `#contact` anchors clear the fixed header
+(nav bottom 85, heads at 257 / 301 / 301); Services copy byte-equal to `main` (1131 chars,
+ghost-stripped); top card exactly on the container left edge (418.5 = 418.5);
+`#serviceDeck` `offsetHeight` 2074 with and without `.deck--pinned`; depth sweep 0 → 4
+exactly, monotonic, ending [4,3,2,1,0], reverse sweep back to all-0; `update()` 200 calls in
+42.1 ms (~0.21 ms/call); script-blocked (real 404) renders a fully visible unpinned stack
+with 0 hidden elements. Not verified in this environment (no viewport-resize tool, no visible
+window, background tab freezes transitions and dispatches no scroll/IO events): the remaining
+viewport matrix incl. 390×844 pin-or-stack behaviour, screenshots, transition playback,
+lean-direction eyeball, descender clipping and pill-hover feel on a real screen.
+
+
+---
+
 ## 2026-10-01 — Hero envelope flight (scroll-scrubbed 3D invitation) · Important
 
 **Issue**
@@ -134,6 +184,7 @@ left everything else as it was. The owner then chose to redo it properly:
   it is published only if the owner asks.
 
 ---
+
 
 ## 2026-09-19 — Website Design added as a fifth discipline · Critical
 

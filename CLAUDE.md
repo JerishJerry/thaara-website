@@ -138,6 +138,8 @@ reconsider, not to hard-code one.
 - Type: EB Garamond (display) + Source Sans 3 (text), 10-step fluid scale.
 - Motion: transform/opacity only. No parallax, no cursor effects, no glassmorphism, no gradients
   beyond the existing accents.
+- Exception (2026-10-01, owner-approved): the Services deck uses scroll-linked 3D depth
+  (`js/services-deck.js`); everywhere else the rule stands.
 - Every element on the page shares **one left edge**. If you change a logo or container width,
   re-check that alignment — it has broken twice. Since 2026-09-22 the hero shares it too; there
   is no longer a centred exception on the page except the closing CTA and 404.
