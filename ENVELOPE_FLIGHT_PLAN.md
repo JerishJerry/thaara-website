@@ -30,6 +30,8 @@ Every other CLAUDE.md rule still applies.
 - **Path:** hero → 01 Nivin × Dhiya → 02 Leo Ronald × Asnia → back to the static hero.
 - **Scroll:** locked for the whole flight.
 - **Replay:** on every click, and every replay is identical to the first.
+- **Drive (owner change, 2026-10-01):** scroll scrubs the flight — down is forward, up rewinds,
+  reaching the end lands. The page itself never scrolls; wheel/touch/keys captured as scrub input.
 
 ## Decisions filled in for you (the owner can change these)
 
@@ -40,7 +42,10 @@ Every other CLAUDE.md rule still applies.
 2. **No text during the flight.** The page copy stays in the DOM, untouched.
 3. **No post-processing (bloom) and no 3D gold dust** in this build. Transparency plus bloom is
    fragile, and the hero already has CSS dust.
-4. **The flight runs about 8 s**, with every duration in one config object.
+4. **The flight is scroll-scrubbed, not clock-played.** The timeline stays paused; wheel,
+   touch-drag and keys move a 0..1 target (full flight ≈ `SCROLL_PX` px, one place). The loop
+   eases the timeline toward the target. Durations stay in `BEATS` (about 7.8 s of content).
+   Overscroll up at 0 exits the flight.
 5. **Esc does nothing**, because the owner asked for a full lock. Worth considering: Esc skips to the
    landing.
 
@@ -415,3 +420,4 @@ repeatable.
 - Step 3 done: closed envelope at rest in the slot (tokens/math/textures/materials/envelope/card/lights/framing ported; no bloom, no dust, transparent scene). beckon+float idle, IO/RO-gated loop, DPR<=2/1.5, `envelope-ready` fades the photo, `?debug` hook live. Boxes identical; 0 console errors; envelope bbox 427x285 in the 501x300 slot (approved 1.05-margin rest look).
 - Step 4 done: slot pointerup (8px guard) + `#envelopeOpen` click start a 1.2s GSAP stub lift; `html.envelope-lock` + wheel/touchmove/key swallow (controls exempt); replay ignored mid-flight; unlock restores scrollY and focuses the button. Verified: real wheel/PageDown/Space + synthetic touch/wheel all held at scrollY 0; double-click = one flight (1193ms); 3x replay; focus on button; h1 x 178->178; 0 errors.
 - Step 5 done: full 7.8s flight (expand/pushPast/work01/work02/flapCard/foldBack) with phone + blob-URL screen video (prefetch on hover/focus/flight), slot-window canvas switch, --bg backdrop, viewport-only framing, fold-wide return + rig be-blend, landing restores everything. Fixes: S.away was missing (camera clipped the parked envelope); global `scrollbar-gutter:stable` (lock squeezed body 15px on overlay scrollbars). Closure: first/last vs rest 0.434%/0.319% (<0.5%), first<->last 0 rows; video motion-proven; 0 errors, 0 failed.
+- Scrub drive (owner change): timeline stays paused; wheel/touch-drag/keys ease a 0..1 target (`SCROLL_PX` 2400px); end auto-lands, overscroll-up at 0 exits. Verified: no autoplay, 1200px->0.48, rewind to 0.26, exit at 0, End lands + focus, touch-drag 300px->0.22, live scrub frame clean, h1 stable, 0 errors.

@@ -75,8 +75,10 @@ export async function start() {
   const PHONE_AT = { x: 5.6, y: 1.43, z: -0.4 };
   const PH_REST = { rx: 0.08, ry: -0.74, rz: -0.03 };
 
-  /* ---- Flight beats (about 7.8 s) ---- */
+  /* ---- Flight beats (about 7.8 s of content; scroll-scrubbed, not clock-played) ---- */
   const BEATS = { expand: 0.8, pushPast: 0.6, work01: 1.8, work02: 2.2, flapCard: 1.2, foldBack: 1.2 };
+  const SCROLL_PX = 2400; // wheel/touch px for the full flight
+  const EXIT_PX = 300; // upward overscroll at 0 that backs out of the flight
   const T1 = BEATS.expand + BEATS.pushPast; // 1.4
   const T2 = T1 + BEATS.work01;             // 3.2
   const T3 = T2 + BEATS.work02;             // 5.4
@@ -1009,6 +1011,7 @@ export async function start() {
   const WIN = { w: 0 }; // the slot window: 0 = in the slot, 1 = full-screen
   const B = { b: 0 };
   let flying = false, flown = false, scrollY0 = 0;
+  let scrubTarget = 0, scrubCurrent = 0, upAcc = 0, lastTouchY = null;
   let slotRect = { left: 0, top: 0, width: 1, height: 1 };
   let time = 0, debugTime = null;
 
@@ -1172,25 +1175,55 @@ export async function start() {
       .to(B, { b: 0, duration: BEATS.foldBack, ease: "power2.inOut" }, T4);
   }
 
-  /* ---- Inputs, scroll lock, flight ---- */
-  const swallow = (e) => e.preventDefault();
-  function swallowKeys(e) {
+  /* ---- Inputs: click to enter, scroll/drag/keys to scrub ---- */
+  function scrubBy(dx) {
+    if (!flying) return;
+    if (scrubTarget <= 0 && dx < 0) {
+      upAcc += -dx; // overscroll up at the start backs out of the flight
+      if (upAcc > EXIT_PX) doLanding();
+      return;
+    }
+    upAcc = 0;
+    scrubTarget = clamp(scrubTarget + dx / SCROLL_PX, 0, 1);
+  }
+  function scrubWheel(e) {
+    e.preventDefault();
+    let d = e.deltaY;
+    if (e.deltaMode === 1) d *= 16;
+    else if (e.deltaMode === 2) d *= innerHeight;
+    scrubBy(d);
+  }
+  function scrubTouchStart(e) {
+    lastTouchY = e.touches.length ? e.touches[0].clientY : null;
+  }
+  function scrubTouchMove(e) {
+    e.preventDefault();
+    if (!e.touches.length) return;
+    const y = e.touches[0].clientY;
+    if (lastTouchY != null) scrubBy((lastTouchY - y) * 2); // drag up moves forward
+    lastTouchY = y;
+  }
+  function scrubKeys(e) {
     const tag = (e.target && e.target.tagName) || "";
     if (/^(INPUT|TEXTAREA|SELECT|BUTTON|A)$/.test(tag)) return;
-    if (e.key === " " || e.key === "ArrowUp" || e.key === "ArrowDown" ||
-        e.key === "PageUp" || e.key === "PageDown" || e.key === "Home" || e.key === "End") e.preventDefault();
+    const step = { " ": 80, ArrowDown: 80, PageDown: 400, ArrowUp: -80, PageUp: -400 };
+    if (e.key in step) { e.preventDefault(); scrubBy(step[e.key]); }
+    else if (e.key === "Home") { e.preventDefault(); scrubTarget = 0; upAcc = 0; }
+    else if (e.key === "End") { e.preventDefault(); scrubBy(SCROLL_PX); }
   }
   function lock() {
     scrollY0 = window.scrollY;
     root.classList.add("envelope-lock");
-    window.addEventListener("wheel", swallow, { passive: false });
-    window.addEventListener("touchmove", swallow, { passive: false });
-    window.addEventListener("keydown", swallowKeys);
+    window.addEventListener("wheel", scrubWheel, { passive: false });
+    window.addEventListener("touchstart", scrubTouchStart, { passive: true });
+    window.addEventListener("touchmove", scrubTouchMove, { passive: false });
+    window.addEventListener("keydown", scrubKeys);
   }
   function unlock() {
-    window.removeEventListener("wheel", swallow);
-    window.removeEventListener("touchmove", swallow);
-    window.removeEventListener("keydown", swallowKeys);
+    window.removeEventListener("wheel", scrubWheel);
+    window.removeEventListener("touchstart", scrubTouchStart);
+    window.removeEventListener("touchmove", scrubTouchMove);
+    window.removeEventListener("keydown", scrubKeys);
     root.classList.remove("envelope-lock");
     if (window.scrollY !== scrollY0) window.scrollTo(0, scrollY0);
   }
@@ -1208,14 +1241,22 @@ export async function start() {
     if (flying || !window.gsap) return;
     flying = true;
     flown = true;
+    scrubTarget = 0;
+    scrubCurrent = 0;
+    upAcc = 0;
+    lastTouchY = null;
     lock();
     enterFlightMode();
     askVideo();
-    tl.restart();
+    tl.pause();
+    tl.progress(0);
   }
   function doLanding() {
     tl.pause();
     tl.progress(0); // S, S2, SF, WIN, B back to rest; the fold-back pose already matches
+    scrubTarget = 0;
+    scrubCurrent = 0;
+    upAcc = 0;
     if (video && !video.paused) video.pause();
     stage.appendChild(canvas);
     canvas.classList.remove("envelope-canvas--flight");
@@ -1283,6 +1324,13 @@ export async function start() {
     if (!heroVisible || document.hidden) return;
     time += dt;
     if (needsResize) resize();
+    if (flying) {
+      // Scroll-scrub: ease the timeline toward the wheel/drag/key target.
+      scrubCurrent += (scrubTarget - scrubCurrent) * (1 - Math.exp(-dt * 6.5));
+      if (Math.abs(scrubTarget - scrubCurrent) < 0.0005) scrubCurrent = scrubTarget;
+      if (scrubTarget >= 1 && scrubCurrent > 0.999) tl.progress(1); // onComplete lands
+      else tl.progress(scrubCurrent);
+    }
     update();
     if (videoOk) {
       const want = flying && S2.travel > 0.2;
@@ -1313,12 +1361,15 @@ export async function start() {
   if (DEBUG) {
     window.__envelope = {
       ready,
-      state: () => ({ mode: flying ? "flight" : "rest", locked: root.classList.contains("envelope-lock"), flying, progress: tl ? tl.progress() : 0, scrollY }),
+      state: () => ({ mode: flying ? "flight" : "rest", locked: root.classList.contains("envelope-lock"), flying, progress: scrubCurrent, scrollY }),
       setTime: (s) => { debugTime = +s; update(); },
       seek: (p) => {
         if (!flying) return;
         tl.pause();
-        tl.progress(clamp(+p, 0, 1));
+        const c = clamp(+p, 0, 1);
+        scrubTarget = c;
+        scrubCurrent = c;
+        tl.progress(c);
         update();
       },
       duration: tl.duration(),
