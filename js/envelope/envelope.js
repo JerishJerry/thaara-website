@@ -1,8 +1,8 @@
 /* Hero envelope flight: scene module.
    Copied from prototype/proto.js (never imported): tokens, math, procedural
-   textures, renderer, materials, envelope, card, lights, framing, the rest
-   pose + beckon idle, and the loop. Not ported: loader/intro, scroll track,
-   DOM text beats, scenes 2-8, phone/video (step 5), bloom, 3D dust.
+   textures, renderer, materials, envelope, card, phone + screen video, lights,
+   framing, the state mapping, and the loop. Not ported: loader/intro, scroll
+   track, DOM text beats, scenes 3-8, bloom, 3D dust.
    Everything lives inside start(), like proto.js boot(). */
 
 import * as THREE from "three";
@@ -11,6 +11,8 @@ import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 const ASSETS = {
   invitation: new URL("../../invitation-1624.webp", import.meta.url).toString(),
   logo: new URL("../../logo-256.png", import.meta.url).toString(),
+  phonePoster: new URL("../../leo-asnia-1200.webp", import.meta.url).toString(),
+  phoneVideo: new URL("../../leo-asnia-scroll.mp4", import.meta.url).toString(),
 };
 
 export async function start() {
@@ -18,8 +20,10 @@ export async function start() {
   const stage = document.querySelector(".envelope-stage");
   const slot = document.querySelector(".hero-visual");
   const heroEl = document.querySelector(".hero");
+  const headerEl = document.getElementById("nav");
   const openBtn = document.getElementById("envelopeOpen");
-  if (!stage || !slot || !heroEl) return;
+  if (!stage || !slot || !heroEl || !headerEl) return;
+  const DEBUG = /[?&]debug(=|&|$)/.test(location.search);
 
   const REDUCED = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const COARSE = matchMedia("(pointer: coarse)").matches;
@@ -34,7 +38,7 @@ export async function start() {
 
   /* ---- Envelope geometry (world units) ---- */
   const W = 3.4, H = 2.3, HW = W / 2, HH = H / 2;
-  const CARD_W = 3.08, CARD_H = 1.838, CARD_T = 0.008;
+  const CARD_W = 3.08, CARD_H = 1.838, CARD_T = 0.008, CARD_ASPECT = CARD_W / CARD_H;
   const SIDE_APEX = 0.14;
   const BOTTOM_APEX = 0.18;
   const TOP_APEX = -0.18;
@@ -47,6 +51,9 @@ export async function start() {
   const Z_BOTTOM = 0.026;
   const Z_TOP_SHADOW = 0.028;
   const Z_TOP = 0.03;
+  const Z_TOP_OPEN = 0.006;
+  const FLAP_OPEN = -3.26;
+  const SLIDE_UP = 1.27;
   const REST = { rx: 0.22, ry: -0.38, rz: -0.06 };
   const FOV = 35;
   const LIGHT = {
@@ -60,6 +67,20 @@ export async function start() {
     plume: 1.05,
   };
   const VH1 = 2 * Math.tan((FOV * Math.PI) / 360);
+
+  /* ---- The phone (world units) ---- */
+  const SCREEN_ASPECT = 720 / 1558;
+  const PH_W = 1.22, PH_D = 0.13, PH_BEZEL = 0.052, PH_R = 0.17, PH_BEVEL = 0.03;
+  const PH_SW = PH_W - 2 * PH_BEZEL, PH_SH = PH_SW / SCREEN_ASPECT, PH_H = PH_SH + 2 * PH_BEZEL;
+  const PHONE_AT = { x: 5.6, y: 1.43, z: -0.4 };
+  const PH_REST = { rx: 0.08, ry: -0.74, rz: -0.03 };
+
+  /* ---- Flight beats (about 7.8 s) ---- */
+  const BEATS = { expand: 0.8, pushPast: 0.6, work01: 1.8, work02: 2.2, flapCard: 1.2, foldBack: 1.2 };
+  const T1 = BEATS.expand + BEATS.pushPast; // 1.4
+  const T2 = T1 + BEATS.work01;             // 3.2
+  const T3 = T2 + BEATS.work02;             // 5.4
+  const T4 = T3 + BEATS.flapCard;           // 6.6
 
   /* ---- Small math ---- */
   const clamp = (x, a, b) => Math.min(b, Math.max(a, x));
@@ -443,12 +464,25 @@ export async function start() {
   stage.appendChild(canvas);
 
   /* ---- Assets (loaded during boot, after page load) ---- */
-  const [invTex, logoImg] = await Promise.all([
+  const [invTex, logoImg, posterTex] = await Promise.all([
     new THREE.TextureLoader().loadAsync(ASSETS.invitation),
     new THREE.ImageLoader().loadAsync(ASSETS.logo),
+    new THREE.TextureLoader().loadAsync(ASSETS.phonePoster),
   ]);
   invTex.colorSpace = THREE.SRGBColorSpace;
   invTex.anisotropy = aniso;
+  posterTex.colorSpace = THREE.SRGBColorSpace;
+  posterTex.anisotropy = aniso;
+  {
+    const a = posterTex.image.width / posterTex.image.height;
+    if (a > SCREEN_ASPECT) {
+      posterTex.repeat.set(SCREEN_ASPECT / a, 1);
+      posterTex.offset.set((1 - SCREEN_ASPECT / a) / 2, 0);
+    } else {
+      posterTex.repeat.set(1, a / SCREEN_ASPECT);
+      posterTex.offset.set(0, (1 - a / SCREEN_ASPECT) / 2);
+    }
+  }
 
   const TEX = COARSE ? 512 : 1024;
   const paper = makePaper(TEX, aniso);
@@ -466,8 +500,10 @@ export async function start() {
   const shTop = contactShadow([[FLAP.top, HH]], 0.014, -0.022, 0.06, aniso);
 
   /* ---- Colours ---- */
+  const cBg = col("bg");
   const cBgSoft = col("bg-soft");
   const cInk = col("ink"), cGold = col("gold"), cGoldLift = col("gold-lift"), cOnGold = col("on-gold");
+  const bgClear = invNeutral(cBg); // the flight backdrop lands on --bg after tone mapping
 
   /* ---- Scene (no background: transparent over the page) ---- */
   const scene = new THREE.Scene();
@@ -568,8 +604,8 @@ export async function start() {
 
   const cardU = { uTrue: { value: 0 }, uBright: { value: 0.58 }, uBias: { value: 0 } };
   const cardMat = new THREE.MeshBasicMaterial({ name: "card", map: invTex, fog: false });
-  cardMat.onBeforeCompile = (shader) => {
-    Object.assign(shader.uniforms, cardU);
+  const trueColour = (mat, U) => (mat.onBeforeCompile = (shader) => {
+    Object.assign(shader.uniforms, U);
     shader.fragmentShader = shader.fragmentShader
       .replace("#include <common>", "#include <common>\nuniform float uTrue;\nuniform float uBright;\nuniform float uBias;\n" + INV_NEUTRAL_GLSL)
       .replace(
@@ -586,7 +622,8 @@ export async function start() {
           "diffuseColor.rgb = mix( diffuseColor.rgb, invNeutral( diffuseColor.rgb ), uTrue );",
         ].join("\n")
       );
-  };
+  });
+  trueColour(cardMat, cardU);
 
   /* ---- Envelope ---- */
   const rig = new THREE.Group();
@@ -741,6 +778,110 @@ export async function start() {
   card.position.set(0, -0.12, Z_CARD);
   rig.add(card);
 
+  /* ---- The phone (copied from the prototype) ---- */
+  const cBgRaise = col("bg-raise");
+  const roundRect = (w, h, r) => {
+    const sh = new THREE.Shape(), x = w / 2 - r, y = h / 2 - r;
+    sh.moveTo(-x, -h / 2);
+    sh.lineTo(x, -h / 2);
+    sh.absarc(x, -y, r, -Math.PI / 2, 0, false);
+    sh.lineTo(w / 2, y);
+    sh.absarc(x, y, r, 0, Math.PI / 2, false);
+    sh.lineTo(-x, h / 2);
+    sh.absarc(-x, y, r, Math.PI / 2, Math.PI, false);
+    sh.lineTo(-w / 2, -y);
+    sh.absarc(-x, -y, r, Math.PI, Math.PI * 1.5, false);
+    return sh;
+  };
+  const flatGeo = (w, h, r) => {
+    const geo = new THREE.ShapeGeometry(roundRect(w, h, r), 24);
+    const pos = geo.attributes.position, uv = geo.attributes.uv;
+    for (let i = 0; i < pos.count; i++) uv.setXY(i, pos.getX(i) / w + 0.5, pos.getY(i) / h + 0.5);
+    uv.needsUpdate = true;
+    return geo;
+  };
+  const graphiteMat = keyPool(new THREE.MeshPhysicalMaterial({
+    name: "graphite", color: cBgRaise.clone().lerp(cInk, 0.04), metalness: 0.25, roughness: 0.36,
+    clearcoat: 1, clearcoatRoughness: 0.08,
+  }));
+  const champagneMat = keyPool(new THREE.MeshStandardMaterial({
+    name: "champagne", color: cGold.clone().lerp(cInk, 0.32), metalness: 1, roughness: 0.3, envMapIntensity: 2.4,
+  }));
+  const pillMat = keyPool(new THREE.MeshStandardMaterial({ name: "pill", color: cOnGold, metalness: 0, roughness: 0.3 }));
+  const glassMat = keyPool(new THREE.MeshStandardMaterial({
+    name: "glass", color: new THREE.Color(0, 0, 0), metalness: 0, roughness: 0.07, envMapIntensity: 3.2,
+    transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, fog: false,
+  }));
+  const screenU = { uTrue: { value: 1 }, uBright: { value: 1 }, uBias: { value: 0 } };
+  const screenMat = new THREE.MeshBasicMaterial({ name: "screen", map: posterTex, fog: false });
+  trueColour(screenMat, screenU);
+
+  const phone = new THREE.Group();
+  const handset = new THREE.Group();
+  phone.add(handset);
+  scene.add(phone);
+  {
+    const inner = PH_D - 2 * PH_BEVEL;
+    const bodyGeo = new THREE.ExtrudeGeometry(roundRect(PH_W - 2 * PH_BEVEL, PH_H - 2 * PH_BEVEL, PH_R - PH_BEVEL), {
+      depth: inner, bevelEnabled: true, bevelThickness: PH_BEVEL, bevelSize: PH_BEVEL, bevelSegments: 6, curveSegments: 20,
+    });
+    bodyGeo.translate(0, 0, -inner / 2);
+    const body = new THREE.Mesh(bodyGeo, [graphiteMat, champagneMat]);
+    const screen = new THREE.Mesh(flatGeo(PH_SW, PH_SH, PH_R - PH_BEZEL), screenMat);
+    screen.position.z = PH_D / 2 + 0.0006;
+    const pill = new THREE.Mesh(flatGeo(0.27, 0.076, 0.038), pillMat);
+    pill.position.set(0, PH_SH / 2 - 0.064, PH_D / 2 + 0.0011);
+    const glass = new THREE.Mesh(flatGeo(PH_W - 2 * PH_BEVEL, PH_H - 2 * PH_BEVEL, PH_R - PH_BEVEL), glassMat);
+    glass.position.z = PH_D / 2 + 0.0017;
+    glass.renderOrder = 7;
+    const button = (len, side, y) => {
+      const m = new THREE.Mesh(new THREE.CapsuleGeometry(0.017, len, 4, 12), champagneMat);
+      m.scale.set(0.62, 1, 1.35);
+      m.position.set(side * (PH_W / 2 - 0.002), PH_H / 2 - y, 0);
+      return m;
+    };
+    handset.add(body, screen, pill, glass,
+      button(0.09, -1, 0.42), button(0.2, -1, 0.66), button(0.2, -1, 0.93), button(0.32, 1, 0.78));
+  }
+  phone.visible = false;
+
+  // The live screen: a looping recording of the real invitation, fetched on
+  // first hover/focus or flight start. Blob URL so it loops and seeks on any
+  // host. Any failure keeps the poster.
+  let video = null, videoTex = null, videoOk = false, videoAsked = false;
+  if (!REDUCED) {
+    video = document.createElement("video");
+    video.muted = video.defaultMuted = true;
+    video.loop = true;
+    video.playsInline = true;
+    video.setAttribute("playsinline", "");
+    video.preload = "auto";
+    video.addEventListener("loadeddata", () => {
+      videoTex = new THREE.VideoTexture(video);
+      videoTex.colorSpace = THREE.SRGBColorSpace;
+      videoTex.anisotropy = aniso;
+      videoTex.generateMipmaps = true;
+      videoTex.minFilter = THREE.LinearMipmapLinearFilter;
+      screenMat.map = videoTex;
+      videoOk = true;
+    }, { once: true });
+    video.addEventListener("error", () => {
+      videoOk = false;
+      screenMat.map = posterTex;
+    }, { once: true });
+  }
+  function askVideo() {
+    if (videoAsked || !video) return;
+    videoAsked = true;
+    fetch(ASSETS.phoneVideo)
+      .then((r) => (r.ok ? r.blob() : Promise.reject(new Error("HTTP " + r.status))))
+      .then((b) => { video.src = URL.createObjectURL(b); })
+      .catch(() => {
+        videoOk = false;
+        screenMat.map = posterTex;
+      });
+  }
+
   /* ---- Lights ---- */
   const KEY_DIR = new THREE.Vector3(-0.62, 0.66, 0.42).normalize();
   const key = new THREE.DirectionalLight(cInk.clone().lerp(cGoldLift, 0.3), LIGHT.key);
@@ -760,10 +901,11 @@ export async function start() {
   scene.add(rim);
   const hemi = new THREE.HemisphereLight(cInk, cBgSoft, LIGHT.hemi);
   scene.add(hemi);
+  const HERO_TGT = new THREE.Vector3();
 
-  /* ---- Framing: the slot rect, fitted through the real perspective ---- */
-  const L = { vw: 1, vh: 1, aspect: 1, portrait: false, tiltK: 1 };
-  const F0 = {};
+  /* ---- Framing ---- */
+  const L = { vw: 1, vh: 1, aspect: 1, portrait: false, tiltK: 1, r3: null };
+  const F0 = {}, F1 = {}, F2 = {}, F3 = {}, FP = {}, FWIDE = {}, FA = {}, FB = {}, FC = {}, FF = {}, FD2 = {};
   const eul = new THREE.Euler(), m4 = new THREE.Matrix4(), v3 = new THREE.Vector3();
   function fit(rect, w, h, cx, cy, cz, out) {
     const fw = (rect.r - rect.l) / L.vw, fh = (rect.b - rect.t) / L.vh;
@@ -817,12 +959,37 @@ export async function start() {
     }
     return out;
   }
+  // Rest: the slot rect, like the static invitation image.
   function layout() {
     const vw = canvas.clientWidth || 1, vh = canvas.clientHeight || 1;
     L.vw = vw; L.vh = vh; L.aspect = vw / vh;
     L.portrait = L.aspect < 0.9;
     L.tiltK = L.portrait ? 0.7 : 1;
     fitTilted({ l: 0, r: vw, t: 0, b: vh }, L.tiltK, 1.05, F0);
+  }
+  // Flight: framings for a virtual viewport (fw x fh), in its own coordinates.
+  // At w=0 that is the slot itself, so the first flight frame is the rest frame.
+  let headerH = 0;
+  function flightLayout(fw, fh) {
+    L.vw = fw; L.vh = fh; L.aspect = fw / fh;
+    L.portrait = L.aspect < 0.9;
+    L.tiltK = L.portrait ? 0.7 : 1;
+    const g = clamp(fw * 0.05, 20, 48);
+    const header = headerH;
+    fitTilted({ l: 0, r: fw, t: 0, b: fh }, L.tiltK, 1.05, F0);
+    const r1 = L.portrait
+      ? { l: g, r: fw - g, t: header + fh * 0.06, b: fh * 0.7 }
+      : { l: fw * 0.17, r: fw * 0.83, t: header + fh * 0.03, b: fh - fh * 0.07 };
+    fit(r1, W * 1.04, 3.2, 0, 0.45, 0, F1);
+    const r2 = L.portrait
+      ? { l: g, r: fw - g, t: header, b: fh * 0.75 }
+      : { l: fw * 0.42, r: fw - g, t: header - fh * 0.01, b: fh - g };
+    fit(r2, W * 1.02, 3.66, 0, 0.66, 0, F2);
+    L.r3 = { l: g, r: fw - g, t: header + fh * 0.005, b: fh - g };
+    const rP = { l: g, r: fw - g, t: header + fh * 0.012, b: fh - g };
+    fit(rP, PH_W * 1.12, PH_H * 1.04, PHONE_AT.x, PHONE_AT.y, PHONE_AT.z + PH_D / 2, FP);
+    // Fold wide: the closing envelope, centred, in one settling shot.
+    fit({ l: 0, r: fw, t: 0, b: fh }, 7, 5.5, 0, 0.4, 0, FWIDE);
   }
 
   let needsResize = true;
@@ -832,79 +999,180 @@ export async function start() {
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
-    layout();
+    if (!flying) layout(); // flight framings are computed per frame for the lerped window
   }
 
-  /* ---- Rest pose + beckon idle (3D transforms only) ---- */
+  /* ---- Flight state (owned by the timeline) ---- */
+  const S = { dolly: 0, open: 0, slide: 0, away: 0, push: 0 };
+  const S2 = { leave: 0, travel: 0, turn: 0 };
+  const SF = { back: 0 };
+  const WIN = { w: 0 }; // the slot window: 0 = in the slot, 1 = full-screen
+  const B = { b: 0 };
+  let flying = false, flown = false, scrollY0 = 0;
+  let slotRect = { left: 0, top: 0, width: 1, height: 1 };
   let time = 0, debugTime = null;
-  const FL = { lift: 0 }; // stub flight state (step 4); the real beats arrive in step 5
-  let flying = false, stubTl = null, scrollY0 = 0;
+
   function update() {
     const t = debugTime == null ? time : debugTime;
-    const k = L.tiltK;
-    const idle = REDUCED ? 0 : 1;
+    const { dolly: d, open: o, slide: s, away: a, push: p } = S;
+    const { leave: lv, travel: tr, turn: tu } = S2;
+    const be = SF.back;
+    const oe = o * (1 - be), ae = a * (1 - be), se = s * (1 - be);
+    const idle = REDUCED ? 0 : (1 - 0.72 * d) * (1 - p);
+    const k = L.tiltK * (1 - d);
+
+    // Rig: rest tilt -> facing the camera, idle float.
     rig.rotation.set(
       REST.rx * k + idle * 0.035 * Math.sin(t * 0.61 + 0.7),
       REST.ry * k + idle * 0.06 * Math.sin(t * 0.43),
-      REST.rz * k + idle * 0.018 * Math.sin(t * 0.52 + 2.1) + 0.012 * Math.sin(t * 0.9)
+      REST.rz * k + idle * 0.018 * Math.sin(t * 0.52 + 2.1)
     );
-    rig.position.set(0, idle * 0.07 * Math.sin(t * 0.83) + 0.03 * Math.sin(t * 1.1 + 1) + FL.lift, 0);
-    pivot.rotation.x = 0;
-    pivot.position.z = Z_TOP;
-    topFold.scale.y = Math.max(0.0005, Z_TOP - Z_BACK);
-    topFold.position.z = (Z_TOP + Z_BACK) / 2;
-    topShadowMat.opacity = 0.55;
-    glowMat.opacity = 0;
-    spillMat.opacity = 0;
-    innerLight.intensity = 0;
-    card.position.set(0, -0.12, Z_CARD);
-    card.rotation.set(0, 0, 0);
-    card.visible = true;
-    env.position.set(0, 0, 0);
-    env.rotation.set(0, 0, 0);
-    env.visible = true;
-    cardU.uBright.value = 0.58;
-    cardU.uTrue.value = 0;
-    cardU.uBias.value = 0;
-    // Rest light rig (the prototype's tr=0, s=0 values).
-    poolU.uPoolCentre.value.set(-1.05, rig.position.y + 0.85, 0.6);
-    key.target.position.set(0, rig.position.y * 0.5, 0);
+    rig.position.set(0, idle * 0.07 * Math.sin(t * 0.83), 0);
+    if (be > 0) {
+      // Blend the rig back to its hero-rest pose (d=0, idle full).
+      const ih = REDUCED ? 0 : 1;
+      rig.rotation.set(
+        lerp(rig.rotation.x, REST.rx * L.tiltK + ih * 0.035 * Math.sin(t * 0.61 + 0.7), be),
+        lerp(rig.rotation.y, REST.ry * L.tiltK + ih * 0.06 * Math.sin(t * 0.43), be),
+        lerp(rig.rotation.z, REST.rz * L.tiltK + ih * 0.018 * Math.sin(t * 0.52 + 2.1), be)
+      );
+      rig.position.set(
+        lerp(rig.position.x, 0, be),
+        lerp(rig.position.y, ih * 0.07 * Math.sin(t * 0.83), be),
+        lerp(rig.position.z, 0, be)
+      );
+    }
+    // Beckon: the closed envelope rocks gently until the first flight.
+    // Never in ?debug, so approved pixels stay repeatable.
+    const beckon = (!DEBUG && !flown) ? 1 : 0;
+    rig.rotation.z += beckon * 0.012 * Math.sin(t * 0.9);
+    rig.position.y += beckon * 0.03 * Math.sin(t * 1.1 + 1);
+
+    // Top flap and its hinge.
+    pivot.rotation.x = FLAP_OPEN * oe - 1.45 * smooth(0.05, 0.5, ae);
+    pivot.position.z = lerp(Z_TOP, Z_TOP_OPEN, smooth(0.35, 0.9, oe));
+    topFold.scale.y = Math.max(0.0005, pivot.position.z - Z_BACK);
+    topFold.position.z = (pivot.position.z + Z_BACK) / 2;
+    topShadowMat.opacity = 0.55 * (1 - smooth(0, 0.12, oe));
+
+    // Light spill.
+    const lit = smooth(0.08, 0.7, oe);
+    glowMat.opacity = lit * (1 - 0.6 * ae);
+    spillMat.opacity = lit * (1 - smooth(0.05, 0.55, p));
+    innerLight.intensity = lit * LIGHT.inner * (1 - smooth(0, 0.6, a));
+
+    // Card: half out, then forward once the envelope has dropped clear.
+    card.position.set(0, -0.12 + SLIDE_UP * se + 0.28 * ae, Z_CARD + 0.85 * smooth(0.32, 1, ae));
+    card.rotation.x = -0.1 * Math.sin(Math.PI * smooth(0.32, 1, ae));
+
+    // Envelope leaves: straight down first, then back and tilting away.
+    env.position.set(0, -5.5 * Math.pow(ae, 1.5), -2.2 * Math.pow(smooth(0.28, 1, ae), 1.2));
+    env.rotation.set(-0.95 * smooth(0.28, 1, ae), 0, 0.14 * smooth(0.28, 1, ae));
+    env.visible = ae < 0.999 || be > 0.001;
+
+    // The card eases aside into the dark: the previous piece. The fold-back
+    // cancels the drift so the card pockets with the envelope.
+    card.position.x -= 2.9 * lv;
+    card.position.y += 0.2 * lv;
+    card.position.z -= 3.4 * lv;
+    card.rotation.y = 0.5 * lv;
+    card.rotation.z = 0.035 * lv;
+    card.visible = lv < 0.999;
+    if (be > 0) {
+      card.position.x += 2.9 * lv * be;
+      card.position.y -= 0.2 * lv * be;
+      card.position.z += 3.4 * lv * be;
+      card.rotation.y = 0.5 * lv * (1 - be);
+      card.rotation.z = 0.035 * lv * (1 - be);
+      card.visible = true;
+    }
+
+    // The lights travel with the subject; the fold-back blends them home.
+    poolU.uPoolCentre.value.set(
+      lerp(-1.05, PHONE_AT.x - 0.9, tr),
+      lerp(rig.position.y + 0.85 + s * 0.9, PHONE_AT.y + 0.9, tr),
+      lerp(0.6, PHONE_AT.z + 0.8, tr)
+    );
+    key.target.position.set(lerp(0, PHONE_AT.x, tr), lerp(rig.position.y * 0.5 + s * 0.5, PHONE_AT.y, tr), lerp(0, PHONE_AT.z, tr));
     key.position.copy(key.target.position).addScaledVector(KEY_DIR, 12);
-    rim.position.set(3.6, 1.5, -0.9);
-    const halfH = (VH1 * F0.d) / 2, halfW = halfH * L.aspect;
-    camera.position.set(F0.x - F0.sx * halfW, F0.y - F0.sy * halfH, F0.z + F0.d);
+    rim.position.set(lerp(3.6, PHONE_AT.x + 2.6, tr), lerp(1.5, PHONE_AT.y + 1.4, tr), lerp(-0.9, PHONE_AT.z - 1.5, tr));
+    if (be > 0) {
+      HERO_TGT.set(0, rig.position.y * 0.5, 0);
+      key.target.position.lerp(HERO_TGT, be);
+      key.position.copy(key.target.position).addScaledVector(KEY_DIR, 12);
+      HERO_TGT.set(-1.05, rig.position.y + 0.85, 0.6);
+      poolU.uPoolCentre.value.lerp(HERO_TGT, be);
+      HERO_TGT.set(3.6, 1.5, -0.9);
+      rim.position.lerp(HERO_TGT, be);
+    }
+
+    // Card: dim inside the pocket, true colour at full screen.
+    const dim = smooth(0, 0.8, lv);
+    cardU.uBright.value = (lerp(0.58, 0.84, smooth(0.05, 0.9, s)) + 0.16 * smooth(0.35, 0.95, p)) * (1 - 0.6 * dim);
+    cardU.uTrue.value = smooth(0.6, 1, p) * (1 - dim);
+    cardU.uBias.value = -0.45 * smooth(0.75, 1, p) * (1 - smooth(0, 0.3, lv));
+    posePhone(t);
+
+    if (!flying) {
+      const halfH = (VH1 * F0.d) / 2, halfW = halfH * L.aspect;
+      camera.position.set(F0.x - F0.sx * halfW, F0.y - F0.sy * halfH, F0.z + F0.d);
+      camera.quaternion.identity();
+      renderer.setClearColor(bgClear, 0);
+      renderer.render(scene, camera);
+      return;
+    }
+
+    // Flight camera: framings for the lerped window, shown through the slot
+    // window so w=0 is exactly the rest frame and w=1 is full-screen.
+    const vw = innerWidth, vh = innerHeight;
+    const w = WIN.w;
+    const fw = lerp(slotRect.width, vw, w), fh = lerp(slotRect.height, vh, w);
+    flightLayout(fw, fh);
+    rig.updateMatrixWorld(true);
+    card.getWorldPosition(v3);
+    fit(L.r3, CARD_W, CARD_H, v3.x, v3.y, v3.z + CARD_T / 2, F3);
+    const s2m = L.portrait ? s : smooth(0, 0.62, s);
+    mixFrame(F0, F1, d, FA);
+    mixFrame(FA, F2, s2m, FB);
+    mixFrame(FB, F3, p, FA);
+    const F = tr > 0 ? mixFrame(FA, FP, tr, FC) : FA;
+    // Fold return: the timeline's own clock carries the camera from the phone
+    // to a wide settling shot, then to rest — never through the envelope.
+    let FVF = F;
+    const qt = smooth(0, 1, clamp((tl.time() - T3) / (BEATS.flapCard + BEATS.foldBack), 0, 1));
+    if (qt > 0) {
+      mixFrame(F, FWIDE, smooth(0, 0.45, qt), FF);
+      FVF = mixFrame(FF, F0, smooth(0.45, 1, qt), FD2);
+    }
+    const halfH = (VH1 * FVF.d) / 2, halfW = halfH * L.aspect;
+    camera.aspect = fw / fh;
+    camera.setViewOffset(fw, fh, lerp(-slotRect.left, 0, w), lerp(-slotRect.top, 0, w), vw, vh);
+    camera.updateProjectionMatrix();
+    camera.position.set(FVF.x - FVF.sx * halfW, FVF.y - FVF.sy * halfH, FVF.z + FVF.d);
     camera.quaternion.identity();
+    renderer.setClearColor(bgClear, B.b);
     renderer.render(scene, camera);
   }
 
-  /* ---- Loop: render only while the hero is on screen and tab visible ---- */
-  let heroVisible = true, firstFrame = true;
-  const readyHandlers = {};
-  const ready = new Promise((res) => (readyHandlers.resolve = res));
-  if ("IntersectionObserver" in window) {
-    new IntersectionObserver((es) => { heroVisible = es[0].isIntersecting; }).observe(heroEl);
-  }
-  if ("ResizeObserver" in window) {
-    new ResizeObserver(() => { needsResize = true; }).observe(slot);
-  }
-  let last = 0;
-  function frame(now) {
-    requestAnimationFrame(frame);
-    const dt = Math.min(0.05, Math.max(0, (now - last) / 1000));
-    last = now;
-    if (!heroVisible || document.hidden) return;
-    time += dt;
-    if (needsResize) resize();
-    update();
-    if (firstFrame) {
-      firstFrame = false;
-      root.classList.add("envelope-ready");
-      if (openBtn) openBtn.hidden = false;
-      readyHandlers.resolve(true);
-    }
+  /* ---- The flight: one paused timeline, played by its own clock ---- */
+  const tl = window.gsap.timeline({ paused: true, onComplete: doLanding });
+  {
+    tl.to(WIN, { w: 1, duration: BEATS.expand, ease: "power2.inOut" }, 0)
+      .to(B, { b: 0.92, duration: BEATS.expand, ease: "power2.inOut" }, 0)
+      .to(S, { dolly: 1, duration: BEATS.pushPast, ease: "power2.inOut" }, BEATS.expand)
+      .to(S, { open: 1, duration: 0.7, ease: "power2.inOut" }, T1)
+      .to(S, { slide: 1, duration: 0.7, ease: "power2.inOut" }, T1 + 0.5)
+      .to(S, { away: 1, duration: 0.7, ease: "power2.inOut" }, T1 + 0.3)
+      .to(S, { push: 1, duration: 0.5, ease: "power2.inOut" }, T1 + 1.0)
+      .to(S2, { leave: 1, duration: 0.5, ease: "power2.inOut" }, T2)
+      .to(S2, { travel: 1, duration: 0.8, ease: "power2.inOut" }, T2 + 0.3)
+      .to(S2, { turn: 1, duration: 0.7, ease: "power2.inOut" }, T2 + 0.9)
+      .to(SF, { back: 1, duration: BEATS.flapCard, ease: "power2.inOut" }, T3)
+      .to(WIN, { w: 0, duration: BEATS.foldBack, ease: "power2.inOut" }, T4)
+      .to(B, { b: 0, duration: BEATS.foldBack, ease: "power2.inOut" }, T4);
   }
 
-  /* ---- Inputs, scroll lock, stub flight ---- */
+  /* ---- Inputs, scroll lock, flight ---- */
   const swallow = (e) => e.preventDefault();
   function swallowKeys(e) {
     const tag = (e.target && e.target.tagName) || "";
@@ -926,17 +1194,39 @@ export async function start() {
     root.classList.remove("envelope-lock");
     if (window.scrollY !== scrollY0) window.scrollTo(0, scrollY0);
   }
+  function enterFlightMode() {
+    const r = slot.getBoundingClientRect();
+    slotRect = { left: r.left, top: r.top, width: r.width, height: r.height };
+    headerH = headerEl.getBoundingClientRect().height;
+    document.body.appendChild(canvas);
+    canvas.classList.add("envelope-canvas--flight");
+    canvas.style.width = "100vw";
+    canvas.style.height = "100vh";
+    renderer.setSize(innerWidth, innerHeight, false);
+  }
   function startFlight() {
     if (flying || !window.gsap) return;
     flying = true;
+    flown = true;
     lock();
-    stubTl = window.gsap.timeline({ onComplete: () => {
-      unlock();
-      flying = false;
-      if (openBtn) openBtn.focus({ preventScroll: true });
-    } });
-    stubTl.to(FL, { lift: 0.55, duration: 0.6, ease: "power2.out" })
-      .to(FL, { lift: 0, duration: 0.6, ease: "power2.inOut" });
+    enterFlightMode();
+    askVideo();
+    tl.restart();
+  }
+  function doLanding() {
+    tl.pause();
+    tl.progress(0); // S, S2, SF, WIN, B back to rest; the fold-back pose already matches
+    if (video && !video.paused) video.pause();
+    stage.appendChild(canvas);
+    canvas.classList.remove("envelope-canvas--flight");
+    canvas.style.width = "100%";
+    canvas.style.height = "100%";
+    camera.clearViewOffset();
+    flying = false;
+    resize();
+    update();
+    unlock();
+    if (openBtn) openBtn.focus({ preventScroll: true });
   }
   let downX = 0, downY = 0;
   slot.addEventListener("pointerdown", (e) => { downX = e.clientX; downY = e.clientY; });
@@ -945,25 +1235,93 @@ export async function start() {
     startFlight();
   });
   if (openBtn) openBtn.addEventListener("click", startFlight);
+  slot.addEventListener("pointerenter", askVideo, { once: true });
+  if (openBtn) openBtn.addEventListener("focus", askVideo, { once: true });
+
+  /* ---- Phone placement (only while travelling) ---- */
+  function posePhone(t) {
+    phone.visible = S2.travel > 0.001;
+    if (!phone.visible) return;
+    const tu = S2.turn, tr = S2.travel;
+    const idle2 = REDUCED ? 0 : 1 - 0.72 * tu;
+    const arrive = 1 - tr, k2 = L.tiltK;
+    phone.position.set(
+      PHONE_AT.x + 0.45 * arrive,
+      PHONE_AT.y - 0.3 * arrive * arrive + idle2 * 0.06 * Math.sin(t * 0.83),
+      PHONE_AT.z - 0.7 * arrive
+    );
+    handset.rotation.set(
+      lerp(PH_REST.rx * k2, 0, tu) + idle2 * 0.03 * Math.sin(t * 0.61 + 0.7),
+      lerp((PH_REST.ry - 0.28 * arrive) * k2, 0, tu) + idle2 * 0.05 * Math.sin(t * 0.43),
+      lerp(PH_REST.rz * k2, 0, tu) + idle2 * 0.015 * Math.sin(t * 0.52 + 2.1)
+    );
+    screenU.uBright.value = lerp(0.9, 1, smooth(0.2, 1, tu));
+    // Fold-back: the phone eases aside and away (the prototype's S3.leave
+    // language, driven by the fold), clearing the camera's path home.
+    const be = SF.back;
+    phone.position.x += 2.6 * be;
+    phone.position.y -= 0.5 * be;
+    phone.position.z -= 2.2 * be;
+    handset.rotation.y -= 0.6 * be;
+  }
+
+  /* ---- Loop: render only while the hero is on screen and tab visible ---- */
+  let heroVisible = true, firstFrame = true;
+  const readyHandlers = {};
+  const ready = new Promise((res) => (readyHandlers.resolve = res));
+  if ("IntersectionObserver" in window) {
+    new IntersectionObserver((es) => { heroVisible = es[0].isIntersecting; }).observe(heroEl);
+  }
+  if ("ResizeObserver" in window) {
+    new ResizeObserver(() => { needsResize = true; }).observe(slot);
+  }
+  let last = 0;
+  function frame(now) {
+    requestAnimationFrame(frame);
+    const dt = Math.min(0.05, Math.max(0, (now - last) / 1000));
+    last = now;
+    if (!heroVisible || document.hidden) return;
+    time += dt;
+    if (needsResize) resize();
+    update();
+    if (videoOk) {
+      const want = flying && S2.travel > 0.2;
+      if (want && video.paused) video.play().catch(() => {});
+      else if (!want && !video.paused) video.pause();
+    }
+    if (firstFrame) {
+      firstFrame = false;
+      root.classList.add("envelope-ready");
+      if (openBtn) openBtn.hidden = false;
+      readyHandlers.resolve(true);
+    }
+  }
 
   resize();
   update();
+  phone.visible = true; // compile the phone's programs now, not mid-flight
   if (renderer.extensions.has("KHR_parallel_shader_compile") && renderer.compileAsync) {
     await renderer.compileAsync(scene, camera);
   } else {
     renderer.compile(scene, camera);
   }
+  phone.visible = false;
   update();
   requestAnimationFrame(frame);
 
   /* ---- Debug hook (only with ?debug): repeatable screenshots ---- */
-  if (/[?&]debug(=|&|$)/.test(location.search)) {
+  if (DEBUG) {
     window.__envelope = {
       ready,
-      state: () => ({ mode: flying ? "flight" : "rest", locked: root.classList.contains("envelope-lock"), flying, progress: stubTl ? stubTl.progress() : 0, scrollY }),
+      state: () => ({ mode: flying ? "flight" : "rest", locked: root.classList.contains("envelope-lock"), flying, progress: tl ? tl.progress() : 0, scrollY }),
       setTime: (s) => { debugTime = +s; update(); },
-      seek: () => update(),
-      duration: 0,
+      seek: (p) => {
+        if (!flying) return;
+        tl.pause();
+        tl.progress(clamp(+p, 0, 1));
+        update();
+      },
+      duration: tl.duration(),
     };
   }
   return ready;
