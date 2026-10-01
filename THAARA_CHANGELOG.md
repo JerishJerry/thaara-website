@@ -14,6 +14,35 @@ typography, animation timing, minor visual detail).
 
 ---
 
+## 2026-10-01 — README rewritten to match the site as it is · Polish
+
+**Issue**
+The README still described the pre-envelope site: it named Netlify as the live site and deployment
+target, said the project was "three source files plus two images", told people to double-click
+`index.html` (which no longer works for the envelope), listed none of the current files, and had a
+stray `&amp;` in its title.
+
+**Change**
+Rewrote `README.md`: highlights, approach (zero-dependency, with Three.js and GSAP the only
+third-party code), run-locally steps with an HTTP-server requirement, the current project
+structure, design-system, progressive-enhancement, contact-form, image and SEO notes, deployment
+(GitHub Pages from `main`, single branch; Netlify is the stale original), contributing rules,
+status, third-party notices and contact. Every file it names was checked to exist, and the contact
+links match the page.
+
+**Files**
+`README.md`
+
+**Reason**
+A public repository's first page should describe what is actually deployed.
+
+**Verified**
+Paths, contact links and token counts checked against the repo. Not checked: the `python` and
+`npx serve` commands (Python is not installed on this machine), and whether GitHub renders the
+tree and tables as intended.
+
+---
+
 ## 2026-10-01 — Repo cleanup: one branch, no scratch files · Polish
 
 **Issue**
