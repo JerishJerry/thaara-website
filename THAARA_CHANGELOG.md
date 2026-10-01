@@ -14,6 +14,51 @@ typography, animation timing, minor visual detail).
 
 ---
 
+## 2026-10-01 — Repo cleanup: one branch, no scratch files · Polish
+
+**Issue**
+After the hero envelope and the Services deck were combined, the working tree still carried the
+scrapped 3D prototype, finished build plans, a stale local backup, extra branches and worktrees.
+
+**Change**
+- One branch: `main`. `hero-envelope`, `3d-redesign`, `services-motion` and `deck-envelope` were
+  fully merged into it first (verified commit by commit), then deleted, along with their worktrees.
+- Removed `prototype/` (the scrapped 3D prototype, which the page never referenced) and the
+  three.js addons only it imported (`vendor/three/addons/postprocessing/`, `shaders/`). The envelope
+  needs only `RoomEnvironment`, which stays; `vendor/README.md` is updated.
+- Removed `ENVELOPE_FLIGHT_PLAN.md` and `SERVICES_DECK_PLAN.md`: finished build plans whose
+  worktree and "never touch main" instructions were out of date. `CLAUDE.md` now points at the
+  changelog instead.
+- Removed the local, gitignored `.phase1-backup/` (byte-identical to the first commit), two
+  leftover local safety tags (`pre-merge-local`, `pre-merge-remote`, both already reachable from
+  `main`), and OpenCode's scratch files in the system temp folder.
+- Comment in `js/envelope/envelope.js` no longer points at the deleted `prototype/proto.js`.
+
+**Files**
+`CLAUDE.md`, `THAARA_CHANGELOG.md`, `vendor/README.md`, `js/envelope/envelope.js`; deleted
+`prototype/`, `vendor/three/addons/postprocessing/`, `vendor/three/addons/shaders/`,
+`ENVELOPE_FLIGHT_PLAN.md`, `SERVICES_DECK_PLAN.md`
+
+**Reason**
+Nothing that ships needed any of it, and a public site should not publish dead prototypes and
+internal build notes. Nothing is lost: all of it is in git history.
+
+**Recover**
+`git show ef8cd6f:ENVELOPE_FLIGHT_PLAN.md` (likewise `SERVICES_DECK_PLAN.md`), or
+`git checkout ef8cd6f -- prototype/` to bring the prototype back. The deleted tags pointed at
+`cfaf025` (`pre-merge-local`) and `538758c` (`pre-merge-remote`).
+
+**Verified**
+No tracked file still references a deleted path. Every file the page and the envelope load answers
+200 (14 checked); the deleted paths 404 as expected. `envelope.js` imports cleanly and
+`RoomEnvironment` resolves through the import map; all five deck cards render and pin; no
+horizontal overflow. The only console message was the envelope's `boot timeout` warning, which is
+the designed fallback firing because the preview pane was hidden (frames pause while the page is
+hidden). **Not verified:** the envelope itself rendering after this change, since it could not
+render in a hidden pane.
+
+---
+
 ## 2026-10-01 — Hero envelope: phone left parked after the fold-back · Important
 
 **Issue**
@@ -171,8 +216,9 @@ and back.
 - Boot is lazy (after `load`, and after the hero IMG paints so LCP is untouched) with a one-`warn`
   fallback to the static picture. `html` reserves the scrollbar gutter up front so the lock never
   shifts the page sideways.
-- Full plan and per-step verification at `ENVELOPE_FLIGHT_PLAN.md`, on branch `hero-envelope`
-  (from `3d-redesign`). `main` and the live site untouched; nothing pushed.
+- Full plan and per-step verification were at `ENVELOPE_FLIGHT_PLAN.md`, on branch `hero-envelope`
+  (from `3d-redesign`), when this was written. Both the plan and the branches have since been
+  removed; see the 2026-10-01 "Repo cleanup" entry above for how to recover the plan.
 
 **Files**
 `index.html`, `styles.css`, `js/envelope/boot.js`, `js/envelope/envelope.js`,

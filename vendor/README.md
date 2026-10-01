@@ -11,13 +11,14 @@ it through an import map (`three`, `three/addons/`) and a plain `<script>` tag (
 
 ## three.js addons in use
 
-- `environments/RoomEnvironment.js`
-- `postprocessing/EffectComposer.js`, `RenderPass.js`, `ShaderPass.js`, `MaskPass.js`, `Pass.js`,
-  `UnrealBloomPass.js`, `OutputPass.js`, `FXAAPass.js`
-- `shaders/CopyShader.js`, `LuminosityHighPassShader.js`, `OutputShader.js`, `FXAAShader.js`
+- `environments/RoomEnvironment.js` (the only one the site imports, from `js/envelope/envelope.js`)
 
-Addons keep their `examples/jsm/` subfolders, so their relative imports (`../shaders/...`,
-`./Pass.js`) resolve as shipped, and their bare `'three'` import resolves through the import map.
+Addons keep their `examples/jsm/` subfolders, so their relative imports resolve as shipped and their
+bare `'three'` import resolves through the import map.
+
+The post-processing and shader addons (bloom, FXAA, output pass) were only used by the retired 3D
+prototype and were removed with it on 2026-10-01. They are still in git history if bloom is ever
+wanted again.
 
 ## Updating
 

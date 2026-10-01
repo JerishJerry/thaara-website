@@ -19,8 +19,8 @@ The site was rebuilt across five phases, all complete. It is **live and feature-
 | 4 — Polish, SEO, performance | Complete. 2265 KB → 106 KB, full SEO, a11y. |
 | 5 — Final QA | Complete. One defect found and fixed (logo alignment). |
 | **6 — Owner review** | **In progress. Awaiting the owner's feedback.** |
-| **7 — Hero envelope flight** | **On `main` (merged 2026-10-01). Scroll-scrubbed 3D envelope in the hero slot (`js/envelope/`, vendored Three.js + GSAP); see `ENVELOPE_FLIGHT_PLAN.md`.** |
-| **8 — Services deck** | **On `main` (merged 2026-10-01). Pinned, stacking 3D cards in Services (`js/services-deck.js`); see `SERVICES_DECK_PLAN.md`.** |
+| **7 — Hero envelope flight** | **On `main` (merged 2026-10-01). Scroll-scrubbed 3D envelope in the hero slot (`js/envelope/`, vendored Three.js + GSAP); the 2026-10-01 entries in `THAARA_CHANGELOG.md` record what was built and verified.** |
+| **8 — Services deck** | **On `main` (merged 2026-10-01). Pinned, stacking 3D cards in Services (`js/services-deck.js`); see the 2026-10-01 entries in `THAARA_CHANGELOG.md`.** |
 
 `main` is the only branch. The old working branches (`hero-envelope`, `3d-redesign`, `services-motion`,
 `deck-envelope`) were fully merged into it and deleted on 2026-10-01.
@@ -76,7 +76,7 @@ styles.css    the entire design system
 script.js     nav state, mobile menu, scroll reveals, contact form
 ```
 
-One exception (see `ENVELOPE_FLIGHT_PLAN.md`): the hero envelope flight lazy-loads the
+One exception (see `vendor/README.md`): the hero envelope flight lazy-loads the
 already-vendored Three.js 0.186.1 and GSAP 3.15 (`vendor/`) after page load — still no build step
 and no `package.json`. That is the only third-party code on the site.
 

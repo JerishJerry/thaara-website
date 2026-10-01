@@ -1,9 +1,10 @@
 /* Hero envelope flight: scene module.
-   Copied from prototype/proto.js (never imported): tokens, math, procedural
-   textures, renderer, materials, envelope, card, phone + screen video, lights,
-   framing, the state mapping, and the loop. Not ported: loader/intro, scroll
-   track, DOM text beats, scenes 3-8, bloom, 3D dust.
-   Everything lives inside start(), like proto.js boot(). */
+   Copied from the retired 3D prototype's proto.js (never imported; the
+   prototype/ folder was removed on 2026-10-01 and lives in git history):
+   tokens, math, procedural textures, renderer, materials, envelope, card,
+   phone + screen video, lights, framing, the state mapping, and the loop.
+   Not ported: loader/intro, scroll track, DOM text beats, scenes 3-8, bloom,
+   3D dust. Everything lives inside start(), like proto.js boot(). */
 
 import * as THREE from "three";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
