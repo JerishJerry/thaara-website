@@ -1769,20 +1769,11 @@ body.menu-open{ overflow: hidden; }
    ============================================================ */
 .hero-visual{ position: relative; }
 /* Before the envelope is ready (and only when JS runs — no-JS never hides
-   the photo): the invitation picture stays out of sight entirely, leaving an
-   intentional dark panel while visitors wait for the envelope. Removing this
-   class reveals the photo: every fallback path does that. */
+   the photo): the invitation picture stays out of sight and nothing is drawn
+   in its place — no panel, no border, no shimmer. `visibility: hidden` keeps
+   the picture's layout space, so the envelope fades in without the page
+   moving. Removing the class reveals the photo: every fallback path does that. */
 .js.envelope-pending .hero-visual img{ visibility: hidden; }
-.js.envelope-pending .hero-visual{ background: var(--bg-raise); border: 1px solid var(--line); border-radius: var(--radius); }
-/* Waiting shimmer: a slow gold breath over the panel, so a long boot reads
-   as loading, never as broken. Opacity only; the global reduced-motion rules
-   already flatten it. */
-.js.envelope-pending .hero-visual::after{
-  content: ""; position: absolute; inset: 0; border-radius: inherit;
-  background: var(--gold-haze);
-  animation: envelope-breathe 1.6s var(--ease) infinite;
-}
-@keyframes envelope-breathe{ 0%, 100%{ opacity: 0; } 50%{ opacity: 1; } }
 .envelope-stage{ position: absolute; inset: 0; pointer-events: none; opacity: 0; }
 /* The canvas fades in once it has steady frames. The photo never comes back
    on this path (visibility stays hidden); fallbacks remove both classes. */

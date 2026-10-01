@@ -40,6 +40,35 @@ Not verified: how the hover feels on a real screen (the preview pane freezes tra
 
 ---
 
+## 2026-10-01 — Hero envelope: blank box before the envelope appears · Important
+
+**Issue**
+At the start of the page, while the envelope was still booting, the hero slot showed an empty dark
+box with a slowly pulsing gold shimmer. To the owner it read as a rendering error.
+
+**Change**
+Removed the waiting panel and its shimmer: the `background` / `border` / `border-radius` on
+`.js.envelope-pending .hero-visual`, the `::after` haze and `@keyframes envelope-breathe`. The photo
+still stays hidden while `envelope-pending` is set, and `visibility: hidden` keeps its layout space,
+so the slot is simply empty until the envelope fades in, and nothing shifts. Every fallback path
+still removes `envelope-pending`, so the photo returns whenever the envelope can't run.
+
+**Files**
+`styles.css` (section 16)
+
+**Reason**
+The smallest change that removes the box. The photo handling, which exists to avoid the
+photo-and-envelope ghost, is left exactly as it was.
+
+**Verified**
+On `localhost:4190` (the hero-envelope tree) at one viewport (1019×1274), with the waiting state
+forced: slot background transparent, border 0, `::after` content `none`, no animation; the hidden
+photo keeps its 425×254 space (no geometry change); the served CSS had neither the panel rule nor
+the keyframes. Carried onto this combined branch as the same hunk. Not checked: a real cold boot on
+a slow machine, or other viewports.
+
+---
+
 ## 2026-10-01 — Services section: stacking deck · Important
 
 **Issue**
