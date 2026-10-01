@@ -14,6 +14,38 @@ typography, animation timing, minor visual detail).
 
 ---
 
+## 2026-10-01 — Hero: photo stayed hidden if the envelope module could not load · Important
+
+**Issue**
+The hero photo is hidden from first paint by `envelope-pending` (set by an inline script in
+`<head>`), and the only code that clears it is the envelope module (`boot.js` / `envelope.js`). If
+`boot.js` could not load at all (404, network error, blocked by an extension, opened from
+`file://`) or could not run (no module support), nothing ever cleared the class and the hero slot
+stayed blank permanently. Reproduced by pointing the module at a missing file: after 2.5 s the class
+was still set and the photo was `visibility: hidden`.
+
+**Change**
+`index.html`: the `boot.js` module tag gets an `onerror` that removes `envelope-pending`, and a
+`<script nomodule>` does the same for browsers without module support. Both only fire in the failure
+cases; on a normal load neither runs and the envelope path is unchanged. No timer was added: the
+module's own 12-second boot timeout still covers a slow or stalled boot.
+
+**Files**
+`index.html`
+
+**Reason**
+The photo is the designed fallback for every envelope failure, so a failure to even load the module
+must reach it too. This is the smallest change that closes that gap.
+
+**Verified**
+Same failing load on the fixed markup: `envelope-pending` cleared, photo `visibility: visible`
+(397×237), where the unfixed markup left it hidden. On a normal load the class is still set early and
+the photo stays hidden, so the new scripts did not fire. Not verified: a real `file://` open, a real
+browser without module support, or the envelope rendering normally (the preview pane was hidden, so
+frames pause).
+
+---
+
 ## 2026-10-01 — README rewritten to match the site as it is · Polish
 
 **Issue**

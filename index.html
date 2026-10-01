@@ -747,7 +747,14 @@
   <a class="sticky-cta" id="stickyCta" href="#contact">Start a project <i class="arrow" aria-hidden="true">↗</i></a>
 
   <script src="script.js" defer></script>
-  <script type="module" src="js/envelope/boot.js"></script>
+  <!-- The hero photo is hidden by `envelope-pending` (set in <head>) and only the
+       envelope module can clear it. If that module can't load at all (404,
+       network error, blocked, opened from file://) or can't run (no module
+       support), nothing would, and the hero slot would stay blank for good.
+       So both cases clear it here, and the photo shows. -->
+  <script type="module" src="js/envelope/boot.js"
+          onerror="document.documentElement.classList.remove('envelope-pending')"></script>
+  <script nomodule>document.documentElement.classList.remove('envelope-pending')</script>
   <script src="js/services-deck.js" defer></script>
 </body>
 </html>
