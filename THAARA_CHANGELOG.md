@@ -14,6 +14,32 @@ typography, animation timing, minor visual detail).
 
 ---
 
+## 2026-10-01 — Services deck: pill hover answers at once · Polish
+
+**Issue**
+After the deck's entry animation, hovering a card's second or third pill recoloured it late (0.12 s
+and 0.24 s). The entry stagger was one `transition-delay` on each pill, and that single value also
+applied to the hover recolour. Flagged in the deck's own QA and left as written.
+
+**Change**
+The pills' delay is now a per-property list matching their `transition` list (border-color, color,
+opacity, transform): `0s, 0s, <stagger>, <stagger>`. The entry stagger on opacity and transform is
+unchanged; the hover recolour has no delay. The ruled list items have no hover state and keep their
+single delay.
+
+**Files**
+`styles.css` (section 10)
+
+**Reason**
+The smallest change that separates the two jobs one declaration was doing.
+
+**Verified**
+Computed `transition-delay` on every pill: first pill `0s ×4`, second `0s, 0s, 0.12s, 0.12s`, third
+`0s, 0s, 0.24s, 0.24s`; the lead list items still run 0 → 0.48 s. The served CSS contains the fix.
+Not verified: how the hover feels on a real screen (the preview pane freezes transitions).
+
+---
+
 ## 2026-10-01 — Services section: stacking deck · Important
 
 **Issue**
