@@ -115,6 +115,10 @@
   --deck-dim-max: .7;
   --shadow-deck:  0 -14px 36px rgba(0,0,0,.38);
 
+  /* ---- Process ticket ---------------------------------------- */
+  --ticket-stub-w: 14rem;   /* tear-off stub width on wide screens */
+  --ticket-notch:  var(--sp-4);   /* perforation cut-out diameter */
+
   /* Fixed header height, referenced by anchor scroll offset. */
   --nav-h: 84px;
 }
@@ -1315,6 +1319,135 @@ body.menu-open{ overflow: hidden; }
   color: var(--ink-dim);
   max-width: 52ch;
 }
+
+/* ---- Journey ticket (built by js/process-ticket.js) ----
+   The plain list above is the fallback; the script hides it once the ticket
+   exists. Dark ink on ivory paper: gold would fail contrast here. */
+.stages--replaced{ display: none; }
+
+.ticket{
+  display: grid;
+  grid-template-columns: 1fr;
+  background: var(--ink);
+  color: var(--bg);
+  border-radius: var(--radius-lg);
+}
+@media (min-width: 800px){
+  .ticket{ grid-template-columns: 1fr var(--ticket-stub-w); }
+}
+.ticket-main{ padding: clamp(var(--sp-6), 3.5vw, var(--sp-8)); }
+
+/* Route: four stops on a dashed line, filled up to the selected stop. */
+.ticket-route{
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  --p: 0;
+}
+.ticket-route::before,
+.ticket-route::after{
+  content: "";
+  position: absolute;
+  top: calc(var(--sp-3) / 2);   /* centre of the dots */
+  left: calc(var(--sp-3) / 2);
+  width: 75%;                   /* first dot to last dot = 3 of 4 columns */
+  height: 0;
+  border-top: 1px dashed var(--ink-faint);
+}
+.ticket-route::after{
+  border-top: 1px solid var(--bg);
+  transform-origin: left;
+  transform: scaleX(var(--p));
+  transition: transform var(--dur) var(--ease);
+}
+.stop{
+  display: grid;
+  justify-items: start;
+  gap: var(--sp-2);
+  padding: 0 var(--sp-2) var(--sp-4) 0;
+  background: none;
+  border: 0;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.stop-dot{
+  position: relative;
+  z-index: 1;
+  width: var(--sp-3);
+  height: var(--sp-3);
+  border: 1px solid var(--bg);
+  border-radius: 50%;
+  background: var(--ink);
+  transition: background-color var(--dur) var(--ease);
+}
+.stop[aria-selected="true"] .stop-dot{ background: var(--bg); }
+.stop-num{
+  font-size: var(--fs-3xs);
+  font-weight: 600;
+  letter-spacing: .16em;
+  font-variant-numeric: tabular-nums;
+  color: var(--bg-soft);   /* secondary on paper; check >= 4.5:1 */
+}
+.stop-name{ font-family: var(--serif); font-size: var(--fs-lg); line-height: 1.1; }
+.stop:hover .stop-name{ text-decoration: underline; text-underline-offset: .2em; }
+.stop:focus-visible{ outline: 2px solid var(--bg); outline-offset: 4px; }
+
+/* Detail: all panels share one grid cell, so the height is the tallest one. */
+.ticket-panels{ display: grid; margin-top: var(--sp-5); }
+.stop-panel{
+  grid-area: 1 / 1;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(var(--sp-2));
+  transition:
+    opacity    var(--dur) var(--ease),
+    transform  var(--dur) var(--ease),
+    visibility 0s linear var(--dur);
+}
+.stop-panel.is-active{
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  transition-delay: 0s;
+}
+.stop-panel p{ max-width: 46ch; font-size: var(--fs-base); color: var(--bg); }
+.stop-panel p + p{ margin-top: var(--sp-3); font-size: var(--fs-sm); color: var(--bg-soft); }  /* the drafted detail */
+.stage-body p + p{ margin-top: var(--sp-2); }   /* same spacing in the plain no-JS list */
+
+/* Stub: perforated tear-off holding the existing "Start a project" link. */
+.ticket-stub{
+  position: relative;
+  display: grid;
+  align-content: center;
+  justify-items: start;
+  gap: var(--sp-4);
+  padding: var(--sp-6);
+  border-top: 1px dashed var(--ink-faint);
+}
+@media (min-width: 800px){
+  .ticket-stub{ border-top: 0; border-left: 1px dashed var(--ink-faint); }
+}
+.ticket-stub::before,
+.ticket-stub::after{                       /* the semicircle cut-outs */
+  content: "";
+  position: absolute;
+  width: var(--ticket-notch);
+  height: var(--ticket-notch);
+  border-radius: 50%;
+  background: var(--bg);                   /* the section's own background */
+}
+.ticket-stub::before{ top: calc(var(--ticket-notch) / -2); left: calc(var(--ticket-notch) / -2); }
+.ticket-stub::after { top: calc(var(--ticket-notch) / -2); right: calc(var(--ticket-notch) / -2); }
+@media (min-width: 800px){
+  .ticket-stub::before{ top: calc(var(--ticket-notch) / -2); left: calc(var(--ticket-notch) / -2); }
+  .ticket-stub::after { top: auto; right: auto; bottom: calc(var(--ticket-notch) / -2); left: calc(var(--ticket-notch) / -2); }
+}
+.ticket-stub .section-action{ margin: 0; }
+.ticket-stub .link-rule{ color: var(--bg); border-color: var(--bg); }   /* dark, not gold, on paper */
+.ticket-stub .link-rule:hover{ border-color: var(--bg); }
+.ticket-stub img{ width: var(--sp-9); height: auto; }                     /* the logo stamp */
 
 /* Shared "next step" affordance closing a section. */
 .section-action{
