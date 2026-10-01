@@ -14,6 +14,70 @@ typography, animation timing, minor visual detail).
 
 ---
 
+## 2026-10-01 — Process journey ticket · Important
+
+**Issue**
+Owner approved making Process interactive without hiding it behind a tap: the four stages become
+stops on an editorial journey ticket (ivory paper, route line with four stops, tear-off stub holding
+the existing "Start a project" link), with a flat envelope that opens itself once as the section
+scrolls into view. Not a boarding-pass look (gate/seat/flight would be invented content), not a
+second 3D scene (the hero already runs WebGL).
+
+**Change**
+- `index.html`: `id="processHeading"` on the Process h2 (labels the ticket tablist; no new label
+  text), `<script src="js/process-ticket.js" defer>` after the deck script, and one new
+  `<p class="stage-more">` per stage with the drafted detail below. The four lead sentences are
+  byte-identical; without JS the new paragraphs simply show in the plain list.
+- `js/process-ticket.js` (new, plain ES5 IIFE, no dependencies): builds the ticket from the
+  `.stages` list's own cloned text (four tabs, four same-cell panels, stub with logo stamp and the
+  moved — not copied — section-action link), then hides the list (`.stages--replaced`). Roving
+  tabindex, arrow/Home/End keys, route fill `--p` 0 / .333 / .667 / 1. The envelope intro plays
+  once via `IntersectionObserver` (threshold .45, 1600 ms timeout finish, total ≤ 1.8 s);
+  reduced-motion or no-`IntersectionObserver` shows the finished ticket with no envelope.
+- `styles.css`: `--ticket-stub-w` / `--ticket-notch` tokens (section 01); ticket, route, stops,
+  panels and stub styles plus the envelope intro keyed on `stage[data-intro]`, all in section 12.
+  Motion is `transform` / `opacity` (+ the `visibility` step) only. Dark ink on ivory throughout —
+  gold is deliberately not used for text or controls (gold on ivory ≈ 2.0:1).
+- Docs: this entry, the `CLAUDE.md` Phase 9 row and copy note, the `README.md` highlight and tree.
+
+**Files**
+`index.html`, `styles.css`, `js/process-ticket.js` (new), `THAARA_CHANGELOG.md`, `CLAUDE.md`,
+`README.md`
+
+**Reason**
+Process was deliberately the least prominent section and stays that way: heading still `--fs-xl`,
+footprint about the same as the four columns plus one detail line. The ticket reuses existing words
+instead of retyping them (entities survive via `cloneNode`), and the drafted detail only expands
+ideas the page already states. The envelope is flat CSS, not WebGL, and the list stays underneath
+as the no-JS fallback.
+
+Provenance: the four `stage-more` paragraphs were drafted by the assistant (Muse Spark) at the
+owner's instruction on 2026-10-01. The owner's read-approval is still pending — the work is
+committed locally only and has **not** been pushed, so nothing drafted is live.
+
+**Verified**
+Copy lint exits 0 (four leads unchanged, four detail paragraphs match, no digits/forbidden words);
+`node --check js/process-ticket.js` passes; CSS braces 461/461; fresh-port serve answers 200 for
+`/`, `js/process-ticket.js` (5496 bytes on disk and over HTTP) and `styles.css`; contrast `--bg`
+on `--ink` 15.36:1 and `.stop-num` `--bg-soft` on ivory 13.38:1 (both ≥ 4.5:1).
+Not verified: the rendered ticket and the envelope animation in a visible browser (no viewport
+tool in this environment — no 1440/390/320/1920 matrix, no click/keyboard/focus-ring run, no
+notch-on-the-dashed-line eyeball, no live reduced-motion / JS-off / script-blocked pass). The
+owner still needs to read and approve the four drafted paragraphs below before push.
+
+The drafted detail, verbatim: "We listen before we design - the people involved, the place, and
+how you want your guests to feel. Bring whatever you have - names, photographs, a reference, or
+only a feeling - and we will take it from there." / "You see where it is heading before anything
+is built - the look, the tone, and how a guest moves through it from the first moment to the last.
+We adjust it with you until it feels like your occasion, not a template." / "Design, build and
+motion are made together, so the movement is part of the idea rather than something added at the
+end. We keep refining the small things - spacing, timing, type - until nothing feels accidental." /
+"Before it goes out we test it across the devices your guests are likely to use, so it opens as
+intended. Then we hand it over, ready to share." (Shown with plain hyphens/apostrophes; the page
+uses `&nbsp;-` and `&rsquo;`.)
+
+---
+
 ## 2026-10-01 — Hero: photo stayed hidden if the envelope module could not load · Important
 
 **Issue**

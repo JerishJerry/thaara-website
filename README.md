@@ -15,6 +15,9 @@ website design and motion.
   back in place.
 - **Services deck.** The five disciplines are cards that pin beneath the header and stack with a
   subtle 3D recession as you scroll.
+- **Process journey ticket.** The four stages are stops on an ivory ticket with a route line and
+  a tear-off stub, built from the section's own list by `js/process-ticket.js`, with a flat
+  envelope intro that plays once.
 - **Editorial design system.** A warm near-black palette, a single gold accent, EB Garamond and
   Source Sans 3, all driven by CSS custom properties.
 - **Contact form** wired to Web3Forms, with a honeypot, inline validation, and direct email and
@@ -63,6 +66,7 @@ Useful while developing: add `?static` to the URL to skip the 3D envelope and se
 ├── script.js                    Header state, mobile menu, scroll reveals, contact form
 ├── js/
 │   ├── services-deck.js         Services deck: pinning, 3D depth, entry motion
+│   ├── process-ticket.js        Process ticket: journey-ticket tabs built from the stages list
 │   └── envelope/
 │       ├── boot.js              Capability gate and lazy loader for the envelope
 │       └── envelope.js          The Three.js hero envelope and its scroll-scrubbed flight
