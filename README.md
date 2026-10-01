@@ -18,6 +18,9 @@ website design and motion.
 - **Process journey ticket.** The four stages are stops on an ivory ticket with a route line and
   a tear-off stub, built from the section's own list by `js/process-ticket.js`, with a flat
   envelope intro that plays once.
+- **Section life.** The remaining sections move a little: the phone plays its screen recording,
+  visuals settle in on scroll, headings rise out of a mask, a sent envelope closes on real
+  success, and the closing echoes the hero's gold dust — all from `js/section-life.js`.
 - **Editorial design system.** A warm near-black palette, a single gold accent, EB Garamond and
   Source Sans 3, all driven by CSS custom properties.
 - **Contact form** wired to Web3Forms, with a honeypot, inline validation, and direct email and
@@ -67,6 +70,7 @@ Useful while developing: add `?static` to the URL to skip the 3D envelope and se
 ├── js/
 │   ├── services-deck.js         Services deck: pinning, 3D depth, entry motion
 │   ├── process-ticket.js        Process ticket: journey-ticket tabs built from the stages list
+│   ├── section-life.js          Section life: scroll/visibility touches for the other sections
 │   └── envelope/
 │       ├── boot.js              Capability gate and lazy loader for the envelope
 │       └── envelope.js          The Three.js hero envelope and its scroll-scrubbed flight

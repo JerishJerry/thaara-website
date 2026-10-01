@@ -21,7 +21,8 @@ The site was rebuilt across five phases, all complete. It is **live and feature-
 | **6 — Owner review** | **In progress. Awaiting the owner's feedback.** |
 | **7 — Hero envelope flight** | **On `main` (merged 2026-10-01). Scroll-scrubbed 3D envelope in the hero slot (`js/envelope/`, vendored Three.js + GSAP); the 2026-10-01 entries in `THAARA_CHANGELOG.md` record what was built and verified.** |
 | **8 — Services deck** | **On `main` (merged 2026-10-01). Pinned, stacking 3D cards in Services (`js/services-deck.js`); see the 2026-10-01 entries in `THAARA_CHANGELOG.md`.** |
-| **9 — Process journey ticket** | **On `main`, committed locally 2026-10-01, not pushed. Ticket tabs built from the `.stages` list (`js/process-ticket.js`) plus a one-play flat envelope intro; see the 2026-10-01 entry in `THAARA_CHANGELOG.md`. The drafted stage detail was approved by the owner on 2026-10-01; visual verification before push.** |
+| **9 — Process journey ticket** | **Live on `main` (pushed 2026-10-01). Ticket tabs built from the `.stages` list (`js/process-ticket.js`) plus a one-play flat envelope intro; see the 2026-10-01 entry in `THAARA_CHANGELOG.md`. The drafted stage detail was approved by the owner on 2026-10-01.** |
+| **10 — Section life** | **Live on `main` (pushed 2026-10-01). Scroll/visibility touches for the remaining sections (`js/section-life.js`): Work video + settle, Why rules, heading word reveals, sent envelope, closing dust; see the 2026-10-01 entry in `THAARA_CHANGELOG.md`.** |
 
 `main` is the only branch. The old working branches (`hero-envelope`, `3d-redesign`, `services-motion`,
 `deck-envelope`) were fully merged into it and deleted on 2026-10-01.
@@ -133,7 +134,7 @@ designed as a website" are printed in the artwork itself.
 One authorised exception (2026-10-01): the Process stage detail (`.stage-more`, one paragraph per
 stage) is assistant-drafted copy the owner asked to be written — deliberately generic, with no
 figures, durations, prices or guarantees. It was approved by the owner on 2026-10-01 and is
-committed but unpushed, pending visual verification before it goes live. Anything more specific must come from the owner in their own
+live. Anything more specific must come from the owner in their own
 words.
 
 ---
@@ -150,6 +151,9 @@ reconsider, not to hard-code one.
   beyond the existing accents.
 - Exception (2026-10-01, owner-approved): the Services deck uses scroll-linked 3D depth
   (`js/services-deck.js`); everywhere else the rule stands.
+- Exception (2026-10-01, owner-approved): section life (`js/section-life.js`) — scroll-linked
+  depth/tilt on the Work and About visuals, a muted looping video in Work with a pause control,
+  heading word reveals and the closing dust. Nothing follows the mouse; no gradients.
 - Every element on the page shares **one left edge**. If you change a logo or container width,
   re-check that alignment — it has broken twice. Since 2026-09-22 the hero shares it too; there
   is no longer a centred exception on the page except the closing CTA and 404.

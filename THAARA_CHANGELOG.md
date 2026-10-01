@@ -14,6 +14,57 @@ typography, animation timing, minor visual detail).
 
 ---
 
+## 2026-10-01 — Section life: every section moves a little · Important
+
+**Issue**
+Owner asked for every section to have some life. Hero (3D envelope flight), Services (stacking
+deck) and Process (journey ticket) already had it; the rest of the page was static.
+
+**Change**
+Six small effects, all scroll-linked depth or visibility triggers — nothing follows the mouse, no
+pointer tilt, no gradients, no sheen, no new libraries:
+- Work: the Leo × Asnia phone plays its real screen recording (`leo-asnia-scroll.mp4`, already in
+  the repo), only while in view, with a 44 px Pause/Play toggle (WCAG 2.2.2); both Work visuals
+  lean back and lie flat as they scroll in (`--settle`).
+- Why THAARA: each principle's top rule draws across once `.in-view` arrives (pure CSS on the
+  existing reveal class).
+- About: the studio poster settles in with the same `--settle` mechanism.
+- Headings (Work, Services, Why, Process, About, Contact): words rise out of a mask, reusing the
+  deck's `.w` / `.w-i` technique, with a 2.5 s safety net so headings never stay invisible where
+  the observer never fires.
+- Contact: on a **real** successful send only, a small envelope closes inside the existing "Thank
+  you" box (watches `#formSuccess`'s `hidden`; form logic untouched).
+- Closing: the hero's 50-petal gold dust cloned, paused off-screen, running on-screen.
+- New `js/section-life.js` (plain ES5 IIFE). Reduced motion, JS off, or any throw: every section
+  is simply its static self — all start states live behind script-added classes (or `.js`).
+
+**Files**
+`index.html` (one script tag), `styles.css` (two tokens, section 17), `js/section-life.js` (new),
+`THAARA_CHANGELOG.md`, `CLAUDE.md`, `README.md`
+
+**Reason**
+One small file plus CSS, reusing mechanisms already on the page (reveal observer, word masks,
+dust). Scroll-linked depth only, so motion never fights the scroll and nothing animates layout.
+The hover-scale on the two Work visuals becomes instant (0.8%, imperceptible) because a
+scroll-linked transform must not be eased by the old `transform .8s` transition.
+
+No copy was added: the only new text is the `aria-label`s "Pause" / "Play" on the video toggle
+(an approved functional label, not page copy). All headings stay `textContent`-identical.
+
+**Verified**
+Copy lint exits 0; `node --check js/section-life.js` passes; CSS braces 491/491 (section 17
+block 30/30); fresh-port serve answers 200 for `/`, `js/section-life.js` (7886 bytes on disk and
+over HTTP) and `styles.css`; `git diff index.html` is the script tag only; `git diff script.js
+js/envelope js/services-deck.js js/process-ticket.js` is empty. Static state checks: 6 heading
+targets (closing h2 correctly excluded), 3 settle targets, 50 dust spans to clone, `.w` mask and
+`.w-i` transition global, settle `transition` override wins over the hover rule, video element is
+muted/loop/`preload="none"`/`aria-hidden` in code, sent-envelope states keyed to `is-sent`.
+Not verified: everything in the plan's "NOT confirmed" list — actual video playback and its crop,
+the look and timing of every effect, scroll-triggered firing, phones at 390/320, console/overflow/
+anchors in a real viewport, and the live reduced-motion / JS-off passes. Nothing was tuned blind.
+
+---
+
 ## 2026-10-01 — Process journey ticket · Important
 
 **Issue**
