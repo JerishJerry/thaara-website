@@ -1449,6 +1449,71 @@ body.menu-open{ overflow: hidden; }
 .ticket-stub .link-rule:hover{ border-color: var(--bg); }
 .ticket-stub img{ width: var(--sp-9); height: auto; }                     /* the logo stamp */
 
+/* ---- Envelope intro (decorative, plays once) ----
+   Flat paper envelope around the ticket. Only transform, opacity and the
+   visibility step animate; the shapes are static clip-paths. The ticket keeps
+   its final height throughout (opacity/transform never affect layout), tabs
+   work during the intro (the envelope ignores pointer input), and a timeout
+   (not transitionend) finishes it so a hidden tab still lands. */
+.ticket-stage{ position: relative; }
+.ticket{ position: relative; z-index: 2; }
+.ticket-envelope{
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+.env-back,
+.env-front,
+.env-flap{
+  grid-area: 1 / 1;
+  width: 82%;
+  height: 76%;
+  border-radius: var(--radius-lg);
+}
+.env-back{ z-index: 1; background: var(--ink-dim); }
+.env-front{
+  z-index: 3;
+  background: var(--ink-dim);
+  clip-path: polygon(0 42%, 50% 26%, 100% 42%, 100% 100%, 0 100%);   /* pocket mouth */
+}
+.env-flap{
+  z-index: 4;
+  background: var(--ink-faint);
+  clip-path: polygon(0 0, 100% 0, 50% 58%);   /* closed flap */
+  transform-origin: 50% 0;
+}
+.ticket-stage[data-intro="pending"] .ticket{
+  opacity: 0;
+  transform: translateY(var(--sp-9)) scale(.8);
+}
+.ticket-stage[data-intro="play"] .ticket{
+  transition:
+    opacity   var(--dur-slow) var(--ease-out) .15s,
+    transform var(--dur-slow) var(--ease-out) .15s;
+}
+.ticket-stage[data-intro="play"] .env-flap{
+  transform: rotateX(180deg);
+  z-index: 0;
+  transition:
+    transform var(--dur) var(--ease-out),
+    z-index 0s linear calc(var(--dur) / 2);
+}
+.ticket-stage[data-intro="play"] .ticket-envelope{
+  opacity: 0;
+  transform: translateY(var(--sp-4));
+  visibility: hidden;
+  transition:
+    opacity    var(--dur) var(--ease-out) .9s,
+    transform  var(--dur) var(--ease-out) .9s,
+    visibility 0s linear 1.3s;
+}
+.ticket-stage[data-intro="done"] .ticket-envelope{
+  opacity: 0;
+  visibility: hidden;
+}
+
 /* Shared "next step" affordance closing a section. */
 .section-action{
   margin-top: clamp(var(--sp-7), 4vw, var(--sp-8));

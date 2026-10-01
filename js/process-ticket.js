@@ -119,6 +119,39 @@
 
   stage.appendChild(ticket);
   list.parentNode.insertBefore(stage, list);
+
+  /* ---------- Envelope intro (decorative, plays once) ---------- */
+  stage.dataset.intro = "pending";
+  var envelope = el("div", "ticket-envelope");
+  envelope.setAttribute("aria-hidden", "true");
+  ["env-back", "env-flap", "env-front"].forEach(function (c) {
+    var s = el("span", c);
+    s.setAttribute("aria-hidden", "true");
+    envelope.appendChild(s);
+  });
+  stage.appendChild(envelope);
+
+  var finishIntro = function () { stage.dataset.intro = "done"; };
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches || !("IntersectionObserver" in window)) {
+    finishIntro();   // finished ticket immediately, no envelope
+  } else {
+    var flap = envelope.querySelector(".env-flap");
+    var seen = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          stage.dataset.intro = "play";
+          seen.unobserve(stage);
+          // Backup for the flap's delayed discrete z-index swap in CSS:
+          // without discrete-property transitions the swap would apply at
+          // once, so pin it behind the ticket at the halfway point anyway.
+          window.setTimeout(function () { flap.style.zIndex = "0"; }, 200);
+          window.setTimeout(finishIntro, 1600);   // total intro <= 1.8 s
+        }
+      });
+    }, { threshold: 0.45 });
+    seen.observe(stage);
+  }
+
   select(0, false);
   list.classList.add("stages--replaced");   // only now, after a successful build
 }());
