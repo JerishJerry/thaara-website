@@ -52,8 +52,8 @@ ideas the page already states. The envelope is flat CSS, not WebGL, and the list
 as the no-JS fallback.
 
 Provenance: the four `stage-more` paragraphs were drafted by the assistant (Muse Spark) at the
-owner's instruction on 2026-10-01. The owner's read-approval is still pending — the work is
-committed locally only and has **not** been pushed, so nothing drafted is live.
+owner's instruction and approved by the owner on 2026-10-01. The work is committed locally only
+and has **not** been pushed, so nothing new is live yet.
 
 **Verified**
 Copy lint exits 0 (four leads unchanged, four detail paragraphs match, no digits/forbidden words);
@@ -63,7 +63,8 @@ on `--ink` 15.36:1 and `.stop-num` `--bg-soft` on ivory 13.38:1 (both ≥ 4.5:1)
 Not verified: the rendered ticket and the envelope animation in a visible browser (no viewport
 tool in this environment — no 1440/390/320/1920 matrix, no click/keyboard/focus-ring run, no
 notch-on-the-dashed-line eyeball, no live reduced-motion / JS-off / script-blocked pass). The
-owner still needs to read and approve the four drafted paragraphs below before push.
+owner still needs to visually verify the rendered ticket before push. The owner approved the
+four drafted paragraphs below as-is on 2026-10-01.
 
 The drafted detail, verbatim: "We listen before we design - the people involved, the place, and
 how you want your guests to feel. Bring whatever you have - names, photographs, a reference, or

@@ -21,7 +21,7 @@ The site was rebuilt across five phases, all complete. It is **live and feature-
 | **6 — Owner review** | **In progress. Awaiting the owner's feedback.** |
 | **7 — Hero envelope flight** | **On `main` (merged 2026-10-01). Scroll-scrubbed 3D envelope in the hero slot (`js/envelope/`, vendored Three.js + GSAP); the 2026-10-01 entries in `THAARA_CHANGELOG.md` record what was built and verified.** |
 | **8 — Services deck** | **On `main` (merged 2026-10-01). Pinned, stacking 3D cards in Services (`js/services-deck.js`); see the 2026-10-01 entries in `THAARA_CHANGELOG.md`.** |
-| **9 — Process journey ticket** | **On `main`, committed locally 2026-10-01, not pushed. Ticket tabs built from the `.stages` list (`js/process-ticket.js`) plus a one-play flat envelope intro; see the 2026-10-01 entry in `THAARA_CHANGELOG.md`. The drafted stage detail is pending the owner's read-approval before push.** |
+| **9 — Process journey ticket** | **On `main`, committed locally 2026-10-01, not pushed. Ticket tabs built from the `.stages` list (`js/process-ticket.js`) plus a one-play flat envelope intro; see the 2026-10-01 entry in `THAARA_CHANGELOG.md`. The drafted stage detail was approved by the owner on 2026-10-01; visual verification before push.** |
 
 `main` is the only branch. The old working branches (`hero-envelope`, `3d-redesign`, `services-motion`,
 `deck-envelope`) were fully merged into it and deleted on 2026-10-01.
@@ -132,8 +132,8 @@ designed as a website" are printed in the artwork itself.
 
 One authorised exception (2026-10-01): the Process stage detail (`.stage-more`, one paragraph per
 stage) is assistant-drafted copy the owner asked to be written — deliberately generic, with no
-figures, durations, prices or guarantees. It is committed but unpushed, pending the owner's
-read-approval before it goes live. Anything more specific must come from the owner in their own
+figures, durations, prices or guarantees. It was approved by the owner on 2026-10-01 and is
+committed but unpushed, pending visual verification before it goes live. Anything more specific must come from the owner in their own
 words.
 
 ---
