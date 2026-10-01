@@ -115,6 +115,10 @@
   --deck-dim-max: .7;
   --shadow-deck:  0 -14px 36px rgba(0,0,0,.38);
 
+  /* ---- Section life ---------------------------------------- */
+  --settle-persp: 1400px;   /* perspective for visuals that lean back as they scroll in */
+  --settle-tilt:  7deg;     /* how far they lean when first entering */
+
   /* ---- Process ticket ---------------------------------------- */
   --ticket-stub-w: 14rem;   /* tear-off stub width on wide screens */
   --ticket-notch:  var(--sp-4);   /* perforation cut-out diameter */
@@ -1998,3 +2002,136 @@ html.envelope-lock{ overflow: hidden; scrollbar-gutter: stable; }
 /* Flight: the canvas leaves the slot for a full-viewport overlay above the
    sticky CTA (90) and below the header (100). Size comes from the switch. */
 .envelope-canvas--flight{ position: fixed; left: 0; top: 0; z-index: 95; }
+
+/* ============================================================
+   17  SECTION LIFE
+   Small touches for Work, Why, About, Contact and Closing.
+   Every start state is keyed to a class the script adds (or to
+   .js), so without script a section is simply static.
+   ============================================================ */
+
+/* ---- Why: each principle's top rule draws across ---- */
+.principle{ position: relative; }
+.principle::before{
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--ink-faint);
+  transform-origin: left;
+}
+.js .principle::before{
+  transform: scaleX(0);
+  transition: transform var(--dur-slow) var(--ease-out);
+}
+.js .principle.in-view::before{ transform: none; }
+
+/* ---- Headings: words rise out of a mask (.w / .w-i come from the deck) ---- */
+.words .w-i{ transform: translateY(110%); }
+.words.is-in .w-i{ transform: none; }
+.js .section-head[data-words].reveal,
+.js .contact-intro[data-words].reveal{ transform: none; }   /* the words carry the motion; the fade stays */
+
+/* ---- Settle: visuals lean back, then lie flat as they scroll in ---- */
+[data-settle]{
+  transform:
+    perspective(var(--settle-persp))
+    rotateX(calc(var(--settle, 0) * var(--settle-tilt)))
+    translateY(calc(var(--settle, 0) * var(--sp-5)));
+  transform-origin: 50% 100%;
+}
+/* The Work visuals already carry `transition: transform .8s` (for their hover
+   scale). A scroll-linked transform must not be eased by that, or it lags the
+   scroll like a rubber band; so settle targets keep only the border transition.
+   (The hover scale on those two visuals becomes instant: 0.8%, imperceptible.) */
+[data-settle]{ transition: border-color var(--dur) var(--ease); }
+[data-settle][data-settled]{ transform: none; }            /* fully settled: no transform, no layer */
+.about-poster picture[data-settle]{ display: block; }
+
+/* ---- Work: the phone's screen recording sits over the cover ---- */
+.project-visual--portrait{ position: relative; }
+.project-video{
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top;
+  opacity: 0;
+  transition: opacity var(--dur-slow) var(--ease);
+}
+.project-video.is-playing{ opacity: 1; }
+.video-toggle{
+  position: absolute;
+  right: var(--sp-3);
+  bottom: var(--sp-3);
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid var(--line-firm);
+  border-radius: 50%;
+  background: var(--bg);
+  color: var(--ink);
+  cursor: pointer;
+}
+.video-toggle span{                 /* pause: two bars */
+  width: var(--sp-3);
+  height: var(--sp-3);
+  border-inline: var(--sp-1) solid currentColor;
+}
+.video-toggle.is-paused span{       /* play: a triangle */
+  width: 0;
+  height: 0;
+  border-inline: 0;
+  border-block: var(--sp-2) solid transparent;
+  border-left: var(--sp-3) solid currentColor;
+}
+.video-toggle:focus-visible{ outline: 2px solid var(--gold); outline-offset: 3px; }
+
+/* ---- Contact: the sent envelope inside the existing success box ---- */
+.sent{
+  position: relative;
+  width: var(--sp-9);
+  height: var(--sp-8);
+  margin-bottom: var(--sp-4);
+  opacity: 0;
+}
+.sent span{ position: absolute; left: 0; right: 0; }
+.sent-letter{
+  top: 0;
+  height: 60%;
+  border-radius: var(--radius);
+  background: var(--ink);
+  opacity: 0;
+  transform: translateY(-40%);
+}
+.sent-pocket{ bottom: 0; height: 70%; border-radius: var(--radius); background: var(--ink-dim); }
+.sent-flap{
+  top: 30%;
+  height: 40%;
+  background: var(--ink-dim);
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  transform-origin: 50% 0;
+  transform: rotateX(180deg);       /* open */
+}
+.is-sent .sent{ opacity: 1; transition: opacity var(--dur) var(--ease); }
+.is-sent .sent-letter{
+  opacity: 1;
+  transform: translateY(35%);
+  transition: transform var(--dur-slow) var(--ease-out) .1s, opacity var(--dur-fast) linear .1s;
+}
+.is-sent .sent-flap{
+  transform: rotateX(0deg);          /* closes over the letter */
+  transition: transform var(--dur-slow) var(--ease-out) .6s;
+}
+
+/* ---- Closing: the hero's gold dust, echoed ---- */
+.closing{ position: relative; overflow: hidden; }
+.closing .container{ position: relative; z-index: 1; }
+.dust--closing span{ animation-play-state: paused; }
+.dust--closing.is-live span{ animation-play-state: running; }
