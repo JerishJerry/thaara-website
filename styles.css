@@ -1193,11 +1193,20 @@ body.menu-open{ overflow: hidden; }
 }
 .deck--armed .deck-card:not(.is-in) .w-i{ transform: translateY(110%); }
 
-/* Stagger (document order) for list items and pills. */
-.deck-card .capability-list li:nth-child(2), .deck-card .capability-inline li:nth-child(2){ transition-delay: calc(var(--stagger) * 1); }
-.deck-card .capability-list li:nth-child(3), .deck-card .capability-inline li:nth-child(3){ transition-delay: calc(var(--stagger) * 2); }
+/* Stagger (document order) for the list items. They have no hover state, so
+   one delay for both of their transitions is fine. */
+.deck-card .capability-list li:nth-child(2){ transition-delay: calc(var(--stagger) * 1); }
+.deck-card .capability-list li:nth-child(3){ transition-delay: calc(var(--stagger) * 2); }
 .deck-card .capability-list li:nth-child(4){ transition-delay: calc(var(--stagger) * 3); }
 .deck-card .capability-list li:nth-child(5){ transition-delay: calc(var(--stagger) * 4); }
+
+/* Pills: the stagger belongs to the entry (opacity, transform) only. A single
+   delay would also hold back the hover recolour (border-color, color), so the
+   delay is a per-property list in the same order as the transition list on
+   .capability-inline li: border-color, color, opacity, transform. The first
+   pill needs none. */
+.deck-card .capability-inline li:nth-child(2){ transition-delay: 0s, 0s, calc(var(--stagger) * 1), calc(var(--stagger) * 1); }
+.deck-card .capability-inline li:nth-child(3){ transition-delay: 0s, 0s, calc(var(--stagger) * 2), calc(var(--stagger) * 2); }
 
 
 /* ============================================================
