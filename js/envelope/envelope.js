@@ -1313,6 +1313,14 @@ export async function start() {
     phone.position.y -= 0.5 * be;
     phone.position.z -= 2.2 * be;
     handset.rotation.y -= 0.6 * be;
+    // Aside is not enough: the camera's wide settling shot (and the rest frame
+    // after it) still takes in that corner, so a phone merely parked there
+    // reads as a leftover until landing hides it with a pop. It shrinks away
+    // instead, and is gone before the wide shot, so the fold ends on the
+    // envelope alone.
+    const gone = smooth(0.25, 0.9, be);
+    phone.scale.setScalar(1 - gone);
+    if (gone >= 0.999) phone.visible = false;
   }
 
   /* ---- Loop: render only while the hero is on screen and tab visible ---- */

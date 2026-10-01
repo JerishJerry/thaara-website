@@ -14,6 +14,37 @@ typography, animation timing, minor visual detail).
 
 ---
 
+## 2026-10-01 — Hero envelope: phone left parked after the fold-back · Important
+
+**Issue**
+In the last second of the flight, as the camera settled back into the hero, a small phone sat at the
+right edge beside the folded envelope, then vanished with a pop at landing. The owner asked why a
+phone was still there after the envelope had folded.
+
+**Change**
+`posePhone()` now shrinks the phone away as the fold begins instead of only nudging it aside:
+`scale = 1 − smooth(0.25, 0.9, SF.back)`, hidden once that reaches 1. The aside-and-away motion
+(x +2.6, y −0.5, z −2.2) is unchanged. The phone is gone by `SF.back` ≈ 0.9, before the wide settling
+shot completes and before the window shrinks back into the slot (progress ≈ 0.846), so the fold ends
+on the envelope alone.
+
+**Files**
+`js/envelope/envelope.js`
+
+**Reason**
+The old offset parked the phone, but the wide settling shot and the rest frame both take in that
+corner, so a parked phone read as a leftover until landing hid it. The earlier closure check
+(last frame vs rest frame, 0.319% of pixels differing) was most likely this phone and was accepted as
+noise.
+
+**Verified**
+The module still parses and exports `start()`; the shrink curve was computed from the exact formula
+(scale 1 at `SF.back` ≤ 0.25, 0.5 at 0.575, 0 at ≥ 0.9). **Not verified on screen:** the preview pane
+was hidden (the frame loop pauses while the page is hidden, and boot timed out), so the end of the
+flight has not been watched since the change.
+
+---
+
 ## 2026-10-01 — Services deck: pill hover answers at once · Polish
 
 **Issue**
